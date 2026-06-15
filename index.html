@@ -196,6 +196,30 @@
 
         .dark .weight-trend-label { fill: #94a3b8; }
 
+        .weight-trend-ma-line {
+            fill: none;
+            stroke: #ca8a04;
+            stroke-width: 2;
+            stroke-dasharray: 5 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .dark .weight-trend-ma-line { stroke: #facc15; }
+
+        .weight-trend-raw-line {
+            fill: none;
+            stroke: #94a3b8;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0.55;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .dark .weight-trend-raw-line { stroke: #64748b; }
+
         #weight-history-list {
             padding-right: 0.75rem;
             scrollbar-gutter: stable;
@@ -382,6 +406,7 @@
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">RUMPFBEUGEN</div><div class="text-3xl font-bold text-purple-600 dark:text-purple-400" id="rumpfbeugen-today">0</div></div>
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">BURPEES</div><div class="text-3xl font-bold text-orange-600 dark:text-orange-400" id="burpees-today">0</div></div>
                     </div>
+                    <div id="strength-progress" class="hidden mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2"></div>
                     <div id="strength-days-list" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2.5"></div>
                 </div>
             </div>
@@ -413,6 +438,10 @@
                 </div>
                 <div id="weight-history-list" class="space-y-1 max-h-28 overflow-y-auto mb-2"></div>
                 <div id="weight-trend-chart" class="weight-trend-chart h-16 pt-2 border-t border-slate-100 dark:border-slate-700 px-1"></div>
+                <div id="weight-trend-legend" class="hidden flex justify-center gap-4 text-[9px] text-slate-400 dark:text-slate-500 mt-1">
+                    <span class="inline-flex items-center gap-1"><span class="inline-block w-4 border-t border-slate-400 dark:border-slate-500 opacity-60"></span>Messung</span>
+                    <span class="inline-flex items-center gap-1"><span class="inline-block w-4 border-t-2 border-dashed border-yellow-600 dark:border-yellow-400"></span>Ø 4 Wochen</span>
+                </div>
             </div>
         </div>
     </div>
@@ -1563,6 +1592,7 @@
             document.getElementById('burpees-today').textContent =
                 dailyData.dayCompleted ? 0 : dailyData.burpees;
             updateStrengthDaysDisplay();
+            renderStrengthProgress();
             
             let baseKcal = getBaseKcal(effectiveMode);
             dailyData.training.forEach(t => baseKcal += t.kcalBonus || 0);
@@ -1860,6 +1890,7 @@
             hideStrengthModal();
             saveData();
             updateStrengthDaysDisplay();
+            renderStrengthProgress();
             updateFinishDayButton();
         }
 
@@ -1929,6 +1960,80 @@
                 `).join('');
         }
 
+        function sumStrengthForDayKeys(dayKeys) {
+            const set = new Set(dayKeys);
+            const totals = emptyStrengthDay();
+            getStrengthDaysSummary().days
+                .filter(d => set.has(d.date))
+                .forEach(d => {
+                    totals.pushups += d.pushups;
+                    totals.pullups += d.pullups;
+                    totals.rumpfbeugen += d.rumpfbeugen;
+                    totals.burpees += d.burpees;
+                });
+            return totals;
+        }
+
+        function getStrengthRecords() {
+            const records = emptyStrengthDay();
+            getStrengthDaysSummary().days.forEach(d => {
+                STRENGTH_EXERCISES.forEach(ex => {
+                    records[ex.key] = Math.max(records[ex.key], d[ex.key] || 0);
+                });
+            });
+            return records;
+        }
+
+        function formatStrengthWeekDelta(current, previous) {
+            const diff = current - previous;
+            if (diff > 0) return `<span class="text-teal-600 dark:text-teal-400 font-semibold">+${diff}</span>`;
+            if (diff < 0) return `<span class="text-slate-400 dark:text-slate-500">${diff}</span>`;
+            return `<span class="text-slate-400 dark:text-slate-500">±0</span>`;
+        }
+
+        function renderStrengthProgress() {
+            const container = document.getElementById('strength-progress');
+            const records = getStrengthRecords();
+            const thisWeek = sumStrengthForDayKeys(getLastNDayKeys(7, 0));
+            const lastWeek = sumStrengthForDayKeys(getLastNDayKeys(7, 7));
+
+            if (!hasStrengthTotals(records) && !hasStrengthTotals(thisWeek)) {
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+
+            const recordChips = STRENGTH_EXERCISES
+                .filter(ex => records[ex.key] > 0)
+                .map(ex => `
+                    <span class="inline-flex items-baseline gap-1 px-2 py-1 rounded-lg text-xs ${ex.chip}">
+                        <span class="font-bold tabular-nums">${records[ex.key]}</span>
+                        <span class="font-medium opacity-90">${ex.label}</span>
+                    </span>
+                `).join('');
+
+            const weekItems = STRENGTH_EXERCISES
+                .filter(ex => thisWeek[ex.key] > 0 || lastWeek[ex.key] > 0)
+                .map(ex => `
+                    <span class="inline-flex items-baseline gap-1 text-xs text-slate-600 dark:text-slate-300">
+                        <span class="font-bold tabular-nums">${thisWeek[ex.key]}</span>
+                        <span>${ex.label}</span>
+                        ${formatStrengthWeekDelta(thisWeek[ex.key], lastWeek[ex.key])}
+                    </span>
+                `).join('');
+
+            container.innerHTML = `
+                <div>
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-1">Bestwert (1 Tag)</div>
+                    <div class="flex flex-wrap gap-1.5">${recordChips || '<span class="text-xs text-slate-400">—</span>'}</div>
+                </div>
+                <div>
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-1">7 Tage vs. Woche davor</div>
+                    <div class="flex flex-wrap gap-x-3 gap-y-1">${weekItems || '<span class="text-xs text-slate-400">—</span>'}</div>
+                </div>
+            `;
+        }
+
         function updateStrengthDaysDisplay() {
             const { days } = getStrengthDaysSummary();
             const today = getTodayKey();
@@ -1951,15 +2056,24 @@
             }).join('');
         }
 
-        function getLastNDayKeys(n = 7) {
+        function getLastNDayKeys(n = 7, endOffset = 0) {
             const keys = [];
             const d = new Date(getTodayKey() + 'T12:00:00');
+            d.setDate(d.getDate() - endOffset);
             for (let i = n - 1; i >= 0; i--) {
                 const x = new Date(d);
                 x.setDate(x.getDate() - i);
                 keys.push(`${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`);
             }
             return keys;
+        }
+
+        function computeWeightMovingAvg(entries, window = 4) {
+            return entries.map((e, i) => {
+                const slice = entries.slice(Math.max(0, i - window + 1), i + 1);
+                const avg = slice.reduce((s, x) => s + x.kg, 0) / slice.length;
+                return { date: e.date, kg: e.kg, avg: Math.round(avg * 10) / 10 };
+            });
         }
 
         function saveWeightEntry() {
@@ -1987,40 +2101,46 @@
 
         function renderWeightTrendChart() {
             const container = document.getElementById('weight-trend-chart');
+            const legend = document.getElementById('weight-trend-legend');
             const entries = [...weightHistory].sort((a, b) => a.date.localeCompare(b.date)).slice(-12);
             if (entries.length < 2) {
                 container.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-4">Mindestens 2 Einträge für den Trend</div>';
+                legend?.classList.add('hidden');
                 return;
             }
-            const weights = entries.map(e => e.kg);
-            const min = Math.min(...weights) - 0.3;
-            const max = Math.max(...weights) + 0.3;
+            const withMa = computeWeightMovingAvg(entries);
+            const allValues = withMa.flatMap(e => [e.kg, e.avg]);
+            const min = Math.min(...allValues) - 0.3;
+            const max = Math.max(...allValues) + 0.3;
             const range = max - min || 1;
             const w = 360;
             const h = 72;
             const padX = 14;
             const padY = 18;
-            const coords = entries.map((e, i) => {
-                const x = padX + (i / (entries.length - 1)) * (w - padX * 2);
-                const y = padY + (h - padY * 2) - ((e.kg - min) / range) * (h - padY * 2);
-                return { x, y, kg: e.kg };
+            const toY = kg => padY + (h - padY * 2) - ((kg - min) / range) * (h - padY * 2);
+            const coords = withMa.map((e, i) => {
+                const x = padX + (i / (withMa.length - 1)) * (w - padX * 2);
+                return { x, y: toY(e.kg), maY: toY(e.avg), kg: e.kg, avg: e.avg };
             });
-            const line = coords.map(c => `${c.x},${c.y}`).join(' ');
+            const rawLine = coords.map(c => `${c.x},${c.y}`).join(' ');
+            const maLine = coords.map(c => `${c.x},${c.maY}`).join(' ');
             const dots = coords.map(c =>
-                `<circle cx="${c.x}" cy="${c.y}" r="3" class="weight-trend-dot"/>`
+                `<circle cx="${c.x}" cy="${c.y}" r="2.5" class="weight-trend-dot"/>`
             ).join('');
             const labels = coords.map((c, i) => {
                 const above = i % 2 === 0;
-                const y = above ? c.y - 7 : c.y + 11;
-                return `<text x="${c.x}" y="${y}" text-anchor="middle" class="weight-trend-label">${c.kg}</text>`;
+                const y = above ? c.maY - 7 : c.maY + 11;
+                return `<text x="${c.x}" y="${y}" text-anchor="middle" class="weight-trend-label">${c.avg}</text>`;
             }).join('');
             container.innerHTML = `
                 <svg viewBox="0 0 ${w} ${h}" class="w-full h-16" preserveAspectRatio="xMidYMid meet">
-                    <polyline points="${line}" class="weight-trend-line"/>
+                    <polyline points="${rawLine}" class="weight-trend-raw-line"/>
+                    <polyline points="${maLine}" class="weight-trend-ma-line"/>
                     ${dots}
                     ${labels}
                 </svg>
             `;
+            legend?.classList.remove('hidden');
         }
 
         function renderWeightSection() {
@@ -2051,6 +2171,11 @@
                     deltaText = `${sign}${diff} kg seit ${formatDateDE(prev.date)}`;
                 } else {
                     deltaText = `seit ${formatDateDE(latest.date)}`;
+                }
+                const entriesAsc = [...weightHistory].sort((a, b) => a.date.localeCompare(b.date));
+                const latestMa = computeWeightMovingAvg(entriesAsc).pop()?.avg;
+                if (latestMa != null && entriesAsc.length >= 2) {
+                    deltaText += ` · Ø4W: ${latestMa} kg`;
                 }
                 deltaEl.textContent = deltaText;
             } else {
