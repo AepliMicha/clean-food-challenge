@@ -327,19 +327,6 @@
                     </div>
                 </div>
 
-                <!-- Training Summary -->
-                <div class="mt-3 pt-3 border-t border-teal-100 dark:border-teal-900">
-                    <div class="flex items-center justify-between text-sm mb-2">
-                        <div class="font-medium text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
-                            <i class="fa-solid fa-person-running"></i>
-                            <span>Training heute</span>
-                        </div>
-                        <button id="btn-add-training" onclick="showAddTrainingModal()" class="text-xs px-3 py-1 bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 rounded-2xl font-medium flex items-center gap-x-1">
-                            <i class="fa-solid fa-plus fa-xs"></i> Hinzufügen
-                        </button>
-                    </div>
-                    <div id="training-summary" class="flex flex-wrap gap-2 text-xs"></div>
-                </div>
             </div>
 
             <!-- Mahlzeiten | Extra-kcal | Kraft -->
@@ -357,13 +344,16 @@
 
                 <!-- Zusätzlich wegen Training -->
                 <div class="ui-card rounded-3xl p-4 h-full">
-                    <div class="section-header mb-3 px-1 text-emerald-700 dark:text-emerald-400 flex items-center gap-x-2">
-                        <i class="fa-solid fa-plus-circle"></i>
-                        <span>ZUSÄTZLICH WEGEN TRAINING</span>
+                    <div class="flex items-center justify-between mb-3 px-1 gap-2">
+                        <div class="section-header text-emerald-700 dark:text-emerald-400 flex items-center gap-x-2">
+                            <i class="fa-solid fa-person-running"></i>
+                            <span>TRAINING & EXTRA-KCAL</span>
+                        </div>
+                        <button id="btn-add-training" onclick="showAddTrainingModal()" class="text-xs px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-2xl font-medium flex items-center gap-x-1 shrink-0">
+                            <i class="fa-solid fa-plus fa-xs"></i> Hinzufügen
+                        </button>
                     </div>
-                    <div id="refuel-section" class="min-h-[140px]">
-                        <div class="text-sm text-slate-400 py-8 text-center">Noch kein Training heute.<br>Wenn du Training hinzufügst, siehst du hier deine Extra-kcal.</div>
-                    </div>
+                    <div id="refuel-section" class="min-h-[120px]"></div>
                 </div>
 
                 <!-- Kraft-Training -->
@@ -1556,7 +1546,6 @@
                 freiBlock.classList.add('hidden');
             }
 
-            renderTrainingSummary();
             renderRefuelSection();
             
             document.getElementById('pushups-today').textContent =
@@ -1604,52 +1593,40 @@
         function renderRefuelSection() {
             const container = document.getElementById('refuel-section');
             if (dailyData.training.length === 0) {
-                container.innerHTML = `<div class="text-sm text-slate-400 py-8 text-center">Noch kein Training heute.<br>Wenn du Training hinzufügst, siehst du hier deine Extra-kcal.</div>`;
+                container.innerHTML = `<div class="text-sm text-slate-400 py-6 text-center">Noch kein Training heute.<br>Oben rechts «Hinzufügen» tippen.</div>`;
                 return;
             }
 
             let extraKcal = 0;
-            const sportCards = dailyData.training.map(t => {
+            const locked = isDayLocked();
+            const sportCards = dailyData.training.map((t, index) => {
                 extraKcal += t.kcalBonus || 0;
                 const icon = getTrainingIcon(t.type);
+                const removeBtn = locked ? '' :
+                    `<button type="button" onclick="removeTraining(${index})" class="text-emerald-400 hover:text-red-500 shrink-0 ml-1" aria-label="Entfernen"><i class="fa-solid fa-times"></i></button>`;
                 return `
-                    <div class="px-3 py-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-2xl border border-emerald-100 dark:border-emerald-800">
-                        <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-200 font-medium">
-                            <i class="fa-solid ${icon} text-emerald-600 dark:text-emerald-400 w-4 text-center"></i>
-                            <span>${t.label}</span>
+                    <div class="px-3 py-2.5 bg-emerald-50 dark:bg-emerald-950/50 rounded-2xl border border-emerald-100 dark:border-emerald-800 flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-200 font-medium text-sm">
+                                <i class="fa-solid ${icon} text-emerald-600 dark:text-emerald-400 w-4 text-center shrink-0"></i>
+                                <span class="truncate">${escapeHtml(t.label)}</span>
+                            </div>
+                            <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 pl-6">+${t.kcalBonus || 0} kcal</div>
                         </div>
-                        <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1.5 pl-6">+${t.kcalBonus || 0} kcal</div>
+                        ${removeBtn}
                     </div>
                 `;
             }).join('');
 
             container.innerHTML = `
-                <div class="space-y-2.5">
+                <div class="space-y-2">
                     ${sportCards}
-                    <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-600 text-center">
-                        <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">Gesamt Extra-kcal</div>
-                        <div class="text-4xl font-bold text-emerald-600 dark:text-emerald-400">+${Math.round(extraKcal)}</div>
-                        <div class="text-xs text-slate-400 dark:text-slate-500 mt-1">iss was dir passt</div>
+                    <div class="mt-2 pt-3 border-t border-slate-200 dark:border-slate-600 text-center">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Gesamt Extra-kcal</div>
+                        <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">+${Math.round(extraKcal)}</div>
                     </div>
                 </div>
             `;
-        }
-
-        function renderTrainingSummary() {
-            const container = document.getElementById('training-summary');
-            container.innerHTML = '';
-            if (dailyData.training.length === 0) {
-                container.innerHTML = `<span class="text-xs text-slate-400 dark:text-slate-500 px-2">Noch kein Training</span>`;
-                return;
-            }
-            dailyData.training.forEach((t, index) => {
-                const el = document.createElement('div');
-                el.className = `px-3 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 rounded-3xl text-xs flex items-center gap-x-2`;
-                const removeBtn = isDayLocked() ? '' :
-                    `<button onclick="removeTraining(${index})" class="text-teal-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>`;
-                el.innerHTML = `<span>${t.label}</span>${removeBtn}`;
-                container.appendChild(el);
-            });
         }
 
         function showAddTrainingModal() {
@@ -1805,7 +1782,6 @@
 
             dailyData.training.push(entry);
             hideAddTrainingModal();
-            renderTrainingSummary();
             renderRefuelSection();
             updateKcalDisplays();
             saveData();
@@ -1814,7 +1790,6 @@
         function removeTraining(index) {
             if (isDayLocked()) return;
             dailyData.training.splice(index, 1);
-            renderTrainingSummary();
             renderRefuelSection();
             updateKcalDisplays();
             saveData();
