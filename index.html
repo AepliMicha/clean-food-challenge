@@ -189,7 +189,7 @@
 
         .weight-trend-label {
             font-family: 'Inter', system-ui, sans-serif;
-            font-size: 8px;
+            font-size: 10px;
             font-weight: 600;
             fill: #64748b;
         }
@@ -220,7 +220,8 @@
 
         .dark .weight-trend-raw-line { stroke: #64748b; }
 
-        #weight-history-list {
+        #weight-history-list,
+        #strength-days-list {
             padding-right: 0.75rem;
             scrollbar-gutter: stable;
         }
@@ -407,7 +408,7 @@
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">BURPEES</div><div class="text-3xl font-bold text-orange-600 dark:text-orange-400" id="burpees-today">0</div></div>
                     </div>
                     <div id="strength-progress" class="hidden mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2"></div>
-                    <div id="strength-days-list" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2.5"></div>
+                    <div id="strength-days-list" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2 max-h-36 overflow-y-auto"></div>
                 </div>
             </div>
 
@@ -436,8 +437,8 @@
                     </div>
                     <div id="weekly-overview" class="flex flex-wrap gap-1.5 justify-end min-w-0"></div>
                 </div>
-                <div id="weight-history-list" class="space-y-1 max-h-28 overflow-y-auto mb-2"></div>
-                <div id="weight-trend-chart" class="weight-trend-chart h-16 pt-2 border-t border-slate-100 dark:border-slate-700 px-1"></div>
+                <div id="weight-history-list" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto mb-2"></div>
+                <div id="weight-trend-chart" class="weight-trend-chart h-40 pt-2 border-t border-slate-100 dark:border-slate-700 px-1"></div>
                 <div id="weight-trend-legend" class="hidden flex justify-center gap-4 text-[9px] text-slate-400 dark:text-slate-500 mt-1">
                     <span class="inline-flex items-center gap-1"><span class="inline-block w-4 border-t border-slate-400 dark:border-slate-500 opacity-60"></span>Messung</span>
                     <span class="inline-flex items-center gap-1"><span class="inline-block w-4 border-t-2 border-dashed border-yellow-600 dark:border-yellow-400"></span>Ø 4 Wochen</span>
@@ -2162,8 +2163,8 @@
             const { days } = getStrengthDaysSummary();
             const today = getTodayKey();
             const displayDays = dailyData.dayCompleted
-                ? days.slice(0, 10)
-                : days.filter(d => d.date !== today).slice(0, 10);
+                ? days
+                : days.filter(d => d.date !== today);
             const container = document.getElementById('strength-days-list');
 
             if (displayDays.length === 0) {
@@ -2238,9 +2239,9 @@
             const max = Math.max(...allValues) + 0.3;
             const range = max - min || 1;
             const w = 360;
-            const h = 72;
+            const h = 120;
             const padX = 14;
-            const padY = 18;
+            const padY = 22;
             const toY = kg => padY + (h - padY * 2) - ((kg - min) / range) * (h - padY * 2);
             const coords = withMa.map((e, i) => {
                 const x = padX + (i / (withMa.length - 1)) * (w - padX * 2);
@@ -2249,15 +2250,15 @@
             const rawLine = coords.map(c => `${c.x},${c.y}`).join(' ');
             const maLine = coords.map(c => `${c.x},${c.maY}`).join(' ');
             const dots = coords.map(c =>
-                `<circle cx="${c.x}" cy="${c.y}" r="2.5" class="weight-trend-dot"/>`
+                `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="weight-trend-dot"/>`
             ).join('');
             const labels = coords.map((c, i) => {
                 const above = i % 2 === 0;
-                const y = above ? c.maY - 7 : c.maY + 11;
+                const y = above ? c.maY - 8 : c.maY + 14;
                 return `<text x="${c.x}" y="${y}" text-anchor="middle" class="weight-trend-label">${c.avg}</text>`;
             }).join('');
             container.innerHTML = `
-                <svg viewBox="0 0 ${w} ${h}" class="w-full h-16" preserveAspectRatio="xMidYMid meet">
+                <svg viewBox="0 0 ${w} ${h}" class="w-full h-40" preserveAspectRatio="none">
                     <polyline points="${rawLine}" class="weight-trend-raw-line"/>
                     <polyline points="${maLine}" class="weight-trend-ma-line"/>
                     ${dots}
@@ -2317,7 +2318,7 @@
                 listEl.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center">Noch keine Einträge</div>';
                 return;
             }
-            listEl.innerHTML = sorted.slice(0, 8).map((e, i) => {
+            listEl.innerHTML = sorted.slice(0, 12).map((e, i) => {
                 const prev = sorted[i + 1];
                 let deltaHtml = '';
                 if (prev) {
@@ -2326,13 +2327,11 @@
                     const deltaClass = diff < 0 ? 'text-teal-600 dark:text-teal-400' : (diff > 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-400');
                     deltaHtml = `<span class="tabular-nums ${deltaClass}">${sign}${diff}</span>`;
                 }
-                return `<div class="flex justify-between items-center gap-4 text-xs min-w-0">
-                    <span class="text-slate-500 dark:text-slate-400 shrink-0">${formatDateDE(e.date)}</span>
-                    <span class="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 shrink-0 mr-1">
-                        <span class="tabular-nums">${e.kg} kg</span>
-                        ${deltaHtml}
-                    </span>
-                </div>`;
+                return `<span class="inline-flex items-center gap-1.5 ui-panel rounded-xl px-2.5 py-1 text-xs shrink-0">
+                    <span class="text-slate-500 dark:text-slate-400 tabular-nums">${formatDateDE(e.date)}</span>
+                    <span class="font-bold text-slate-700 dark:text-slate-200 tabular-nums">${e.kg}</span>
+                    ${deltaHtml}
+                </span>`;
             }).join('');
         }
 
