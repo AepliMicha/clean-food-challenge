@@ -165,61 +165,6 @@
         .protein-ampel-low { color: #dc2626; }
         .dark .protein-ampel-low { color: #f87171; }
 
-        .weight-trend-chart svg {
-            display: block;
-            shape-rendering: geometricPrecision;
-        }
-
-        .weight-trend-line {
-            fill: none;
-            stroke: #0d9488;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            vector-effect: non-scaling-stroke;
-        }
-
-        .dark .weight-trend-line { stroke: #2dd4bf; }
-
-        .weight-trend-dot {
-            fill: #0d9488;
-        }
-
-        .dark .weight-trend-dot { fill: #2dd4bf; }
-
-        .weight-trend-label {
-            font-family: 'Inter', system-ui, sans-serif;
-            font-size: 10px;
-            font-weight: 600;
-            fill: #64748b;
-        }
-
-        .dark .weight-trend-label { fill: #94a3b8; }
-
-        .weight-trend-ma-line {
-            fill: none;
-            stroke: #ca8a04;
-            stroke-width: 2;
-            stroke-dasharray: 5 4;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            vector-effect: non-scaling-stroke;
-        }
-
-        .dark .weight-trend-ma-line { stroke: #facc15; }
-
-        .weight-trend-raw-line {
-            fill: none;
-            stroke: #94a3b8;
-            stroke-width: 1.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            opacity: 0.55;
-            vector-effect: non-scaling-stroke;
-        }
-
-        .dark .weight-trend-raw-line { stroke: #64748b; }
-
         #weight-history-list,
         #strength-days-list {
             padding-right: 0.75rem;
@@ -437,12 +382,7 @@
                     </div>
                     <div id="weekly-overview" class="flex flex-wrap gap-1.5 justify-end min-w-0"></div>
                 </div>
-                <div id="weight-history-list" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto mb-2"></div>
-                <div id="weight-trend-chart" class="weight-trend-chart h-40 pt-2 border-t border-slate-100 dark:border-slate-700 px-1"></div>
-                <div id="weight-trend-legend" class="hidden flex justify-center gap-4 text-[9px] text-slate-400 dark:text-slate-500 mt-1">
-                    <span class="inline-flex items-center gap-1"><span class="inline-block w-4 border-t border-slate-400 dark:border-slate-500 opacity-60"></span>Messung</span>
-                    <span class="inline-flex items-center gap-1"><span class="inline-block w-4 border-t-2 border-dashed border-yellow-600 dark:border-yellow-400"></span>Ø 4 Wochen</span>
-                </div>
+                <div id="weight-history-list" class="space-y-0.5 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 dark:border-slate-700"></div>
             </div>
         </div>
     </div>
@@ -2074,15 +2014,16 @@
             { key: 'burpees', label: 'Burpees', chip: 'bg-orange-50 text-orange-800 dark:bg-orange-950/50 dark:text-orange-200' }
         ];
 
-        function renderStrengthDayChips(dayTotals) {
-            return STRENGTH_EXERCISES
+        function renderStrengthDayInline(dayTotals) {
+            const parts = STRENGTH_EXERCISES
                 .filter(ex => dayTotals[ex.key] > 0)
-                .map(ex => `
-                    <span class="inline-flex items-baseline gap-1 px-2 py-1 rounded-lg text-xs ${ex.chip}">
-                        <span class="font-bold tabular-nums">${dayTotals[ex.key]}</span>
-                        <span class="font-medium opacity-90">${ex.label}</span>
-                    </span>
-                `).join('');
+                .map(ex => `<span class="whitespace-nowrap"><span class="font-bold tabular-nums">${dayTotals[ex.key]}</span> ${ex.label}</span>`);
+            return parts.join('<span class="text-slate-300 dark:text-slate-600 px-0.5">·</span>') || '<span class="text-slate-400">—</span>';
+        }
+
+        function formatDateShortDE(dateStr) {
+            const [y, m, d] = dateStr.split('-');
+            return `${d}.${m}.`;
         }
 
         function sumStrengthForDayKeys(dayKeys) {
@@ -2172,13 +2113,12 @@
                 return;
             }
 
-            container.innerHTML = displayDays.map(d => {
-                const chips = renderStrengthDayChips(d);
-                return `<div class="text-xs">
-                    <div class="text-slate-500 dark:text-slate-400 font-medium mb-1">${getRelativeDayLabel(d.date)}</div>
-                    <div class="flex flex-wrap gap-1.5">${chips || '<span class="text-slate-400">—</span>'}</div>
-                </div>`;
-            }).join('');
+            container.innerHTML = displayDays.map(d => `
+                <div class="flex items-baseline gap-2 text-xs leading-snug min-w-0">
+                    <span class="text-slate-500 dark:text-slate-400 shrink-0 w-[5.5rem]">${getRelativeDayLabel(d.date)}</span>
+                    <span class="min-w-0 text-slate-700 dark:text-slate-200">${renderStrengthDayInline(d)}</span>
+                </div>
+            `).join('');
         }
 
         function getLastNDayKeys(n = 7, endOffset = 0) {
@@ -2224,50 +2164,6 @@
             updateDeficitDisplay();
         }
 
-        function renderWeightTrendChart() {
-            const container = document.getElementById('weight-trend-chart');
-            const legend = document.getElementById('weight-trend-legend');
-            const entries = [...weightHistory].sort((a, b) => a.date.localeCompare(b.date)).slice(-12);
-            if (entries.length < 2) {
-                container.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-4">Mindestens 2 Einträge für den Trend</div>';
-                legend?.classList.add('hidden');
-                return;
-            }
-            const withMa = computeWeightMovingAvg(entries);
-            const allValues = withMa.flatMap(e => [e.kg, e.avg]);
-            const min = Math.min(...allValues) - 0.3;
-            const max = Math.max(...allValues) + 0.3;
-            const range = max - min || 1;
-            const w = 360;
-            const h = 120;
-            const padX = 14;
-            const padY = 22;
-            const toY = kg => padY + (h - padY * 2) - ((kg - min) / range) * (h - padY * 2);
-            const coords = withMa.map((e, i) => {
-                const x = padX + (i / (withMa.length - 1)) * (w - padX * 2);
-                return { x, y: toY(e.kg), maY: toY(e.avg), kg: e.kg, avg: e.avg };
-            });
-            const rawLine = coords.map(c => `${c.x},${c.y}`).join(' ');
-            const maLine = coords.map(c => `${c.x},${c.maY}`).join(' ');
-            const dots = coords.map(c =>
-                `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="weight-trend-dot"/>`
-            ).join('');
-            const labels = coords.map((c, i) => {
-                const above = i % 2 === 0;
-                const y = above ? c.maY - 8 : c.maY + 14;
-                return `<text x="${c.x}" y="${y}" text-anchor="middle" class="weight-trend-label">${c.avg}</text>`;
-            }).join('');
-            container.innerHTML = `
-                <svg viewBox="0 0 ${w} ${h}" class="w-full h-40" preserveAspectRatio="none">
-                    <polyline points="${rawLine}" class="weight-trend-raw-line"/>
-                    <polyline points="${maLine}" class="weight-trend-ma-line"/>
-                    ${dots}
-                    ${labels}
-                </svg>
-            `;
-            legend?.classList.remove('hidden');
-        }
-
         function renderWeightSection() {
             const weighLabel = document.getElementById('weight-weigh-label');
             const isFriday = new Date().getDay() === 5;
@@ -2311,27 +2207,25 @@
             if (!inputEl.value && latest) inputEl.placeholder = `${latest.kg}`;
             else if (!inputEl.value) inputEl.placeholder = `${getBodyWeightKg()}`;
 
-            renderWeightTrendChart();
-
             const listEl = document.getElementById('weight-history-list');
             if (!sorted.length) {
-                listEl.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center">Noch keine Einträge</div>';
+                listEl.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-1">Noch keine Einträge</div>';
                 return;
             }
             listEl.innerHTML = sorted.slice(0, 12).map((e, i) => {
                 const prev = sorted[i + 1];
-                let deltaHtml = '';
+                let deltaHtml = '<span class="text-slate-300 dark:text-slate-600">—</span>';
                 if (prev) {
                     const diff = Math.round((e.kg - prev.kg) * 10) / 10;
                     const sign = diff > 0 ? '+' : '';
                     const deltaClass = diff < 0 ? 'text-teal-600 dark:text-teal-400' : (diff > 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-400');
                     deltaHtml = `<span class="tabular-nums ${deltaClass}">${sign}${diff}</span>`;
                 }
-                return `<span class="inline-flex items-center gap-1.5 ui-panel rounded-xl px-2.5 py-1 text-xs shrink-0">
-                    <span class="text-slate-500 dark:text-slate-400 tabular-nums">${formatDateDE(e.date)}</span>
-                    <span class="font-bold text-slate-700 dark:text-slate-200 tabular-nums">${e.kg}</span>
+                return `<div class="grid grid-cols-[3.5rem_3.25rem_2.25rem] gap-x-2 items-baseline text-xs leading-snug">
+                    <span class="text-slate-500 dark:text-slate-400 tabular-nums">${formatDateShortDE(e.date)}</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums">${e.kg}</span>
                     ${deltaHtml}
-                </span>`;
+                </div>`;
             }).join('');
         }
 
