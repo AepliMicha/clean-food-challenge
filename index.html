@@ -311,10 +311,10 @@
             </div>
 
             <!-- Mahlzeiten | Extra-kcal | Kraft -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
                 <!-- Heute Essen -->
-                <div class="ui-card rounded-3xl p-4 h-full">
+                <div class="ui-card rounded-3xl p-4 h-full lg:col-span-4">
                     <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
                         <i class="fa-solid fa-utensils"></i>
                         <span>HEUTE ESSEN</span>
@@ -324,21 +324,24 @@
                 </div>
 
                 <!-- Zusätzlich wegen Training -->
-                <div class="ui-card rounded-3xl p-4 h-full">
-                    <div class="flex items-center justify-between mb-3 px-1 gap-2">
-                        <div class="section-header text-emerald-700 dark:text-emerald-400 flex items-center gap-x-2">
-                            <i class="fa-solid fa-person-running"></i>
-                            <span>TRAINING & EXTRA-KCAL</span>
+                <div class="ui-card rounded-3xl p-3 lg:p-3.5 h-full lg:col-span-3 min-w-0">
+                    <div class="flex items-start justify-between mb-2 px-0.5 gap-1">
+                        <div class="section-header text-emerald-700 dark:text-emerald-400 leading-tight min-w-0">
+                            <div class="flex items-center gap-x-1.5">
+                                <i class="fa-solid fa-person-running text-[10px]"></i>
+                                <span class="text-[10px]">TRAINING</span>
+                            </div>
+                            <span class="text-[9px] font-medium opacity-75 block pl-[1.1rem]">Extra-kcal</span>
                         </div>
-                        <button id="btn-add-training" onclick="showAddTrainingModal()" class="text-xs px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-2xl font-medium flex items-center gap-x-1 shrink-0">
-                            <i class="fa-solid fa-plus fa-xs"></i> Hinzufügen
+                        <button id="btn-add-training" onclick="showAddTrainingModal()" class="text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl font-medium shrink-0" title="Training hinzufügen">
+                            <i class="fa-solid fa-plus fa-xs"></i>
                         </button>
                     </div>
-                    <div id="refuel-section" class="min-h-[120px]"></div>
+                    <div id="refuel-section" class="min-h-[100px]"></div>
                 </div>
 
                 <!-- Kraft-Training -->
-                <div id="strength-card" onclick="showStrengthModal()" class="ui-card rounded-3xl p-4 h-full cursor-pointer hover:border-slate-300 dark:hover:border-slate-500 transition-all active:scale-[0.99]">
+                <div id="strength-card" onclick="showStrengthModal()" class="ui-card rounded-3xl p-4 h-full lg:col-span-5 min-w-0 cursor-pointer hover:border-slate-300 dark:hover:border-slate-500 transition-all active:scale-[0.99]">
                     <div class="flex justify-between items-center mb-3">
                         <div class="section-header text-slate-700 dark:text-slate-300">KRAFT-TRAINING</div>
                         <div class="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
@@ -1694,7 +1697,7 @@
         function renderRefuelSection() {
             const container = document.getElementById('refuel-section');
             if (dailyData.training.length === 0) {
-                container.innerHTML = `<div class="text-sm text-slate-400 py-6 text-center">Noch kein Training heute.<br>Oben rechts «Hinzufügen» tippen.</div>`;
+                container.innerHTML = `<div class="text-xs text-slate-400 py-5 text-center leading-relaxed">Noch kein Training.<br>«+» tippen.</div>`;
                 return;
             }
 
@@ -1706,13 +1709,13 @@
                 const removeBtn = locked ? '' :
                     `<button type="button" onclick="removeTraining(${index})" class="text-emerald-400 hover:text-red-500 shrink-0 ml-1" aria-label="Entfernen"><i class="fa-solid fa-times"></i></button>`;
                 return `
-                    <div class="px-3 py-2.5 bg-emerald-50 dark:bg-emerald-950/50 rounded-2xl border border-emerald-100 dark:border-emerald-800 flex items-center justify-between gap-2">
+                    <div class="px-2.5 py-2 bg-emerald-50 dark:bg-emerald-950/50 rounded-xl border border-emerald-100 dark:border-emerald-800 flex items-center justify-between gap-1.5">
                         <div class="min-w-0">
-                            <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-200 font-medium text-sm">
-                                <i class="fa-solid ${icon} text-emerald-600 dark:text-emerald-400 w-4 text-center shrink-0"></i>
+                            <div class="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-200 font-medium text-xs">
+                                <i class="fa-solid ${icon} text-emerald-600 dark:text-emerald-400 w-3.5 text-center shrink-0 text-[10px]"></i>
                                 <span class="truncate">${escapeHtml(t.label)}</span>
                             </div>
-                            <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 pl-6">+${t.kcalBonus || 0} kcal</div>
+                            <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 pl-5 tabular-nums">+${t.kcalBonus || 0}</div>
                         </div>
                         ${removeBtn}
                     </div>
@@ -1720,11 +1723,11 @@
             }).join('');
 
             container.innerHTML = `
-                <div class="space-y-2">
+                <div class="space-y-1.5">
                     ${sportCards}
-                    <div class="mt-2 pt-3 border-t border-slate-200 dark:border-slate-600 text-center">
-                        <div class="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Gesamt Extra-kcal</div>
-                        <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">+${Math.round(extraKcal)}</div>
+                    <div class="mt-1.5 pt-2 border-t border-slate-200 dark:border-slate-600 text-center">
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">Gesamt</div>
+                        <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">+${Math.round(extraKcal)}</div>
                     </div>
                 </div>
             `;
