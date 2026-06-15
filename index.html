@@ -1,0 +1,2356 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Food Challenge</title>
+    <script>
+        try {
+            const raw = localStorage.getItem('ernaehrung_v3');
+            if (!raw) {
+                document.documentElement.classList.add('dark');
+            } else if (JSON.parse(raw).settings?.darkMode) {
+                document.documentElement.classList.add('dark');
+            }
+        } catch (e) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .dark body {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .ui-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .ui-card {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: none;
+        }
+
+        .ui-card-teal { border-color: #ccfbf1; }
+        .dark .ui-card-teal { border-color: #134e4a; }
+
+        .ui-panel {
+            background: rgba(248, 250, 252, 0.85);
+            border: 1px solid #e2e8f0;
+        }
+
+        .dark .ui-panel {
+            background: rgba(30, 41, 59, 0.75);
+            border-color: #334155;
+        }
+
+        .ui-input {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #1e293b;
+        }
+
+        .dark .ui-input {
+            background: #0f172a;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+
+        .ui-modal {
+            background: #ffffff;
+            color: #1e293b;
+        }
+
+        .dark .ui-modal {
+            background: #1e293b;
+            color: #f1f5f9;
+        }
+
+        .dark .section-header { color: #94a3b8; }
+        .dark .settings-section-title { color: #94a3b8; }
+        
+        .content-wrapper {
+            flex: 1;
+        }
+
+        .font-display {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .big-number {
+            font-size: 2.15rem;
+            line-height: 2.3rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .section-header {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #64748b;
+        }
+
+        .accent-gold {
+            color: #8a8200;
+        }
+
+        .dark .accent-gold {
+            color: #f5e88a;
+        }
+
+        .accent-gold-bg {
+            background: #fefce8;
+            color: #6b6400;
+        }
+
+        .dark .accent-gold-bg {
+            background: rgba(245, 232, 138, 0.14);
+            color: #f5e88a;
+        }
+
+        .badge-frei {
+            background: #fef9c3;
+            color: #6b6400;
+        }
+
+        .dark .badge-frei {
+            background: rgba(245, 232, 138, 0.18);
+            color: #f5e88a;
+        }
+
+        .badge-completed {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .dark .badge-completed {
+            background: rgba(16, 185, 129, 0.18);
+            color: #6ee7b7;
+        }
+
+        .meal-row {
+            border: 1px solid #f1f5f9;
+        }
+
+        .dark .meal-row {
+            border-color: #334155;
+        }
+
+        .protein-ampel-ok { color: #047857; }
+        .dark .protein-ampel-ok { color: #6ee7b7; }
+        .protein-ampel-warn { color: #8a8200; }
+        .dark .protein-ampel-warn { color: #f5e88a; }
+        .protein-ampel-low { color: #dc2626; }
+        .dark .protein-ampel-low { color: #f87171; }
+
+        .weight-trend-chart svg {
+            display: block;
+            shape-rendering: geometricPrecision;
+        }
+
+        .weight-trend-line {
+            fill: none;
+            stroke: #0d9488;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .dark .weight-trend-line { stroke: #2dd4bf; }
+
+        .weight-trend-dot {
+            fill: #0d9488;
+        }
+
+        .dark .weight-trend-dot { fill: #2dd4bf; }
+
+        .weight-trend-label {
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 8px;
+            font-weight: 600;
+            fill: #64748b;
+        }
+
+        .dark .weight-trend-label { fill: #94a3b8; }
+
+        #weight-history-list {
+            padding-right: 0.75rem;
+            scrollbar-gutter: stable;
+        }
+
+        .app-container {
+            width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meal-card {
+            cursor: grab;
+            user-select: none;
+        }
+
+        .meal-card:active {
+            cursor: grabbing;
+        }
+
+        .meal-drop-active {
+            background: #eff6ff !important;
+            border-color: #93c5fd !important;
+        }
+
+        .dark .meal-drop-active {
+            background: #1e3a5f !important;
+            border-color: #3b82f6 !important;
+        }
+
+        .settings-panel {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+        }
+
+        .settings-section-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #64748b;
+        }
+
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 text-white px-4 sm:px-6 py-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center">
+                        <i class="fa-solid fa-apple-alt text-3xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-display text-xl sm:text-2xl tracking-tight leading-tight">Clean Food Challenge</h1>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="bg-white/15 backdrop-blur-md rounded-3xl p-1 flex text-sm">
+                        <button onclick="switchToArbeit()" id="btn-arbeit"
+                                class="px-4 py-1.5 rounded-3xl font-medium transition-all bg-white text-blue-700 shadow">Arbeit</button>
+                        <button onclick="switchToFrei()" id="btn-frei"
+                                class="px-4 py-1.5 rounded-3xl font-medium transition-all">Frei</button>
+                    </div>
+
+                    <button onclick="finishDay()" id="btn-finish-day"
+                            class="px-3 sm:px-4 py-2 bg-white text-blue-700 hover:bg-white/90 rounded-3xl text-sm font-bold flex items-center gap-x-2 shadow">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span id="btn-finish-day-text" class="hidden md:inline">TAG ABSCHLIESSEN</span>
+                    </button>
+
+                    <button onclick="toggleDarkMode()" id="btn-dark-mode" class="px-3 py-2 bg-white/15 hover:bg-white/25 rounded-3xl text-sm font-medium flex items-center justify-center" title="Dark Mode">
+                        <i class="fa-solid fa-moon" id="dark-mode-icon"></i>
+                    </button>
+
+                    <button onclick="showSettings()" class="px-3 sm:px-4 py-2 bg-white/15 hover:bg-white/25 rounded-3xl text-sm font-medium flex items-center gap-x-2">
+                        <i class="fa-solid fa-cog"></i>
+                        <span class="hidden sm:inline">Einstellungen</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-wrapper px-4 sm:px-6 pt-4 pb-6 space-y-4 w-full">
+
+            <div id="auto-close-notice" class="hidden bg-yellow-50 dark:bg-yellow-950/40 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 text-sm px-4 py-3 rounded-2xl flex items-center justify-between">
+                <span id="auto-close-notice-text"></span>
+                <button onclick="dismissAutoCloseNotice()" class="text-yellow-500 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300 text-xl leading-none">&times;</button>
+            </div>
+            
+            <!-- Daily Header + Totals -->
+            <div class="ui-card ui-card-teal rounded-3xl p-4">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <div class="section-header text-teal-700 dark:text-teal-400">HEUTE</div>
+                        <div class="flex items-baseline gap-x-2 flex-wrap">
+                            <div id="current-day-name" class="text-2xl font-bold text-slate-800 dark:text-slate-100"></div>
+                            <div id="current-day-date" class="text-base font-medium text-slate-500 dark:text-slate-400"></div>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                            <div id="day-type-badge" class="inline-block text-xs px-3 py-0.5 rounded-2xl font-bold"></div>
+                            <div id="day-completed-badge" class="hidden inline-flex items-center gap-1 text-xs px-3 py-0.5 rounded-2xl font-bold badge-completed">
+                                <i class="fa-solid fa-check fa-xs"></i>
+                                <span>Abgeschlossen</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <div class="flex items-baseline justify-end gap-x-4">
+                            <div>
+                                <div class="text-xs text-teal-600 dark:text-teal-400">KCAL</div>
+                                <div id="total-kcal" class="text-4xl font-bold text-teal-700 dark:text-teal-400">2030</div>
+                            </div>
+                            <div>
+                                <div class="text-xs accent-gold">PROTEIN</div>
+                                <div id="total-protein" class="text-4xl font-bold accent-gold">150g</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Essen heute: <span id="daily-target">2030</span> kcal · mind. <span id="daily-protein-target">150</span>g Protein <span id="deficit-display" class="text-slate-400 dark:text-slate-500"></span></div>
+                    </div>
+                </div>
+
+                <!-- Training Summary -->
+                <div class="mt-3 pt-3 border-t border-teal-100 dark:border-teal-900">
+                    <div class="flex items-center justify-between text-sm mb-2">
+                        <div class="font-medium text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
+                            <i class="fa-solid fa-person-running"></i>
+                            <span>Training heute</span>
+                        </div>
+                        <button id="btn-add-training" onclick="showAddTrainingModal()" class="text-xs px-3 py-1 bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 rounded-2xl font-medium flex items-center gap-x-1">
+                            <i class="fa-solid fa-plus fa-xs"></i> Hinzufügen
+                        </button>
+                    </div>
+                    <div id="training-summary" class="flex flex-wrap gap-2 text-xs"></div>
+                </div>
+            </div>
+
+            <!-- Mahlzeiten | Extra-kcal | Kraft -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                <!-- Heute Essen -->
+                <div class="ui-card rounded-3xl p-4 h-full">
+                    <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
+                        <i class="fa-solid fa-utensils"></i>
+                        <span>HEUTE ESSEN</span>
+                    </div>
+                    <div id="meals-arbeit" class="space-y-2.5 text-sm"></div>
+                    <div id="meals-frei" class="hidden space-y-2.5 text-sm"></div>
+                </div>
+
+                <!-- Zusätzlich wegen Training -->
+                <div class="ui-card rounded-3xl p-4 h-full">
+                    <div class="section-header mb-3 px-1 text-emerald-700 dark:text-emerald-400 flex items-center gap-x-2">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>ZUSÄTZLICH WEGEN TRAINING</span>
+                    </div>
+                    <div id="refuel-section" class="min-h-[140px]">
+                        <div class="text-sm text-slate-400 py-8 text-center">Noch kein Training heute.<br>Wenn du Training hinzufügst, siehst du hier deine Extra-kcal.</div>
+                    </div>
+                </div>
+
+                <!-- Kraft-Training -->
+                <div id="strength-card" onclick="showStrengthModal()" class="ui-card rounded-3xl p-4 h-full cursor-pointer hover:border-slate-300 dark:hover:border-slate-500 transition-all active:scale-[0.99]">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="section-header text-slate-700 dark:text-slate-300">KRAFT-TRAINING</div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                            <i class="fa-solid fa-plus" id="strength-tap-icon"></i>
+                            <span id="strength-tap-hint">Tippen</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">LIEGESTÜTZ</div><div class="text-3xl font-bold accent-gold" id="pushups-today">0</div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">KLIMMZÜGE</div><div class="text-3xl font-bold text-teal-600 dark:text-teal-400" id="pullups-today">0</div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">RUMPFBEUGEN</div><div class="text-3xl font-bold text-purple-600 dark:text-purple-400" id="rumpfbeugen-today">0</div></div>
+                        <div><div class="text-xs text-slate-500 dark:text-slate-400">BURPEES</div><div class="text-3xl font-bold text-orange-600 dark:text-orange-400" id="burpees-today">0</div></div>
+                    </div>
+                    <div id="strength-days-list" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2.5"></div>
+                </div>
+            </div>
+
+            <!-- Gewicht | Wochenübersicht -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="ui-card rounded-3xl p-4">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-2">
+                                <i class="fa-solid fa-weight-scale"></i>
+                                <span>GEWICHT</span>
+                            </div>
+                            <div id="weight-friday-hint" class="hidden text-xs text-teal-600 dark:text-teal-400 mt-1 font-medium">Heute Freitag — Wiege-Tag</div>
+                        </div>
+                        <div class="text-right">
+                            <div id="weight-current" class="text-3xl font-bold text-slate-800 dark:text-slate-100">—</div>
+                            <div id="weight-delta" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"></div>
+                        </div>
+                    </div>
+                    <div id="weight-trend-chart" class="weight-trend-chart h-20 mb-3 px-1"></div>
+                    <div class="flex gap-2">
+                        <input type="number" id="weight-input" min="40" max="150" step="0.1" placeholder="kg"
+                               class="ui-input flex-1 border rounded-2xl px-3 py-2 text-sm">
+                        <button onclick="saveWeightEntry()" class="px-4 py-2 bg-teal-700 text-white rounded-2xl text-sm font-bold shrink-0">Speichern</button>
+                    </div>
+                    <div id="weight-history-list" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-1 max-h-36 overflow-y-auto"></div>
+                </div>
+
+                <div class="ui-card rounded-3xl p-4">
+                    <div class="section-header mb-3 text-slate-700 dark:text-slate-300 flex items-center gap-x-2">
+                        <i class="fa-solid fa-calendar-week"></i>
+                        <span>DIESE WOCHE</span>
+                    </div>
+                    <div id="weekly-overview" class="grid grid-cols-2 gap-3 text-sm"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Modal -->
+    <div id="add-training-modal" onclick="if (event.target.id === 'add-training-modal') hideAddTrainingModal()" class="hidden fixed inset-0 bg-black/60 flex items-end md:items-center justify-center z-[100]">
+        <div onclick="event.stopImmediatePropagation()" class="ui-modal w-full md:w-[440px] md:rounded-3xl rounded-t-3xl p-6">
+            <div class="flex justify-between mb-4">
+                <div class="font-bold text-xl">Training hinzufügen</div>
+                <button onclick="hideAddTrainingModal()" class="text-3xl text-slate-300 dark:text-slate-500">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <select id="training-type-select" class="ui-input w-full border rounded-2xl px-4 py-3 text-sm" onchange="updateTrainingInputFields()">
+                    <option value="climbing">Klettern / Bouldern</option>
+                    <option value="gravel">Gravel Tour</option>
+                    <option value="trail">Trailrunning</option>
+                    <option value="swim">Schwimmen (Kraul)</option>
+                </select>
+                <div id="training-input-fields"></div>
+                <div id="training-kcal-preview" class="hidden mt-2 px-4 py-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-800 rounded-2xl text-center">
+                    <div class="text-xs text-emerald-600 dark:text-emerald-400">Geschätzte Extra-kcal</div>
+                    <div id="training-kcal-preview-value" class="text-2xl font-bold text-emerald-700 dark:text-emerald-400">+0</div>
+                </div>
+            </div>
+            <div class="mt-6 flex gap-3">
+                <button onclick="hideAddTrainingModal()" class="flex-1 py-3 border border-slate-300 dark:border-slate-600 rounded-2xl font-bold">Abbrechen</button>
+                <button onclick="addTraining()" class="flex-1 py-3 bg-teal-700 text-white rounded-2xl font-bold">Hinzufügen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strength Modal -->
+    <div id="strength-modal" onclick="if (event.target.id === 'strength-modal') hideStrengthModal()" class="hidden fixed inset-0 bg-black/60 flex items-end md:items-center justify-center z-[100]">
+        <div onclick="event.stopImmediatePropagation()" class="ui-modal w-full md:w-[400px] md:rounded-3xl rounded-t-3xl p-6">
+            <div class="flex justify-between mb-4">
+                <div class="font-bold text-xl">Kraft-Training eintragen</div>
+                <button onclick="hideStrengthModal()" class="text-3xl text-slate-300 dark:text-slate-500">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">LIEGESTÜTZ</label>
+                    <div id="strength-pushup-buttons" class="flex flex-wrap gap-2"></div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">KLIMMZÜGE</label>
+                    <div id="strength-pullup-buttons" class="flex flex-wrap gap-2"></div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">RUMPFBEUGEN</label>
+                    <div id="strength-rumpfbeugen-buttons" class="flex flex-wrap gap-2"></div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">BURPEES</label>
+                    <div id="strength-burpee-buttons" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-[100] bg-white dark:bg-slate-900">
+        <div class="settings-panel flex flex-col overflow-hidden">
+            <div class="shrink-0 px-5 sm:px-7 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-900">
+                <div class="font-bold text-2xl text-slate-800 dark:text-slate-100">Einstellungen</div>
+                <button onclick="hideSettings()" class="text-3xl text-slate-300 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-300 leading-none">&times;</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto px-5 sm:px-7 py-5 space-y-5">
+                <!-- Menü-Builder: Zutaten links, Mahlzeiten rechts -->
+                <div class="ui-panel rounded-3xl p-5 sm:p-6 space-y-4">
+                    <div class="settings-section-title text-teal-700 dark:text-teal-400">MENÜ ZUSAMMENSTELLEN</div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="sm:col-span-1">
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Budget Arbeit</label>
+                            <input type="number" id="settings-budget-arbeit" min="1000" max="5000" step="10"
+                                   oninput="renderMenuBuilder()"
+                                   class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Budget Frei</label>
+                            <input type="number" id="settings-budget-frei" min="1000" max="5000" step="10"
+                                   oninput="renderMenuBuilder()"
+                                   class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Gewicht (kg)</label>
+                            <input type="number" id="settings-body-weight" min="40" max="150" step="0.1"
+                                   oninput="updateMaintenanceDisplay()"
+                                   class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Größe (cm)</label>
+                            <input type="number" id="settings-height-cm" min="140" max="220" step="1"
+                                   oninput="updateMaintenanceDisplay()"
+                                   class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Alter</label>
+                            <input type="number" id="settings-age" min="16" max="99" step="1"
+                                   oninput="updateMaintenanceDisplay()"
+                                   class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
+                        </div>
+                        <div class="col-span-2 sm:col-span-4 ui-panel rounded-2xl px-4 py-3">
+                            <div class="flex justify-between items-baseline gap-2">
+                                <span class="text-sm text-slate-600 dark:text-slate-400">Erhaltungsbedarf</span>
+                                <span id="settings-maintenance-display" class="text-lg font-bold text-teal-700 dark:text-teal-400">—</span>
+                            </div>
+                            <p id="settings-maintenance-hint" class="text-xs text-slate-400 dark:text-slate-500 mt-1"></p>
+                            <label class="flex items-center gap-2 mt-2 cursor-pointer">
+                                <input type="checkbox" id="settings-maintenance-manual" class="rounded accent-teal-600"
+                                       onchange="toggleMaintenanceManual()">
+                                <span class="text-xs text-slate-500 dark:text-slate-400">Manuell überschreiben</span>
+                            </label>
+                            <input type="number" id="settings-maintenance-kcal" min="1200" max="6000" step="10"
+                                   oninput="updateMaintenanceDisplay()"
+                                   class="ui-input hidden w-full border rounded-2xl px-3 py-2 mt-2 text-base">
+                        </div>
+                        <div class="col-span-2 flex gap-3 items-end">
+                            <button type="button" id="menu-tab-arbeit" onclick="switchMenuBuilderTab('arbeit')"
+                                    class="flex-1 py-2.5 rounded-2xl text-sm font-semibold bg-blue-100 text-blue-700">Arbeit</button>
+                            <button type="button" id="menu-tab-frei" onclick="switchMenuBuilderTab('frei')"
+                                    class="flex-1 py-2.5 rounded-2xl text-sm font-semibold text-slate-500">Frei</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-[minmax(220px,280px)_1fr] gap-4 lg:gap-5 items-start">
+                        <div class="flex flex-col min-h-0">
+                            <div class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium shrink-0">
+                                Zutaten
+                                <span class="text-slate-400 dark:text-slate-500 font-normal block text-xs mt-0.5">Ziehen oder klicken · aktiv: <span id="active-meal-label" class="font-semibold text-teal-600 dark:text-teal-400">Frühstück</span></span>
+                            </div>
+                            <div id="ingredient-pool" class="ui-card flex flex-col gap-2 p-2 rounded-2xl overflow-y-auto lg:max-h-[calc(100dvh-15rem)]"></div>
+                        </div>
+                        <div class="flex flex-col min-h-0">
+                            <div class="shrink-0 mb-2">
+                                <div class="flex justify-between items-start gap-3">
+                                    <div class="text-sm text-slate-600 dark:text-slate-400 font-medium">Mahlzeiten</div>
+                                    <div class="text-right">
+                                        <div id="menu-remaining-kcal" class="text-sm font-bold text-teal-700 dark:text-teal-400"></div>
+                                        <div id="menu-protein-ampel" class="text-xs font-semibold mt-0.5"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="meal-slots-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-base"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unten: selten gebraucht -->
+                <details class="ui-panel rounded-3xl group">
+                    <summary class="px-5 py-4 cursor-pointer list-none flex items-center justify-between font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                        <span class="settings-section-title">ZUTATEN BEARBEITEN</span>
+                        <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <div class="px-5 pb-5 pt-1 border-t border-slate-100 dark:border-slate-700">
+                        <div class="hidden sm:grid grid-cols-[1fr_5.5rem_4.5rem_2rem] gap-3 text-xs font-bold uppercase tracking-wide text-slate-400 px-3 mb-2">
+                            <span>Zutat</span>
+                            <span class="text-right">kcal</span>
+                            <span class="text-right">Protein</span>
+                            <span></span>
+                        </div>
+                        <div id="ingredient-editor-list" class="space-y-2.5 max-h-[40vh] overflow-y-auto"></div>
+                        <button type="button" onclick="addIngredientInSettings()"
+                                class="mt-4 w-full py-3 border border-dashed border-slate-300 dark:border-slate-600 rounded-2xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800">
+                            + Zutat hinzufügen
+                        </button>
+                    </div>
+                </details>
+
+                <div class="ui-panel rounded-3xl p-5">
+                    <div class="settings-section-title mb-3">KRAFT-BUTTONS</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Liegestütz (kommagetrennt)</label>
+                            <input type="text" id="settings-pushup-buttons" placeholder="10, 15, 20"
+                                   class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
+                        </div>
+                        <div>
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Klimmzüge (kommagetrennt)</label>
+                            <input type="text" id="settings-pullup-buttons" placeholder="4, 6, 8"
+                                   class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
+                        </div>
+                        <div>
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Rumpfbeugen (kommagetrennt)</label>
+                            <input type="text" id="settings-rumpfbeugen-buttons" placeholder="15, 20, 25"
+                                   class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
+                        </div>
+                        <div>
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Burpees (kommagetrennt)</label>
+                            <input type="text" id="settings-burpee-buttons" placeholder="5, 10, 15"
+                                   class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-panel rounded-3xl p-5">
+                    <div class="settings-section-title mb-3">BACKUP</div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button type="button" onclick="exportData()"
+                                class="flex-1 py-3 bg-teal-700 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-download"></i> Exportieren
+                        </button>
+                        <button type="button" onclick="document.getElementById('import-file-input').click()"
+                                class="flex-1 py-3 border border-slate-300 dark:border-slate-600 rounded-2xl text-sm font-bold flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-upload"></i> Importieren
+                        </button>
+                        <input type="file" id="import-file-input" accept=".json,application/json" class="hidden" onchange="importDataFromFile(event)">
+                    </div>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Sichert alle Daten (Menüs, Historie, Gewicht) als JSON-Datei.</p>
+                </div>
+
+                <label class="flex items-center gap-4 px-4 py-3 ui-panel rounded-2xl cursor-pointer">
+                    <input type="checkbox" id="settings-dark-mode" class="w-5 h-5 rounded accent-teal-600" onchange="setDarkMode(this.checked)">
+                    <div>
+                        <div class="font-medium text-slate-700 dark:text-slate-200">Dark Mode</div>
+                        <div class="text-sm text-slate-500 dark:text-slate-400">Dunkles Erscheinungsbild</div>
+                    </div>
+                </label>
+
+                <label class="flex items-center gap-4 px-4 py-3 ui-panel rounded-2xl cursor-pointer">
+                    <input type="checkbox" id="settings-auto-close" class="w-5 h-5 rounded accent-teal-600">
+                    <div>
+                        <div class="font-medium text-slate-700 dark:text-slate-200">Automatisch um Mitternacht abschließen</div>
+                        <div class="text-sm text-slate-500 dark:text-slate-400">Speichert den Tag, falls du es vergisst</div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="shrink-0 px-5 sm:px-7 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-3 bg-white dark:bg-slate-900">
+                <button onclick="hideSettings()" class="flex-1 py-3.5 border border-slate-300 dark:border-slate-600 rounded-2xl font-bold text-base">Abbrechen</button>
+                <button onclick="saveSettings()" class="flex-1 py-3.5 bg-teal-700 text-white rounded-2xl font-bold text-base">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_PROTEIN = { arbeit: 150, frei: 135 };
+        const MENU_PLANS_VERSION = 4;
+
+        const MEAL_SLOTS = ['Frühstück', 'Mittag', 'Snack', 'Abend'];
+        const MEAL_SLOT_COLORS = [
+            'border-yellow-200 bg-yellow-50/40 dark:border-yellow-800 dark:bg-yellow-950/30',
+            'border-teal-200 dark:border-teal-800 dark:bg-teal-950/30',
+            'border-yellow-200 bg-yellow-50/30 dark:border-yellow-800 dark:bg-yellow-950/25',
+            'border-purple-200 dark:border-purple-800 dark:bg-purple-950/30'
+        ];
+        const MEAL_KCAL_COLORS = [
+            'text-teal-600 dark:text-teal-400',
+            'text-teal-600 dark:text-teal-400',
+            'text-teal-600 dark:text-teal-400',
+            'text-teal-600 dark:text-teal-400'
+        ];
+        const MEAL_INGREDIENT_COLORS = [
+            'text-slate-500 dark:text-slate-400',
+            'text-slate-500 dark:text-slate-400',
+            'text-slate-500 dark:text-slate-400',
+            'text-slate-500 dark:text-slate-400'
+        ];
+        const DEFAULT_DAILY_BUDGET = { arbeit: 2030, frei: 1720 };
+        const DEFAULT_TARGET_DEFICIT = 550;
+        const DEFAULT_BODY_WEIGHT_KG = 67;
+        const DEFAULT_HEIGHT_CM = 173;
+        const DEFAULT_AGE = 48;
+        const BASE_ACTIVITY_FACTOR = 1.375;
+
+        const DEFAULT_INGREDIENTS = [
+            { id: 'apfel', label: 'Apfel', kcal: 78, protein: 0 },
+            { id: 'banane', label: 'Banane', kcal: 95, protein: 1 },
+            { id: 'ei1', label: 'Ei', kcal: 72, protein: 6 },
+            { id: 'erbsen100', label: 'Erbsen (gekocht) 100g', kcal: 81, protein: 5 },
+            { id: 'feta125', label: 'Feta 125g', kcal: 329, protein: 21 },
+            { id: 'haferkleie20', label: 'Haferkleie 20g', kcal: 49, protein: 3 },
+            { id: 'heidel50', label: 'Heidelbeeren 50g', kcal: 29, protein: 0 },
+            { id: 'kartoffeln100', label: 'Kartoffeln (roh) 100g', kcal: 77, protein: 2 },
+            { id: 'karotten100', label: 'Karotten 100g', kcal: 41, protein: 1 },
+            { id: 'quark125', label: 'Magerquark 125g', kcal: 89, protein: 16 },
+            { id: 'quark250', label: 'Magerquark 250g', kcal: 178, protein: 33 },
+            { id: 'parmesan30', label: 'Parmesan 30g', kcal: 129, protein: 11 },
+            { id: 'peperoni', label: 'Peperoni', kcal: 37, protein: 1 },
+            { id: 'poulet100', label: 'Poulet 100g', kcal: 165, protein: 31 },
+            { id: 'reis50', label: 'Reis (gekocht) 50g', kcal: 55, protein: 1 },
+            { id: 'reis100', label: 'Reis (gekocht) 100g', kcal: 110, protein: 2 },
+            { id: 'rinderhack150', label: 'Rinderhack 150g', kcal: 248, protein: 32 },
+            { id: 'rinderhack200', label: 'Rinderhack 200g', kcal: 330, protein: 42 },
+            { id: 'rinderhack250', label: 'Rinderhack 250g', kcal: 413, protein: 53 },
+            { id: 'linsen100', label: 'Rote Linsen (trocken) 100g', kcal: 352, protein: 26 },
+            { id: 'skyr85', label: 'Skyr 85g', kcal: 54, protein: 9 },
+            { id: 'skyr170', label: 'Skyr 170g', kcal: 107, protein: 19 },
+            { id: 'suesskartoffel100', label: 'Süsskartoffeln (roh) 100g', kcal: 86, protein: 2 },
+            { id: 'thon155', label: 'Thon 155g', kcal: 180, protein: 40 },
+            { id: 'zucchini200', label: 'Zucchini 200g', kcal: 34, protein: 2 }
+        ];
+
+        const DEFAULT_MENU_PLANS = {
+            arbeit: {
+                'Frühstück': ['skyr170', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
+                'Mittag': ['rinderhack250', 'zucchini200', 'reis100', 'parmesan30', 'skyr85', 'erbsen100'],
+                'Snack': ['skyr170', 'banane', 'apfel', 'heidel50', 'haferkleie20'],
+                'Abend': ['zucchini200', 'reis100', 'skyr85', 'ei1', 'ei1', 'ei1', 'erbsen100']
+            },
+            frei: {
+                'Frühstück': ['skyr170', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
+                'Mittag': ['rinderhack250', 'zucchini200', 'parmesan30', 'skyr85'],
+                'Snack': ['skyr85', 'heidel50', 'banane', 'apfel'],
+                'Abend': ['zucchini200', 'reis100', 'ei1', 'ei1', 'ei1', 'skyr85']
+            }
+        };
+
+        const DEFAULT_SETTINGS = {
+            autoCloseAtMidnight: true,
+            darkMode: true,
+            pushupButtons: [10, 15, 20],
+            pullupButtons: [4, 6, 8],
+            rumpfbeugenButtons: [15, 20, 25],
+            burpeeButtons: [5, 10, 15]
+        };
+
+        let settings = { ...DEFAULT_SETTINGS };
+        let menuBuilderMode = 'arbeit';
+        let activeMealSlot = 'Frühstück';
+        let menuBuilderDraft = null;
+        let ingredientEditorDraft = null;
+        let dragIngState = { id: null, sourceSlot: null, sourceIndex: null };
+        let currentMode = 'arbeit';
+        let dailyData = { date: null, training: [], pushups: 0, pullups: 0, rumpfbeugen: 0, burpees: 0, dayCompleted: false };
+        let dayHistory = [];
+        let strengthHistory = [];
+        let weightHistory = [];
+        let midnightCheckInterval = null;
+
+        function getTodayKey() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function formatDateDE(dateStr) {
+            const [y, m, d] = dateStr.split('-');
+            return `${d}.${m}.${y}`;
+        }
+
+        function getRelativeDayLabel(dateStr) {
+            const today = new Date(getTodayKey() + 'T12:00:00');
+            const d = new Date(dateStr + 'T12:00:00');
+            const diffDays = Math.round((today - d) / 86400000);
+            if (diffDays === 0) return 'Heute';
+            if (diffDays === 1) return 'Gestern';
+            if (diffDays === 2) return 'Vorgestern';
+            return formatDateDE(dateStr);
+        }
+
+        function applyDarkMode(enabled) {
+            document.documentElement.classList.toggle('dark', !!enabled);
+        }
+
+        function updateDarkModeIcon() {
+            const icon = document.getElementById('dark-mode-icon');
+            if (!icon) return;
+            icon.className = document.documentElement.classList.contains('dark')
+                ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        function setDarkMode(enabled) {
+            settings.darkMode = !!enabled;
+            applyDarkMode(settings.darkMode);
+            updateDarkModeIcon();
+            const cb = document.getElementById('settings-dark-mode');
+            if (cb) cb.checked = settings.darkMode;
+            saveData();
+        }
+
+        function toggleDarkMode() {
+            setDarkMode(!settings.darkMode);
+        }
+
+        const DEMO_WEIGHT_DATES = new Set([
+            '2026-03-28', '2026-04-04', '2026-04-11', '2026-04-18', '2026-04-25',
+            '2026-05-02', '2026-05-09', '2026-05-16', '2026-05-23', '2026-05-30',
+            '2026-06-06', '2026-06-13'
+        ]);
+
+        let weightDemoPurged = false;
+
+        function isDemoWeightHistory() {
+            return weightHistory.length > 0
+                && weightHistory.every(e => DEMO_WEIGHT_DATES.has(e.date));
+        }
+
+        function purgeDemoWeightData() {
+            if (!settings.weightDemoSeed && !isDemoWeightHistory()) return false;
+            weightHistory = [];
+            delete settings.weightDemoSeed;
+            weightDemoPurged = true;
+            return true;
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('ernaehrung_v3');
+            if (!saved) {
+                dailyData.date = getTodayKey();
+                return;
+            }
+
+            const parsed = JSON.parse(saved);
+            currentMode = parsed.mode || 'arbeit';
+            settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
+            ensureMenuData();
+            dayHistory = parsed.dayHistory || [];
+            strengthHistory = parsed.strengthHistory || parsed.dailyData?.trainingHistory || [];
+            weightHistory = parsed.weightHistory || [];
+            purgeDemoWeightData();
+
+            dailyData = {
+                date: parsed.dailyData?.date || getTodayKey(),
+                training: parsed.dailyData?.training || [],
+                pushups: parsed.dailyData?.pushups || 0,
+                pullups: parsed.dailyData?.pullups || 0,
+                rumpfbeugen: parsed.dailyData?.rumpfbeugen || 0,
+                burpees: parsed.dailyData?.burpees || 0,
+                dayCompleted: parsed.dailyData?.dayCompleted || false
+            };
+        }
+
+        function saveData() {
+            localStorage.setItem('ernaehrung_v3', JSON.stringify({
+                mode: currentMode,
+                settings,
+                dailyData,
+                dayHistory,
+                strengthHistory,
+                weightHistory
+            }));
+        }
+
+        function getDayType(dateStr = null) {
+            const d = dateStr ? new Date(dateStr + 'T12:00:00') : new Date();
+            const day = d.getDay();
+            return (day === 0 || day === 6) ? 'frei' : 'arbeit';
+        }
+
+        function getEffectiveMode(dateStr = null) {
+            return getDayType(dateStr) === 'frei' ? 'frei' : currentMode;
+        }
+
+        function ensureMenuData() {
+            if (settings.ingredients?.length && settings.menuPlans) {
+                if (!settings.dailyBudget) settings.dailyBudget = { ...DEFAULT_DAILY_BUDGET };
+                if (settings.bodyWeightKg == null) settings.bodyWeightKg = DEFAULT_BODY_WEIGHT_KG;
+                if (settings.heightCm == null) settings.heightCm = DEFAULT_HEIGHT_CM;
+                if (settings.age == null) settings.age = DEFAULT_AGE;
+                if (settings.sex == null) settings.sex = 'm';
+                ensureMaintenanceDefault();
+                if ((settings.menuPlansVersion || 1) < MENU_PLANS_VERSION) {
+                    settings.ingredients = JSON.parse(JSON.stringify(DEFAULT_INGREDIENTS));
+                    settings.menuPlans = JSON.parse(JSON.stringify(DEFAULT_MENU_PLANS));
+                    settings.menuPlansVersion = MENU_PLANS_VERSION;
+                } else {
+                    const defaultById = Object.fromEntries(DEFAULT_INGREDIENTS.map(i => [i.id, i]));
+                    const knownIds = new Set(DEFAULT_INGREDIENTS.map(i => i.id));
+                    settings.ingredients = settings.ingredients.filter(ing => knownIds.has(ing.id));
+                    DEFAULT_INGREDIENTS.forEach(def => {
+                        if (!settings.ingredients.some(ing => ing.id === def.id)) {
+                            settings.ingredients.push(JSON.parse(JSON.stringify(def)));
+                        }
+                    });
+                    settings.ingredients.forEach(ing => {
+                        const def = defaultById[ing.id];
+                        if (def) {
+                            ing.label = def.label;
+                            ing.kcal = def.kcal;
+                            ing.protein = def.protein;
+                        }
+                    });
+                    settings.ingredients = sortIngredients(settings.ingredients);
+                    remapMenuIngredientIds(settings.menuPlans, {
+                        reis75: 'reis100',
+                        ei3: 'ei1',
+                        feta30: 'feta125',
+                        peperoni100: 'peperoni',
+                        quark200: 'quark250',
+                        heidel30: 'heidel50'
+                    });
+                    pruneMenuPlans(settings.menuPlans, knownIds);
+                }
+                return;
+            }
+            settings.ingredients = JSON.parse(JSON.stringify(DEFAULT_INGREDIENTS));
+            settings.menuPlans = JSON.parse(JSON.stringify(DEFAULT_MENU_PLANS));
+            settings.menuPlansVersion = MENU_PLANS_VERSION;
+            settings.dailyBudget = { ...DEFAULT_DAILY_BUDGET };
+            settings.bodyWeightKg = DEFAULT_BODY_WEIGHT_KG;
+            settings.heightCm = DEFAULT_HEIGHT_CM;
+            settings.age = DEFAULT_AGE;
+            settings.sex = 'm';
+            settings.maintenanceManual = true;
+            settings.maintenanceKcal = getDefaultMaintenanceKcal();
+            delete settings.mealPool;
+            delete settings.mealPlans;
+            delete settings.meals;
+        }
+
+        function sortIngredients(list) {
+            return [...list].sort((a, b) => a.label.localeCompare(b.label, 'de', { numeric: true, sensitivity: 'base' }));
+        }
+
+        function getBuilderIngredients() {
+            if (menuBuilderDraft) return sortIngredients(menuBuilderDraft.ingredients);
+            ensureMenuData();
+            return sortIngredients(settings.ingredients);
+        }
+
+        function getBuilderMenuPlans() {
+            if (menuBuilderDraft) return menuBuilderDraft.menuPlans;
+            ensureMenuData();
+            return settings.menuPlans;
+        }
+
+        function getIngredient(id, ingredients = null) {
+            const list = ingredients || getBuilderIngredients();
+            return (list || []).find(i => i.id === id) || null;
+        }
+
+        function getDailyBudget(mode) {
+            ensureMenuData();
+            return settings.dailyBudget?.[mode] ?? DEFAULT_DAILY_BUDGET[mode];
+        }
+
+        function getHeightCm() {
+            ensureMenuData();
+            const h = settings.heightCm;
+            return h > 0 ? h : DEFAULT_HEIGHT_CM;
+        }
+
+        function getAge() {
+            ensureMenuData();
+            const a = settings.age;
+            return a > 0 ? a : DEFAULT_AGE;
+        }
+
+        function getActivityFactor() {
+            return BASE_ACTIVITY_FACTOR;
+        }
+
+        function calculateBMR() {
+            const kg = getBodyWeightKg();
+            const cm = getHeightCm();
+            const age = getAge();
+            if (settings.sex === 'f') {
+                return 10 * kg + 6.25 * cm - 5 * age - 161;
+            }
+            return 10 * kg + 6.25 * cm - 5 * age + 5;
+        }
+
+        function calculateMaintenanceKcal() {
+            return Math.round(calculateBMR() * getActivityFactor());
+        }
+
+        function getMaintenanceKcal() {
+            ensureMenuData();
+            if (settings.maintenanceManual && settings.maintenanceKcal > 0) {
+                return settings.maintenanceKcal;
+            }
+            return calculateMaintenanceKcal();
+        }
+
+        function readProfileInputs() {
+            const w = parseFloat(document.getElementById('settings-body-weight')?.value);
+            const h = parseInt(document.getElementById('settings-height-cm')?.value, 10);
+            const a = parseInt(document.getElementById('settings-age')?.value, 10);
+            return {
+                kg: w > 0 ? w : getBodyWeightKg(),
+                cm: h > 0 ? h : getHeightCm(),
+                age: a > 0 ? a : getAge()
+            };
+        }
+
+        function calculateBMRFor(kg, cm, age) {
+            if (settings.sex === 'f') {
+                return 10 * kg + 6.25 * cm - 5 * age - 161;
+            }
+            return 10 * kg + 6.25 * cm - 5 * age + 5;
+        }
+
+        function updateMaintenanceDisplay() {
+            const display = document.getElementById('settings-maintenance-display');
+            const hint = document.getElementById('settings-maintenance-hint');
+            if (!display) return;
+
+            const profile = readProfileInputs();
+            const bmr = Math.round(calculateBMRFor(profile.kg, profile.cm, profile.age));
+            const factor = getActivityFactor();
+            const manual = document.getElementById('settings-maintenance-manual')?.checked;
+            const tdee = manual
+                ? (parseInt(document.getElementById('settings-maintenance-kcal')?.value, 10) || Math.round(bmr * factor))
+                : Math.round(bmr * factor);
+
+            display.textContent = `${tdee} kcal/Tag`;
+            if (hint) {
+                hint.textContent = manual
+                    ? 'Manuell gesetzt · Defizit = Erhaltung − Menü-kcal (Sport-Extra wird gegessen)'
+                    : `Auto (Mifflin-St Jeor × ${BASE_ACTIVITY_FACTOR}) · Defizit = Erhaltung − Menü-kcal`;
+            }
+        }
+
+        function toggleMaintenanceManual() {
+            const manual = document.getElementById('settings-maintenance-manual').checked;
+            const input = document.getElementById('settings-maintenance-kcal');
+            input.classList.toggle('hidden', !manual);
+            if (manual && !input.value) input.value = calculateMaintenanceKcal();
+            updateMaintenanceDisplay();
+        }
+
+        function getBodyWeightKg() {
+            ensureMenuData();
+            const w = settings.bodyWeightKg;
+            return w > 0 ? w : DEFAULT_BODY_WEIGHT_KG;
+        }
+
+        function getDefaultMaintenanceKcal() {
+            return DEFAULT_DAILY_BUDGET.arbeit + DEFAULT_TARGET_DEFICIT;
+        }
+
+        function ensureMaintenanceDefault() {
+            if (settings.maintenanceManual && settings.maintenanceKcal > 0) return;
+            settings.maintenanceManual = true;
+            settings.maintenanceKcal = getDefaultMaintenanceKcal();
+        }
+
+        function getMenuDeficit(mode = null) {
+            return getMaintenanceKcal() - getBaseKcal(mode || getEffectiveMode());
+        }
+
+        function updateDeficitDisplay() {
+            const mode = getEffectiveMode();
+            const maintenance = getMaintenanceKcal();
+            const menuKcal = getBaseKcal(mode);
+            const deficit = Math.round(maintenance - menuKcal);
+            const el = document.getElementById('deficit-display');
+            if (!el) return;
+            el.title = `Erhaltung ${maintenance} kcal − Menü ${menuKcal} kcal (Sport-Extra separat)`;
+            if (deficit > 0) {
+                el.textContent = `(−${deficit} Defizit)`;
+                el.className = 'text-slate-400 dark:text-slate-500';
+            } else if (deficit < 0) {
+                el.textContent = `(+${Math.abs(deficit)} Überschuss)`;
+                el.className = 'text-red-500 dark:text-red-400';
+            } else {
+                el.textContent = '(Erhaltung)';
+                el.className = 'text-slate-400 dark:text-slate-500';
+            }
+        }
+
+        function getBuilderBudget(mode) {
+            const modal = document.getElementById('settings-modal');
+            if (modal && !modal.classList.contains('hidden')) {
+                const arbeit = parseInt(document.getElementById('settings-budget-arbeit').value, 10);
+                const frei = parseInt(document.getElementById('settings-budget-frei').value, 10);
+                return mode === 'arbeit'
+                    ? (arbeit > 0 ? arbeit : DEFAULT_DAILY_BUDGET.arbeit)
+                    : (frei > 0 ? frei : DEFAULT_DAILY_BUDGET.frei);
+            }
+            return getDailyBudget(mode);
+        }
+
+        function sumMenuKcal(mode, plans = null, ingredients = null) {
+            const plan = (plans || getBuilderMenuPlans())[mode] || {};
+            let total = 0;
+            MEAL_SLOTS.forEach(slot => {
+                (plan[slot] || []).forEach(ingId => {
+                    const ing = getIngredient(ingId, ingredients);
+                    if (ing) total += ing.kcal || 0;
+                });
+            });
+            return total;
+        }
+
+        function sumMenuProtein(mode, plans = null, ingredients = null) {
+            const plan = (plans || getBuilderMenuPlans())[mode] || {};
+            let total = 0;
+            MEAL_SLOTS.forEach(slot => {
+                (plan[slot] || []).forEach(ingId => {
+                    const ing = getIngredient(ingId, ingredients);
+                    if (ing) total += ing.protein || 0;
+                });
+            });
+            return total;
+        }
+
+        function getBaseProtein(mode = null) {
+            ensureMenuData();
+            return sumMenuProtein(mode || getEffectiveMode(), settings.menuPlans, settings.ingredients);
+        }
+
+        function getRemainingKcal(mode) {
+            return getDailyBudget(mode) - sumMenuKcal(mode);
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function getBaseKcal(mode = null) {
+            ensureMenuData();
+            return sumMenuKcal(mode || getEffectiveMode(), settings.menuPlans, settings.ingredients);
+        }
+
+        function renderTodayMeals() {
+            ensureMenuData();
+            ['arbeit', 'frei'].forEach(mode => {
+                const container = document.getElementById(`meals-${mode}`);
+                if (!container) return;
+                const plan = settings.menuPlans[mode] || {};
+                container.innerHTML = MEAL_SLOTS.map((slot, si) => {
+                    const ids = plan[slot] || [];
+                    const items = ids.map(id => getIngredient(id, settings.ingredients)).filter(Boolean);
+                    const ingredientText = items.map(i => i.label).join(' · ') || '—';
+                    const slotKcal = items.reduce((sum, i) => sum + (i.kcal || 0), 0);
+                    const slotProtein = items.reduce((sum, i) => sum + (i.protein || 0), 0);
+                    return `
+                        <div class="meal-row flex justify-between items-center py-2 px-3 rounded-2xl">
+                            <div>
+                                <span class="font-medium text-slate-800 dark:text-slate-100">${slot}</span><br>
+                                <span class="text-xs ${MEAL_INGREDIENT_COLORS[si]}">${escapeHtml(ingredientText)}</span>
+                            </div>
+                            <div class="text-right font-bold ${MEAL_KCAL_COLORS[si]} shrink-0 ml-2">
+                                <div>${slotKcal} kcal</div>
+                                <div class="text-xs font-semibold accent-gold">${slotProtein}g Protein</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function setActiveMealSlot(slot) {
+            activeMealSlot = slot;
+            renderMenuBuilder();
+        }
+
+        function switchMenuBuilderTab(mode) {
+            menuBuilderMode = mode;
+            const btnA = document.getElementById('menu-tab-arbeit');
+            const btnF = document.getElementById('menu-tab-frei');
+            if (mode === 'arbeit') {
+                btnA.className = 'flex-1 py-2.5 rounded-2xl text-sm font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300';
+                btnF.className = 'flex-1 py-2.5 rounded-2xl text-sm font-semibold text-slate-500 dark:text-slate-400';
+            } else {
+                btnF.className = 'flex-1 py-2.5 rounded-2xl text-sm font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300';
+                btnA.className = 'flex-1 py-2.5 rounded-2xl text-sm font-semibold text-slate-500 dark:text-slate-400';
+            }
+            renderMenuBuilder();
+        }
+
+        function addIngredientToSlot(slot, ingredientId) {
+            if (!menuBuilderDraft) return;
+            if (!getIngredient(ingredientId)) return;
+            if (!menuBuilderDraft.menuPlans[menuBuilderMode][slot]) {
+                menuBuilderDraft.menuPlans[menuBuilderMode][slot] = [];
+            }
+            menuBuilderDraft.menuPlans[menuBuilderMode][slot].push(ingredientId);
+            renderMenuBuilder();
+        }
+
+        function removeIngredientFromSlot(slot, index) {
+            if (!menuBuilderDraft) return;
+            menuBuilderDraft.menuPlans[menuBuilderMode][slot].splice(index, 1);
+            renderMenuBuilder();
+        }
+
+        function clearIngDragState() {
+            dragIngState = { id: null, sourceSlot: null, sourceIndex: null };
+            document.querySelectorAll('.meal-drop-active').forEach(el => el.classList.remove('meal-drop-active'));
+        }
+
+        function ingDragStart(event, id, sourceSlot, sourceIndex) {
+            dragIngState = { id, sourceSlot, sourceIndex };
+            event.dataTransfer.effectAllowed = 'move';
+        }
+
+        function ingDragEnd() {
+            clearIngDragState();
+        }
+
+        function ingDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('meal-drop-active');
+        }
+
+        function ingDragLeave(event) {
+            event.currentTarget.classList.remove('meal-drop-active');
+        }
+
+        function ingDropOnSlot(event, slot) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.currentTarget.classList.remove('meal-drop-active');
+            const { id, sourceSlot, sourceIndex } = dragIngState;
+            if (!id || !menuBuilderDraft) return;
+
+            const plans = menuBuilderDraft.menuPlans;
+            if (!plans[menuBuilderMode][slot]) plans[menuBuilderMode][slot] = [];
+            const target = plans[menuBuilderMode][slot];
+
+            if (sourceSlot === null) {
+                target.push(id);
+            } else if (sourceSlot === slot) {
+                const [moved] = plans[menuBuilderMode][sourceSlot].splice(sourceIndex, 1);
+                target.push(moved);
+            } else {
+                plans[menuBuilderMode][sourceSlot].splice(sourceIndex, 1);
+                target.push(id);
+            }
+
+            clearIngDragState();
+            renderMenuBuilder();
+        }
+
+        function sumSlotKcal(slot) {
+            const plans = getBuilderMenuPlans();
+            return (plans[menuBuilderMode][slot] || []).reduce((sum, ingId) => {
+                const ing = getIngredient(ingId);
+                return sum + (ing?.kcal || 0);
+            }, 0);
+        }
+
+        function sumSlotProtein(slot) {
+            const plans = getBuilderMenuPlans();
+            return (plans[menuBuilderMode][slot] || []).reduce((sum, ingId) => {
+                const ing = getIngredient(ingId);
+                return sum + (ing?.protein || 0);
+            }, 0);
+        }
+
+        function renderMenuBuilder() {
+            if (!menuBuilderDraft) return;
+            const mode = menuBuilderMode;
+            const ingredients = menuBuilderDraft.ingredients;
+            const plans = menuBuilderDraft.menuPlans;
+            const used = sumMenuKcal(mode, plans, ingredients);
+            const usedProtein = sumMenuProtein(mode, plans, ingredients);
+            const budget = getBuilderBudget(mode);
+            const remaining = budget - used;
+
+            const remEl = document.getElementById('menu-remaining-kcal');
+            const ampelEl = document.getElementById('menu-protein-ampel');
+            if (!remEl) return;
+            const remClass = remaining < 0 ? 'text-red-600 dark:text-red-400' : (remaining < 100 ? 'accent-gold' : 'text-teal-700 dark:text-teal-400');
+            remEl.className = `text-base font-bold ${remClass}`;
+            remEl.textContent = remaining >= 0
+                ? `Noch ${remaining} kcal · ${used}/${budget} kcal`
+                : `${Math.abs(remaining)} kcal drüber · ${used}/${budget} kcal`;
+
+            const proteinTarget = BASE_PROTEIN[mode];
+            if (ampelEl) {
+                let ampelClass = 'protein-ampel-ok';
+                let ampelText = `${usedProtein} / ${proteinTarget}g Protein ✓`;
+                if (usedProtein < proteinTarget - 10) {
+                    ampelClass = 'protein-ampel-low';
+                    ampelText = `${usedProtein} / ${proteinTarget}g Protein — zu wenig`;
+                } else if (usedProtein < proteinTarget) {
+                    ampelClass = 'protein-ampel-warn';
+                    ampelText = `${usedProtein} / ${proteinTarget}g Protein — knapp`;
+                }
+                ampelEl.className = `text-sm font-semibold mt-0.5 ${ampelClass}`;
+                ampelEl.textContent = ampelText;
+            }
+
+            document.getElementById('active-meal-label').textContent = activeMealSlot;
+
+            const poolEl = document.getElementById('ingredient-pool');
+            poolEl.innerHTML = ingredients.map(ing => `
+                <button type="button" draggable="true"
+                        class="ingredient-chip w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 hover:border-teal-300 dark:hover:border-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/40 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm text-left"
+                        ondragstart="ingDragStart(event, '${ing.id}', null, null)"
+                        ondragend="ingDragEnd()"
+                        onclick="addIngredientToSlot(activeMealSlot, '${ing.id}')"
+                        title="${escapeHtml(ing.label)} · ${ing.kcal} kcal · ${ing.protein || 0}g Protein">
+                    <span class="truncate">${escapeHtml(ing.label)}</span>
+                    <span class="text-slate-400 shrink-0 text-xs">${ing.kcal} · ${ing.protein || 0}g</span>
+                </button>
+            `).join('');
+
+            const slotsEl = document.getElementById('meal-slots-container');
+            slotsEl.innerHTML = MEAL_SLOTS.map((slot, si) => {
+                const ids = plans[mode][slot] || [];
+                const slotKcal = sumSlotKcal(slot);
+                const slotProtein = sumSlotProtein(slot);
+                const isActive = activeMealSlot === slot;
+                const border = MEAL_SLOT_COLORS[si];
+                const items = ids.map((ingId, ii) => {
+                    const ing = getIngredient(ingId);
+                    if (!ing) return '';
+                    return `
+                        <span class="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm meal-card text-slate-800 dark:text-slate-200"
+                              draggable="true"
+                              ondragstart="ingDragStart(event, '${ingId}', '${slot}', ${ii})"
+                              ondragend="ingDragEnd()">
+                            ${escapeHtml(ing.label)}
+                            <span class="text-slate-400">${ing.kcal} · ${ing.protein || 0}g</span>
+                            <button type="button" onclick="removeIngredientFromSlot('${slot}', ${ii})"
+                                    class="text-slate-300 hover:text-red-500 leading-none ml-0.5">&times;</button>
+                        </span>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="rounded-2xl border-2 border-dashed p-3.5 ${border} ${isActive ? 'ring-2 ring-teal-400 ring-offset-1 dark:ring-offset-slate-800' : ''}"
+                         ondragover="ingDragOver(event)" ondragleave="ingDragLeave(event)"
+                         ondrop="ingDropOnSlot(event, '${slot}')">
+                        <button type="button" onclick="setActiveMealSlot('${slot}')"
+                                class="w-full flex justify-between items-center mb-2.5 text-left">
+                            <span class="font-semibold text-slate-800 dark:text-slate-100 text-base">${slot}</span>
+                            <span class="text-sm font-bold text-slate-500 dark:text-slate-400">${slotKcal} kcal · ${slotProtein}g Protein</span>
+                        </button>
+                        <div class="flex flex-wrap gap-2 h-[8.5rem] overflow-y-auto content-start">
+                            ${items || '<span class="text-sm text-slate-400 dark:text-slate-500 py-1">Hierher ziehen…</span>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderIngredientEditor() {
+            if (!ingredientEditorDraft) return;
+            document.getElementById('ingredient-editor-list').innerHTML = sortIngredients(ingredientEditorDraft).map(ing => `
+                <div class="grid grid-cols-1 sm:grid-cols-[1fr_5.5rem_4.5rem_2rem] gap-2 sm:gap-3 items-center p-3 ui-card rounded-xl">
+                    <input type="text" value="${escapeHtml(ing.label)}"
+                           oninput="updateIngredientDraft('${ing.id}', 'label', this.value)"
+                           placeholder="z.B. Reis (gekocht) 50g"
+                           class="ui-input w-full border rounded-xl px-3 py-2.5 text-base min-w-0">
+                    <input type="number" min="0" value="${ing.kcal || 0}"
+                           oninput="updateIngredientDraft('${ing.id}', 'kcal', parseInt(this.value, 10) || 0)"
+                           class="ui-input w-full border rounded-xl px-2 py-2.5 text-base text-right">
+                    <input type="number" min="0" value="${ing.protein || 0}"
+                           oninput="updateIngredientDraft('${ing.id}', 'protein', parseInt(this.value, 10) || 0)"
+                           class="ui-input w-full border rounded-xl px-2 py-2.5 text-base text-right">
+                    <button type="button" onclick="removeIngredientDraft('${ing.id}')"
+                            class="text-slate-300 hover:text-red-500 text-2xl leading-none justify-self-end">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function updateIngredientDraft(id, field, value) {
+            const ing = ingredientEditorDraft.find(i => i.id === id);
+            if (ing) {
+                ing[field] = value;
+                renderMenuBuilder();
+            }
+        }
+
+        function addIngredientInSettings() {
+            if (!ingredientEditorDraft) return;
+            ingredientEditorDraft.push({ id: 'i' + Date.now(), label: 'Neue Zutat', kcal: 0, protein: 0 });
+            renderIngredientEditor();
+            renderMenuBuilder();
+        }
+
+        function removeIngredientDraft(id) {
+            if (!ingredientEditorDraft || ingredientEditorDraft.length <= 1) {
+                alert('Mindestens eine Zutat behalten.');
+                return;
+            }
+            ingredientEditorDraft = ingredientEditorDraft.filter(i => i.id !== id);
+            if (menuBuilderDraft) menuBuilderDraft.ingredients = ingredientEditorDraft;
+            renderIngredientEditor();
+            renderMenuBuilder();
+        }
+
+        function calculateTarget() {
+            const mode = getEffectiveMode();
+            let target = getBaseKcal(mode);
+            dailyData.training.forEach(t => { target += t.kcalBonus || 0; });
+            return Math.round(target);
+        }
+
+        function hasDayActivity() {
+            return dailyData.training.length > 0 || dailyData.pushups > 0 || dailyData.pullups > 0
+                || dailyData.rumpfbeugen > 0 || dailyData.burpees > 0;
+        }
+
+        function archiveCurrentDay(autoClosed = false, dateStr = dailyData.date) {
+            if (!dateStr) return;
+
+            const effectiveMode = getEffectiveMode(dateStr);
+            const baseKcal = getBaseKcal(effectiveMode);
+            const maintenanceKcal = getMaintenanceKcal();
+            let totalKcal = baseKcal;
+            dailyData.training.forEach(t => { totalKcal += t.kcalBonus || 0; });
+
+            const existing = dayHistory.findIndex(e => e.date === dateStr);
+            const entry = {
+                date: dateStr,
+                mode: currentMode,
+                effectiveMode,
+                baseKcal,
+                maintenanceKcal,
+                menuDeficit: Math.round(maintenanceKcal - baseKcal),
+                totalKcal: Math.round(totalKcal),
+                training: [...dailyData.training],
+                pushups: dailyData.pushups,
+                pullups: dailyData.pullups,
+                rumpfbeugen: dailyData.rumpfbeugen,
+                burpees: dailyData.burpees,
+                completedAt: new Date().toISOString(),
+                autoClosed
+            };
+
+            if (existing >= 0) dayHistory[existing] = entry;
+            else dayHistory.unshift(entry);
+
+            if (dayHistory.length > 90) dayHistory = dayHistory.slice(0, 90);
+        }
+
+        function checkDayRollover() {
+            const today = getTodayKey();
+            if (!dailyData.date) {
+                dailyData.date = today;
+                return false;
+            }
+            if (dailyData.date === today) return false;
+
+            const oldDate = dailyData.date;
+            const shouldArchive = hasDayActivity() || dailyData.dayCompleted;
+            if (shouldArchive) {
+                archiveCurrentDay(true, oldDate);
+                if (settings.autoCloseAtMidnight && !dailyData.dayCompleted) {
+                    sessionStorage.setItem('autoClosedNotice', oldDate);
+                }
+            }
+
+            dailyData = { date: today, training: [], pushups: 0, pullups: 0, rumpfbeugen: 0, burpees: 0, dayCompleted: false };
+            saveData();
+            return true;
+        }
+
+        function showAutoCloseNoticeIfNeeded() {
+            const oldDate = sessionStorage.getItem('autoClosedNotice');
+            if (!oldDate) return;
+
+            const notice = document.getElementById('auto-close-notice');
+            document.getElementById('auto-close-notice-text').textContent =
+                `${formatDateDE(oldDate)} wurde automatisch um Mitternacht abgeschlossen.`;
+            notice.classList.remove('hidden');
+        }
+
+        function dismissAutoCloseNotice() {
+            sessionStorage.removeItem('autoClosedNotice');
+            document.getElementById('auto-close-notice').classList.add('hidden');
+        }
+
+        function isDayLocked() {
+            return dailyData.dayCompleted;
+        }
+
+        function updateDayLockUI() {
+            const locked = isDayLocked();
+
+            const addBtn = document.getElementById('btn-add-training');
+            if (addBtn) {
+                addBtn.classList.toggle('opacity-40', locked);
+                addBtn.classList.toggle('pointer-events-none', locked);
+            }
+
+            const strengthCard = document.getElementById('strength-card');
+            if (strengthCard) {
+                strengthCard.classList.toggle('cursor-pointer', !locked);
+                strengthCard.classList.toggle('hover:border-slate-300', !locked);
+                strengthCard.classList.toggle('dark:hover:border-slate-500', !locked);
+                strengthCard.classList.toggle('active:scale-[0.99]', !locked);
+                strengthCard.classList.toggle('opacity-60', locked);
+                strengthCard.classList.toggle('pointer-events-none', locked);
+            }
+
+            const strengthHint = document.getElementById('strength-tap-hint');
+            const strengthIcon = document.getElementById('strength-tap-icon');
+            if (strengthHint) strengthHint.textContent = locked ? 'Abgeschlossen' : 'Tippen';
+            if (strengthIcon) strengthIcon.classList.toggle('fa-lock', locked);
+            if (strengthIcon) strengthIcon.classList.toggle('fa-plus', !locked);
+
+            ['btn-arbeit', 'btn-frei'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+                btn.classList.toggle('opacity-40', locked);
+                btn.classList.toggle('pointer-events-none', locked);
+            });
+        }
+
+        function updateFinishDayButton() {
+            const btn = document.getElementById('btn-finish-day');
+            const text = document.getElementById('btn-finish-day-text');
+            if (dailyData.dayCompleted) {
+                btn.className = 'px-3 sm:px-4 py-2 bg-white/30 text-white/90 rounded-3xl text-sm font-bold flex items-center gap-x-2 cursor-default';
+                text.textContent = 'ABGESCHLOSSEN';
+            } else {
+                btn.className = 'px-3 sm:px-4 py-2 bg-white text-blue-700 hover:bg-white/90 rounded-3xl text-sm font-bold flex items-center gap-x-2 shadow';
+                text.textContent = 'TAG ABSCHLIESSEN';
+            }
+        }
+
+        function updateUI() {
+            const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+            document.getElementById('current-day-name').textContent = dayNames[new Date().getDay()];
+            document.getElementById('current-day-date').textContent = formatDateDE(getTodayKey());
+            
+            const effectiveMode = (getDayType() === 'frei') ? 'frei' : currentMode;
+            const badge = document.getElementById('day-type-badge');
+            const completedBadge = document.getElementById('day-completed-badge');
+
+            if (effectiveMode === 'frei') {
+                badge.textContent = 'Frei';
+                badge.className = 'inline-block text-xs px-3 py-0.5 rounded-2xl font-bold badge-frei';
+            } else {
+                badge.textContent = 'Arbeit';
+                badge.className = 'inline-block text-xs px-3 py-0.5 rounded-2xl font-bold bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300';
+            }
+
+            completedBadge.classList.toggle('hidden', !dailyData.dayCompleted);
+            
+            const target = calculateTarget();
+            document.getElementById('daily-target').textContent = target;
+            updateFinishDayButton();
+            updateDayLockUI();
+
+            renderTodayMeals();
+            const arbeitBlock = document.getElementById('meals-arbeit');
+            const freiBlock = document.getElementById('meals-frei');
+            if (effectiveMode === 'frei') {
+                arbeitBlock.classList.add('hidden');
+                freiBlock.classList.remove('hidden');
+            } else {
+                arbeitBlock.classList.remove('hidden');
+                freiBlock.classList.add('hidden');
+            }
+
+            renderTrainingSummary();
+            renderRefuelSection();
+            
+            document.getElementById('pushups-today').textContent =
+                dailyData.dayCompleted ? 0 : dailyData.pushups;
+            document.getElementById('pullups-today').textContent =
+                dailyData.dayCompleted ? 0 : dailyData.pullups;
+            document.getElementById('rumpfbeugen-today').textContent =
+                dailyData.dayCompleted ? 0 : dailyData.rumpfbeugen;
+            document.getElementById('burpees-today').textContent =
+                dailyData.dayCompleted ? 0 : dailyData.burpees;
+            updateStrengthDaysDisplay();
+            
+            let baseKcal = getBaseKcal(effectiveMode);
+            dailyData.training.forEach(t => baseKcal += t.kcalBonus || 0);
+            document.getElementById('total-kcal').textContent = Math.round(baseKcal);
+            document.getElementById('total-protein').textContent = `${getBaseProtein(effectiveMode)}g`;
+            document.getElementById('daily-protein-target').textContent =
+                effectiveMode === 'frei' ? BASE_PROTEIN.frei : BASE_PROTEIN.arbeit;
+            updateDeficitDisplay();
+            renderWeightSection();
+            renderWeeklyOverview();
+
+            const btnArbeit = document.getElementById('btn-arbeit');
+            const btnFrei = document.getElementById('btn-frei');
+            
+            if (currentMode === 'arbeit') {
+                btnArbeit.classList.add('bg-white', 'text-blue-700', 'shadow');
+                btnFrei.classList.remove('bg-white', 'text-blue-700', 'shadow');
+            } else {
+                btnFrei.classList.add('bg-white', 'text-blue-700', 'shadow');
+                btnArbeit.classList.remove('bg-white', 'text-blue-700', 'shadow');
+            }
+        }
+
+        function getTrainingIcon(type) {
+            const icons = {
+                climbing: 'fa-mountain',
+                gravel: 'fa-bicycle',
+                trail: 'fa-person-running',
+                swim: 'fa-person-swimming'
+            };
+            return icons[type] || 'fa-dumbbell';
+        }
+
+        function renderRefuelSection() {
+            const container = document.getElementById('refuel-section');
+            if (dailyData.training.length === 0) {
+                container.innerHTML = `<div class="text-sm text-slate-400 py-8 text-center">Noch kein Training heute.<br>Wenn du Training hinzufügst, siehst du hier deine Extra-kcal.</div>`;
+                return;
+            }
+
+            let extraKcal = 0;
+            const sportCards = dailyData.training.map(t => {
+                extraKcal += t.kcalBonus || 0;
+                const icon = getTrainingIcon(t.type);
+                return `
+                    <div class="px-3 py-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+                        <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-200 font-medium">
+                            <i class="fa-solid ${icon} text-emerald-600 dark:text-emerald-400 w-4 text-center"></i>
+                            <span>${t.label}</span>
+                        </div>
+                        <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1.5 pl-6">+${t.kcalBonus || 0} kcal</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="space-y-2.5">
+                    ${sportCards}
+                    <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-600 text-center">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">Gesamt Extra-kcal</div>
+                        <div class="text-4xl font-bold text-emerald-600 dark:text-emerald-400">+${Math.round(extraKcal)}</div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500 mt-1">iss was dir passt</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTrainingSummary() {
+            const container = document.getElementById('training-summary');
+            container.innerHTML = '';
+            if (dailyData.training.length === 0) {
+                container.innerHTML = `<span class="text-xs text-slate-400 dark:text-slate-500 px-2">Noch kein Training</span>`;
+                return;
+            }
+            dailyData.training.forEach((t, index) => {
+                const el = document.createElement('div');
+                el.className = `px-3 py-1 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 rounded-3xl text-xs flex items-center gap-x-2`;
+                const removeBtn = isDayLocked() ? '' :
+                    `<button onclick="removeTraining(${index})" class="text-teal-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>`;
+                el.innerHTML = `<span>${t.label}</span>${removeBtn}`;
+                container.appendChild(el);
+            });
+        }
+
+        function showAddTrainingModal() {
+            if (isDayLocked()) return;
+            document.getElementById('add-training-modal').classList.remove('hidden');
+            document.getElementById('add-training-modal').classList.add('flex');
+            updateTrainingInputFields();
+        }
+
+        function hideAddTrainingModal() {
+            document.getElementById('add-training-modal').classList.remove('flex');
+            document.getElementById('add-training-modal').classList.add('hidden');
+        }
+
+        function getTrainingInputs() {
+            const type = document.getElementById('training-type-select').value;
+            const durationEl = document.getElementById('train-duration');
+            const kmEl = document.getElementById('train-km');
+            const hmEl = document.getElementById('train-hm');
+
+            return {
+                type,
+                duration: durationEl ? parseFloat(durationEl.value) : 0,
+                km: kmEl ? parseFloat(kmEl.value) : 0,
+                hm: hmEl ? parseInt(hmEl.value, 10) : 0
+            };
+        }
+
+        function calculateTrainingKcal(inputs) {
+            const kg = getBodyWeightKg();
+            if (inputs.type === 'climbing') {
+                return Math.round(kg * (inputs.duration || 2) * 5.5);
+            }
+            if (inputs.type === 'gravel') {
+                return Math.round(kg * ((inputs.km || 0) * 0.52 + (inputs.hm || 0) * 0.002));
+            }
+            if (inputs.type === 'trail') {
+                return Math.round(kg * ((inputs.km || 0) * 1.05 + (inputs.hm || 0) * 0.003));
+            }
+            if (inputs.type === 'swim') {
+                return Math.round(kg * (inputs.km || 0) * 4.3);
+            }
+            return 0;
+        }
+
+        function buildTrainingLabel(inputs) {
+            if (inputs.type === 'climbing') {
+                return `Klettern ${inputs.duration}h`;
+            }
+            if (inputs.type === 'gravel') {
+                return `Gravel ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''}`;
+            }
+            if (inputs.type === 'trail') {
+                return `Trailrun ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''}`;
+            }
+            if (inputs.type === 'swim') {
+                return `Kraul ${inputs.km}km`;
+            }
+            return '';
+        }
+
+        function updateTrainingKcalPreview() {
+            const preview = document.getElementById('training-kcal-preview');
+            const valueEl = document.getElementById('training-kcal-preview-value');
+            const inputs = getTrainingInputs();
+            const kcal = calculateTrainingKcal(inputs);
+
+            valueEl.textContent = `+${kcal}`;
+            preview.classList.remove('hidden');
+        }
+
+        function updateKcalDisplays() {
+            const effectiveMode = getEffectiveMode();
+            let baseKcal = getBaseKcal(effectiveMode);
+            dailyData.training.forEach(t => { baseKcal += t.kcalBonus || 0; });
+            document.getElementById('total-kcal').textContent = Math.round(baseKcal);
+            document.getElementById('total-protein').textContent = `${getBaseProtein(effectiveMode)}g`;
+            document.getElementById('daily-target').textContent = calculateTarget();
+            updateDeficitDisplay();
+            renderTodayMeals();
+        }
+
+        function updateTrainingInputFields() {
+            const type = document.getElementById('training-type-select').value;
+            const container = document.getElementById('training-input-fields');
+            const onSlide = 'updateTrainingKcalPreview()';
+            container.innerHTML = '';
+
+            if (type === 'climbing') {
+                container.innerHTML = `
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Dauer (Stunden)</label>
+                        <input type="range" id="train-duration" min="0.5" max="5" step="0.5" value="2" class="w-full mt-1" oninput="document.getElementById('duration-val').textContent = this.value + 'h'; ${onSlide}">
+                        <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>0.5h</div><div id="duration-val">2h</div><div>5h</div></div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500 mt-2">ca. 5,5 kcal/kg/h</div>
+                    </div>
+                `;
+            } else if (type === 'gravel') {
+                container.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km)</label>
+                            <input type="range" id="train-km" min="10" max="120" step="5" value="50" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + ' km'; ${onSlide}">
+                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>10 km</div><div id="km-val">50 km</div><div>120 km</div></div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Höhenmeter (ca.)</label>
+                            <input type="range" id="train-hm" min="0" max="2000" step="50" value="500" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${onSlide}">
+                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>0</div><div id="hm-val">500 hm</div><div>2000</div></div>
+                        </div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500">ca. 0,52 kcal/kg/km + 0,002 kcal/kg/hm</div>
+                    </div>
+                `;
+            } else if (type === 'swim') {
+                container.innerHTML = `
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km)</label>
+                        <input type="range" id="train-km" min="0.5" max="6" step="0.1" value="2" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = parseFloat(this.value).toFixed(1) + ' km'; ${onSlide}">
+                        <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>0,5 km</div><div id="km-val">2.0 km</div><div>6 km</div></div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500 mt-2">ca. 4,3 kcal/kg/km (Kraul)</div>
+                    </div>
+                `;
+            } else if (type === 'trail') {
+                container.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km)</label>
+                            <input type="range" id="train-km" min="5" max="35" step="1" value="22" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + 'km'; ${onSlide}">
+                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>5km</div><div id="km-val">22km</div><div>35km</div></div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Höhenmeter (ca.)</label>
+                            <input type="range" id="train-hm" min="0" max="1200" step="50" value="800" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${onSlide}">
+                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>0</div><div id="hm-val">800 hm</div><div>1200</div></div>
+                        </div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500">ca. 1,05 kcal/kg/km + 0,003 kcal/kg/hm</div>
+                    </div>
+                `;
+            }
+
+            updateTrainingKcalPreview();
+        }
+
+        function addTraining() {
+            if (isDayLocked()) return;
+            const inputs = getTrainingInputs();
+            const entry = {
+                type: inputs.type,
+                label: buildTrainingLabel(inputs),
+                kcalBonus: calculateTrainingKcal(inputs),
+                date: new Date().toISOString()
+            };
+
+            dailyData.training.push(entry);
+            hideAddTrainingModal();
+            renderTrainingSummary();
+            renderRefuelSection();
+            updateKcalDisplays();
+            saveData();
+        }
+
+        function removeTraining(index) {
+            if (isDayLocked()) return;
+            dailyData.training.splice(index, 1);
+            renderTrainingSummary();
+            renderRefuelSection();
+            updateKcalDisplays();
+            saveData();
+        }
+
+        function parseButtonValues(str, fallback) {
+            const values = str.split(',').map(s => parseInt(s.trim(), 10)).filter(n => n > 0);
+            return values.length ? values : fallback;
+        }
+
+        function formatButtonValues(values) {
+            return values.join(', ');
+        }
+
+        function renderStrengthButtons() {
+            const pushups = settings.pushupButtons || DEFAULT_SETTINGS.pushupButtons;
+            const pullups = settings.pullupButtons || DEFAULT_SETTINGS.pullupButtons;
+            const rumpfbeugen = settings.rumpfbeugenButtons || DEFAULT_SETTINGS.rumpfbeugenButtons;
+            const burpees = settings.burpeeButtons || DEFAULT_SETTINGS.burpeeButtons;
+
+            document.getElementById('strength-pushup-buttons').innerHTML = pushups.map(amount =>
+                `<button onclick="quickAddStrength('pushups', ${amount})" class="flex-1 min-w-[4rem] py-3 accent-gold-bg rounded-2xl text-sm font-bold">+${amount}</button>`
+            ).join('');
+
+            document.getElementById('strength-pullup-buttons').innerHTML = pullups.map(amount =>
+                `<button onclick="quickAddStrength('pullups', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 rounded-2xl text-sm font-bold">+${amount}</button>`
+            ).join('');
+
+            document.getElementById('strength-rumpfbeugen-buttons').innerHTML = rumpfbeugen.map(amount =>
+                `<button onclick="quickAddStrength('rumpfbeugen', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-2xl text-sm font-bold">+${amount}</button>`
+            ).join('');
+
+            document.getElementById('strength-burpee-buttons').innerHTML = burpees.map(amount =>
+                `<button onclick="quickAddStrength('burpees', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 rounded-2xl text-sm font-bold">+${amount}</button>`
+            ).join('');
+        }
+
+        function showStrengthModal() {
+            if (isDayLocked()) return;
+            renderStrengthButtons();
+            document.getElementById('strength-modal').classList.remove('hidden');
+            document.getElementById('strength-modal').classList.add('flex');
+        }
+
+        function hideStrengthModal() {
+            document.getElementById('strength-modal').classList.remove('flex');
+            document.getElementById('strength-modal').classList.add('hidden');
+        }
+
+        function quickAddStrength(type, amount) {
+            if (isDayLocked()) return;
+            dailyData[type] = (dailyData[type] || 0) + amount;
+            const todayEl = document.getElementById(`${type}-today`);
+            if (todayEl) todayEl.textContent = dailyData[type];
+            strengthHistory.unshift({
+                date: new Date().toISOString(),
+                pushups: type === 'pushups' ? amount : 0,
+                pullups: type === 'pullups' ? amount : 0,
+                rumpfbeugen: type === 'rumpfbeugen' ? amount : 0,
+                burpees: type === 'burpees' ? amount : 0
+            });
+            hideStrengthModal();
+            saveData();
+            updateStrengthDaysDisplay();
+            updateFinishDayButton();
+        }
+
+        function emptyStrengthDay() {
+            return { pushups: 0, pullups: 0, rumpfbeugen: 0, burpees: 0 };
+        }
+
+        function hasStrengthTotals(totals) {
+            return totals.pushups || totals.pullups || totals.rumpfbeugen || totals.burpees;
+        }
+
+        function mergeStrengthDay(target, source) {
+            target.pushups = Math.max(target.pushups, source.pushups || 0);
+            target.pullups = Math.max(target.pullups, source.pullups || 0);
+            target.rumpfbeugen = Math.max(target.rumpfbeugen, source.rumpfbeugen || 0);
+            target.burpees = Math.max(target.burpees, source.burpees || 0);
+        }
+
+        function getStrengthDaysSummary() {
+            const byDay = {};
+
+            strengthHistory.forEach(e => {
+                const d = new Date(e.date);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                if (!byDay[key]) byDay[key] = emptyStrengthDay();
+                byDay[key].pushups += e.pushups || 0;
+                byDay[key].pullups += e.pullups || 0;
+                byDay[key].rumpfbeugen += e.rumpfbeugen || 0;
+                byDay[key].burpees += e.burpees || 0;
+            });
+
+            dayHistory.forEach(e => {
+                const totals = { pushups: e.pushups, pullups: e.pullups, rumpfbeugen: e.rumpfbeugen, burpees: e.burpees };
+                if (!hasStrengthTotals(totals)) return;
+                if (!byDay[e.date]) byDay[e.date] = emptyStrengthDay();
+                mergeStrengthDay(byDay[e.date], totals);
+            });
+
+            if (dailyData.date && hasStrengthTotals(dailyData)) {
+                if (!byDay[dailyData.date]) byDay[dailyData.date] = emptyStrengthDay();
+                mergeStrengthDay(byDay[dailyData.date], dailyData);
+            }
+
+            const days = Object.keys(byDay).sort().reverse().map(date => ({
+                date,
+                ...byDay[date]
+            }));
+
+            return { totalDays: days.length, days };
+        }
+
+        const STRENGTH_EXERCISES = [
+            { key: 'pushups', label: 'Liegestütz', chip: 'bg-yellow-50 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-200' },
+            { key: 'pullups', label: 'Klimmzüge', chip: 'bg-teal-50 text-teal-800 dark:bg-teal-950/50 dark:text-teal-200' },
+            { key: 'rumpfbeugen', label: 'Rumpfbeugen', chip: 'bg-purple-50 text-purple-800 dark:bg-purple-950/50 dark:text-purple-200' },
+            { key: 'burpees', label: 'Burpees', chip: 'bg-orange-50 text-orange-800 dark:bg-orange-950/50 dark:text-orange-200' }
+        ];
+
+        function renderStrengthDayChips(dayTotals) {
+            return STRENGTH_EXERCISES
+                .filter(ex => dayTotals[ex.key] > 0)
+                .map(ex => `
+                    <span class="inline-flex items-baseline gap-1 px-2 py-1 rounded-lg text-xs ${ex.chip}">
+                        <span class="font-bold tabular-nums">${dayTotals[ex.key]}</span>
+                        <span class="font-medium opacity-90">${ex.label}</span>
+                    </span>
+                `).join('');
+        }
+
+        function updateStrengthDaysDisplay() {
+            const { days } = getStrengthDaysSummary();
+            const today = getTodayKey();
+            const displayDays = dailyData.dayCompleted
+                ? days.slice(0, 10)
+                : days.filter(d => d.date !== today).slice(0, 10);
+            const container = document.getElementById('strength-days-list');
+
+            if (displayDays.length === 0) {
+                container.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center">Noch keine früheren Einträge</div>';
+                return;
+            }
+
+            container.innerHTML = displayDays.map(d => {
+                const chips = renderStrengthDayChips(d);
+                return `<div class="text-xs">
+                    <div class="text-slate-500 dark:text-slate-400 font-medium mb-1">${getRelativeDayLabel(d.date)}</div>
+                    <div class="flex flex-wrap gap-1.5">${chips || '<span class="text-slate-400">—</span>'}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function getLastNDayKeys(n = 7) {
+            const keys = [];
+            const d = new Date(getTodayKey() + 'T12:00:00');
+            for (let i = n - 1; i >= 0; i--) {
+                const x = new Date(d);
+                x.setDate(x.getDate() - i);
+                keys.push(`${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`);
+            }
+            return keys;
+        }
+
+        function saveWeightEntry() {
+            const input = document.getElementById('weight-input');
+            const kg = parseFloat(input.value);
+            if (!kg || kg < 40 || kg > 150) {
+                alert('Bitte gültiges Gewicht eingeben (40–150 kg).');
+                return;
+            }
+            const date = getTodayKey();
+            const rounded = Math.round(kg * 10) / 10;
+            const existing = weightHistory.findIndex(e => e.date === date);
+            const entry = { date, kg: rounded };
+            if (existing >= 0) weightHistory[existing] = entry;
+            else weightHistory.unshift(entry);
+            weightHistory.sort((a, b) => b.date.localeCompare(a.date));
+            if (weightHistory.length > 52) weightHistory = weightHistory.slice(0, 52);
+            settings.bodyWeightKg = rounded;
+            input.value = '';
+            saveData();
+            renderWeightSection();
+            renderWeeklyOverview();
+            updateDeficitDisplay();
+        }
+
+        function renderWeightTrendChart() {
+            const container = document.getElementById('weight-trend-chart');
+            const entries = [...weightHistory].sort((a, b) => a.date.localeCompare(b.date)).slice(-12);
+            if (entries.length < 2) {
+                container.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-4">Mindestens 2 Einträge für den Trend</div>';
+                return;
+            }
+            const weights = entries.map(e => e.kg);
+            const min = Math.min(...weights) - 0.3;
+            const max = Math.max(...weights) + 0.3;
+            const range = max - min || 1;
+            const w = 360;
+            const h = 72;
+            const padX = 14;
+            const padY = 18;
+            const coords = entries.map((e, i) => {
+                const x = padX + (i / (entries.length - 1)) * (w - padX * 2);
+                const y = padY + (h - padY * 2) - ((e.kg - min) / range) * (h - padY * 2);
+                return { x, y, kg: e.kg };
+            });
+            const line = coords.map(c => `${c.x},${c.y}`).join(' ');
+            const dots = coords.map(c =>
+                `<circle cx="${c.x}" cy="${c.y}" r="3" class="weight-trend-dot"/>`
+            ).join('');
+            const labels = coords.map((c, i) => {
+                const above = i % 2 === 0;
+                const y = above ? c.y - 7 : c.y + 11;
+                return `<text x="${c.x}" y="${y}" text-anchor="middle" class="weight-trend-label">${c.kg}</text>`;
+            }).join('');
+            container.innerHTML = `
+                <svg viewBox="0 0 ${w} ${h}" class="w-full h-20" preserveAspectRatio="xMidYMid meet">
+                    <polyline points="${line}" class="weight-trend-line"/>
+                    ${dots}
+                    ${labels}
+                </svg>
+            `;
+        }
+
+        function renderWeightSection() {
+            const fridayHint = document.getElementById('weight-friday-hint');
+            fridayHint.classList.toggle('hidden', new Date().getDay() !== 5);
+
+            const sorted = [...weightHistory].sort((a, b) => b.date.localeCompare(a.date));
+            const latest = sorted[0];
+            const currentEl = document.getElementById('weight-current');
+            const deltaEl = document.getElementById('weight-delta');
+            const inputEl = document.getElementById('weight-input');
+
+            if (latest) {
+                currentEl.textContent = `${latest.kg} kg`;
+                const prev = sorted[1];
+                let deltaText = '';
+                if (prev) {
+                    const diff = Math.round((latest.kg - prev.kg) * 10) / 10;
+                    const sign = diff > 0 ? '+' : '';
+                    deltaText = `${sign}${diff} kg seit ${formatDateDE(prev.date)}`;
+                } else {
+                    deltaText = `seit ${formatDateDE(latest.date)}`;
+                }
+                deltaEl.textContent = deltaText;
+            } else {
+                currentEl.textContent = '—';
+                deltaEl.textContent = 'Noch kein Eintrag';
+            }
+
+            if (!inputEl.value && latest) inputEl.placeholder = `${latest.kg}`;
+            else if (!inputEl.value) inputEl.placeholder = `${getBodyWeightKg()}`;
+
+            renderWeightTrendChart();
+
+            const listEl = document.getElementById('weight-history-list');
+            if (!sorted.length) {
+                listEl.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center">Noch keine Einträge</div>';
+                return;
+            }
+            listEl.innerHTML = sorted.map((e, i) => {
+                const prev = sorted[i + 1];
+                let deltaHtml = '';
+                if (prev) {
+                    const diff = Math.round((e.kg - prev.kg) * 10) / 10;
+                    const sign = diff > 0 ? '+' : '';
+                    const deltaClass = diff < 0 ? 'text-teal-600 dark:text-teal-400' : (diff > 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-400');
+                    deltaHtml = `<span class="tabular-nums ${deltaClass}">${sign}${diff}</span>`;
+                }
+                return `<div class="flex justify-between items-center gap-4 text-xs min-w-0">
+                    <span class="text-slate-500 dark:text-slate-400 shrink-0">${formatDateDE(e.date)}</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 shrink-0 mr-1">
+                        <span class="tabular-nums">${e.kg} kg</span>
+                        ${deltaHtml}
+                    </span>
+                </div>`;
+            }).join('');
+        }
+
+        function renderWeeklyOverview() {
+            const container = document.getElementById('weekly-overview');
+            const weekKeys = getLastNDayKeys(7);
+            const weekSet = new Set(weekKeys);
+
+            let completedDays = 0;
+            let trainingDays = 0;
+            const deficits = [];
+
+            weekKeys.forEach(key => {
+                const archived = dayHistory.find(e => e.date === key);
+                if (archived) {
+                    completedDays++;
+                    if (archived.training?.length > 0) trainingDays++;
+                    deficits.push(archived.menuDeficit != null
+                        ? archived.menuDeficit
+                        : getMaintenanceKcal() - (archived.baseKcal || 0));
+                } else if (key === getTodayKey()) {
+                    if (dailyData.dayCompleted) completedDays++;
+                    if (dailyData.training.length > 0) trainingDays++;
+                    deficits.push(Math.round(getMenuDeficit()));
+                }
+            });
+
+            const strengthDays = getStrengthDaysSummary().days.filter(d => weekSet.has(d.date)).length;
+
+            const weekWeights = weightHistory
+                .filter(e => weekSet.has(e.date))
+                .sort((a, b) => a.date.localeCompare(b.date));
+            let weightStat = '—';
+            if (weekWeights.length >= 2) {
+                const diff = Math.round((weekWeights[weekWeights.length - 1].kg - weekWeights[0].kg) * 10) / 10;
+                const sign = diff > 0 ? '+' : '';
+                weightStat = `${sign}${diff} kg`;
+            } else if (weekWeights.length === 1) {
+                weightStat = `${weekWeights[0].kg} kg`;
+            }
+
+            const avgDeficit = deficits.length
+                ? Math.round(deficits.reduce((s, d) => s + d, 0) / deficits.length)
+                : null;
+
+            const stat = (label, value, sub = '') => `
+                <div class="ui-panel rounded-2xl p-3">
+                    <div class="text-xs text-slate-500 dark:text-slate-400">${label}</div>
+                    <div class="text-xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">${value}</div>
+                    ${sub ? `<div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">${sub}</div>` : ''}
+                </div>
+            `;
+
+            container.innerHTML = [
+                stat('Abgeschlossen', completedDays, 'von 7 Tagen'),
+                stat('Training', trainingDays, 'Sport-Tage'),
+                stat('Kraft', strengthDays, 'mit Übungen'),
+                stat('Ø Defizit', avgDeficit != null ? `−${avgDeficit}` : '—', 'kcal/Tag'),
+                stat('Gewicht', weightStat, 'diese Woche'),
+                stat('Protein-Ziel', `${BASE_PROTEIN.arbeit}g`, 'Arbeitstag')
+            ].join('');
+        }
+
+        function exportData() {
+            const payload = localStorage.getItem('ernaehrung_v3');
+            const blob = new Blob([payload], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ernaehrung-backup-${getTodayKey()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importDataFromFile(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (!parsed.settings && !parsed.dailyData) throw new Error('invalid');
+                    if (!confirm('Alle aktuellen Daten werden ersetzt. Fortfahren?')) return;
+                    localStorage.setItem('ernaehrung_v3', JSON.stringify(parsed));
+                    location.reload();
+                } catch (err) {
+                    alert('Ungültige Backup-Datei.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function switchToArbeit() {
+            if (isDayLocked()) return;
+            currentMode = 'arbeit';
+            updateUI();
+            saveData();
+        }
+
+        function switchToFrei() {
+            if (isDayLocked()) return;
+            currentMode = 'frei';
+            updateUI();
+            saveData();
+        }
+
+        function finishDay() {
+            if (dailyData.dayCompleted) return;
+
+            archiveCurrentDay(false);
+            dailyData.dayCompleted = true;
+            saveData();
+            updateUI();
+            alert('Tag gespeichert und abgeschlossen. Morgen startet automatisch ein neuer Tag.');
+        }
+
+        function showSettings() {
+            ensureMenuData();
+            document.getElementById('settings-auto-close').checked = settings.autoCloseAtMidnight;
+            document.getElementById('settings-dark-mode').checked = !!settings.darkMode;
+            document.getElementById('settings-budget-arbeit').value = getDailyBudget('arbeit');
+            document.getElementById('settings-budget-frei').value = getDailyBudget('frei');
+            document.getElementById('settings-body-weight').value = getBodyWeightKg();
+            document.getElementById('settings-height-cm').value = getHeightCm();
+            document.getElementById('settings-age').value = getAge();
+            document.getElementById('settings-maintenance-manual').checked = !!settings.maintenanceManual;
+            document.getElementById('settings-maintenance-kcal').value =
+                settings.maintenanceKcal || calculateMaintenanceKcal();
+            document.getElementById('settings-maintenance-kcal').classList.toggle('hidden', !settings.maintenanceManual);
+            updateMaintenanceDisplay();
+            document.getElementById('settings-pushup-buttons').value =
+                formatButtonValues(settings.pushupButtons || DEFAULT_SETTINGS.pushupButtons);
+            document.getElementById('settings-pullup-buttons').value =
+                formatButtonValues(settings.pullupButtons || DEFAULT_SETTINGS.pullupButtons);
+            document.getElementById('settings-rumpfbeugen-buttons').value =
+                formatButtonValues(settings.rumpfbeugenButtons || DEFAULT_SETTINGS.rumpfbeugenButtons);
+            document.getElementById('settings-burpee-buttons').value =
+                formatButtonValues(settings.burpeeButtons || DEFAULT_SETTINGS.burpeeButtons);
+            menuBuilderDraft = {
+                ingredients: JSON.parse(JSON.stringify(settings.ingredients)),
+                menuPlans: JSON.parse(JSON.stringify(settings.menuPlans))
+            };
+            ingredientEditorDraft = menuBuilderDraft.ingredients;
+            menuBuilderMode = 'arbeit';
+            switchMenuBuilderTab('arbeit');
+            renderIngredientEditor();
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('settings-modal').classList.add('flex');
+        }
+
+        function hideSettings() {
+            menuBuilderDraft = null;
+            ingredientEditorDraft = null;
+            document.getElementById('settings-modal').classList.remove('flex');
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function remapMenuIngredientIds(plans, idMap) {
+            ['arbeit', 'frei'].forEach(mode => {
+                MEAL_SLOTS.forEach(slot => {
+                    const list = plans[mode]?.[slot];
+                    if (!list) return;
+                    plans[mode][slot] = list.map(id => idMap[id] || id);
+                });
+            });
+        }
+
+        function pruneMenuPlans(plans, validIds) {
+            ['arbeit', 'frei'].forEach(mode => {
+                MEAL_SLOTS.forEach(slot => {
+                    const list = plans[mode][slot] || [];
+                    plans[mode][slot] = list.filter(id => validIds.has(id));
+                });
+            });
+        }
+
+        function saveSettings() {
+            settings.autoCloseAtMidnight = document.getElementById('settings-auto-close').checked;
+            settings.darkMode = document.getElementById('settings-dark-mode').checked;
+            applyDarkMode(settings.darkMode);
+            updateDarkModeIcon();
+            settings.pushupButtons = parseButtonValues(
+                document.getElementById('settings-pushup-buttons').value,
+                DEFAULT_SETTINGS.pushupButtons
+            );
+            settings.pullupButtons = parseButtonValues(
+                document.getElementById('settings-pullup-buttons').value,
+                DEFAULT_SETTINGS.pullupButtons
+            );
+            settings.rumpfbeugenButtons = parseButtonValues(
+                document.getElementById('settings-rumpfbeugen-buttons').value,
+                DEFAULT_SETTINGS.rumpfbeugenButtons
+            );
+            settings.burpeeButtons = parseButtonValues(
+                document.getElementById('settings-burpee-buttons').value,
+                DEFAULT_SETTINGS.burpeeButtons
+            );
+            const arbeitBudget = parseInt(document.getElementById('settings-budget-arbeit').value, 10);
+            const freiBudget = parseInt(document.getElementById('settings-budget-frei').value, 10);
+            settings.dailyBudget = {
+                arbeit: arbeitBudget > 0 ? arbeitBudget : DEFAULT_DAILY_BUDGET.arbeit,
+                frei: freiBudget > 0 ? freiBudget : DEFAULT_DAILY_BUDGET.frei
+            };
+            const bodyWeight = parseFloat(document.getElementById('settings-body-weight').value);
+            settings.bodyWeightKg = bodyWeight > 0 ? Math.round(bodyWeight * 10) / 10 : DEFAULT_BODY_WEIGHT_KG;
+            const heightCm = parseInt(document.getElementById('settings-height-cm').value, 10);
+            settings.heightCm = heightCm > 0 ? heightCm : DEFAULT_HEIGHT_CM;
+            const age = parseInt(document.getElementById('settings-age').value, 10);
+            settings.age = age > 0 ? age : DEFAULT_AGE;
+            settings.maintenanceManual = document.getElementById('settings-maintenance-manual').checked;
+            const maintenance = parseInt(document.getElementById('settings-maintenance-kcal').value, 10);
+            settings.maintenanceKcal = maintenance > 0 ? maintenance : calculateMaintenanceKcal();
+            if (menuBuilderDraft) {
+                settings.ingredients = JSON.parse(JSON.stringify(menuBuilderDraft.ingredients));
+                settings.menuPlans = JSON.parse(JSON.stringify(menuBuilderDraft.menuPlans));
+                pruneMenuPlans(settings.menuPlans, new Set(settings.ingredients.map(i => i.id)));
+            }
+            menuBuilderDraft = null;
+            ingredientEditorDraft = null;
+            hideSettings();
+            updateUI();
+            saveData();
+        }
+
+        function startMidnightCheck() {
+            if (midnightCheckInterval) clearInterval(midnightCheckInterval);
+            midnightCheckInterval = setInterval(() => {
+                if (checkDayRollover()) {
+                    showAutoCloseNoticeIfNeeded();
+                    updateUI();
+                }
+            }, 60000);
+        }
+
+        function init() {
+            loadData();
+            ensureMenuData();
+            if (weightDemoPurged) saveData();
+            const rolledOver = checkDayRollover();
+            if (rolledOver) saveData();
+            showAutoCloseNoticeIfNeeded();
+            applyDarkMode(settings.darkMode);
+            updateDarkModeIcon();
+            updateUI();
+            startMidnightCheck();
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && checkDayRollover()) {
+                    showAutoCloseNoticeIfNeeded();
+                    updateUI();
+                    saveData();
+                }
+            });
+        }
+        
+        window.onload = init;
+    </script>
+</body>
+</html>
