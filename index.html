@@ -375,38 +375,29 @@
                 </div>
             </div>
 
-            <!-- Gewicht | Wochenübersicht -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div class="ui-card rounded-3xl p-4">
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-2">
-                                <i class="fa-solid fa-weight-scale"></i>
-                                <span>GEWICHT</span>
-                            </div>
-                            <div id="weight-friday-hint" class="hidden text-xs text-teal-600 dark:text-teal-400 mt-1 font-medium">Heute Freitag — Wiege-Tag</div>
+            <!-- Fortschritt: Gewicht + Woche -->
+            <div class="ui-card rounded-3xl p-4">
+                <div class="flex justify-between items-start gap-3 mb-2">
+                    <div>
+                        <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-2">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>FORTSCHRITT</span>
                         </div>
-                        <div class="text-right">
-                            <div id="weight-current" class="text-3xl font-bold text-slate-800 dark:text-slate-100">—</div>
-                            <div id="weight-delta" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"></div>
-                        </div>
+                        <div id="weight-friday-hint" class="hidden text-xs text-teal-600 dark:text-teal-400 mt-1 font-medium">Heute Freitag — Wiege-Tag</div>
                     </div>
-                    <div id="weight-trend-chart" class="weight-trend-chart h-20 mb-3 px-1"></div>
-                    <div class="flex gap-2">
-                        <input type="number" id="weight-input" min="40" max="150" step="0.1" placeholder="kg"
-                               class="ui-input flex-1 border rounded-2xl px-3 py-2 text-sm">
-                        <button onclick="saveWeightEntry()" class="px-4 py-2 bg-teal-700 text-white rounded-2xl text-sm font-bold shrink-0">Speichern</button>
+                    <div class="text-right shrink-0">
+                        <div id="weight-current" class="text-2xl font-bold text-slate-800 dark:text-slate-100 tabular-nums">—</div>
+                        <div id="weight-delta" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"></div>
                     </div>
-                    <div id="weight-history-list" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-1 max-h-36 overflow-y-auto"></div>
                 </div>
-
-                <div class="ui-card rounded-3xl p-4">
-                    <div class="section-header mb-3 text-slate-700 dark:text-slate-300 flex items-center gap-x-2">
-                        <i class="fa-solid fa-calendar-week"></i>
-                        <span>DIESE WOCHE</span>
-                    </div>
-                    <div id="weekly-overview" class="grid grid-cols-2 gap-3 text-sm"></div>
+                <div id="weight-trend-chart" class="weight-trend-chart h-16 mb-2 px-1"></div>
+                <div id="weekly-overview" class="flex flex-wrap gap-1.5 mb-3"></div>
+                <div class="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <input type="number" id="weight-input" min="40" max="150" step="0.1" placeholder="kg"
+                           class="ui-input flex-1 border rounded-2xl px-3 py-2 text-sm">
+                    <button onclick="saveWeightEntry()" class="px-4 py-2 bg-teal-700 text-white rounded-2xl text-sm font-bold shrink-0">Speichern</button>
                 </div>
+                <div id="weight-history-list" class="mt-2 space-y-1 max-h-28 overflow-y-auto"></div>
             </div>
         </div>
     </div>
@@ -2009,7 +2000,7 @@
                 return `<text x="${c.x}" y="${y}" text-anchor="middle" class="weight-trend-label">${c.kg}</text>`;
             }).join('');
             container.innerHTML = `
-                <svg viewBox="0 0 ${w} ${h}" class="w-full h-20" preserveAspectRatio="xMidYMid meet">
+                <svg viewBox="0 0 ${w} ${h}" class="w-full h-16" preserveAspectRatio="xMidYMid meet">
                     <polyline points="${line}" class="weight-trend-line"/>
                     ${dots}
                     ${labels}
@@ -2054,7 +2045,7 @@
                 listEl.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center">Noch keine Einträge</div>';
                 return;
             }
-            listEl.innerHTML = sorted.map((e, i) => {
+            listEl.innerHTML = sorted.slice(0, 8).map((e, i) => {
                 const prev = sorted[i + 1];
                 let deltaHtml = '';
                 if (prev) {
@@ -2115,21 +2106,20 @@
                 ? Math.round(deficits.reduce((s, d) => s + d, 0) / deficits.length)
                 : null;
 
-            const stat = (label, value, sub = '') => `
-                <div class="ui-panel rounded-2xl p-3">
-                    <div class="text-xs text-slate-500 dark:text-slate-400">${label}</div>
-                    <div class="text-xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">${value}</div>
-                    ${sub ? `<div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">${sub}</div>` : ''}
-                </div>
+            const chip = (label, value) => `
+                <span class="inline-flex items-center gap-1.5 ui-panel rounded-xl px-2.5 py-1.5 text-xs">
+                    <span class="text-slate-500 dark:text-slate-400">${label}</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-100 tabular-nums">${value}</span>
+                </span>
             `;
 
             container.innerHTML = [
-                stat('Abgeschlossen', completedDays, 'von 7 Tagen'),
-                stat('Training', trainingDays, 'Sport-Tage'),
-                stat('Kraft', strengthDays, 'mit Übungen'),
-                stat('Ø Defizit', avgDeficit != null ? `−${avgDeficit}` : '—', 'kcal/Tag'),
-                stat('Gewicht', weightStat, 'diese Woche'),
-                stat('Protein-Ziel', `${BASE_PROTEIN.arbeit}g`, 'Arbeitstag')
+                chip('Tage', `${completedDays}/7`),
+                chip('Sport', trainingDays),
+                chip('Kraft', strengthDays),
+                chip('Ø Defizit', avgDeficit != null ? `−${avgDeficit}` : '—'),
+                chip('Gewicht', weightStat),
+                chip('Protein', `${BASE_PROTEIN.arbeit}g`)
             ].join('');
         }
 
