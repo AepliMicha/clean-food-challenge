@@ -37,7 +37,11 @@ Write-Host "Pushe nach GitHub ..."
 git push -u origin main
 
 Write-Host "Aktiviere GitHub Pages ..."
-gh api "repos/$owner/$repoName/pages" -X POST -f "build_type=legacy" -f "source[branch]=main" -f "source[path]=/" 2>$null
+$pagesResult = gh api "repos/$owner/$repoName/pages" -X POST -f "build_type=legacy" -f "source[branch]=main" -f "source[path]=/" 2>&1
+if ($LASTEXITCODE -ne 0 -and "$pagesResult" -notmatch "already enabled") {
+    Write-Host $pagesResult -ForegroundColor Red
+    exit 1
+}
 
 Write-Host ""
 Write-Host "Fertig!" -ForegroundColor Green
