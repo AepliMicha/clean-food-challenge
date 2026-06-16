@@ -243,19 +243,6 @@
                 </div>
                 
                 <div class="flex items-center gap-2 flex-wrap">
-                    <div class="bg-white/15 backdrop-blur-md rounded-3xl p-1 flex text-sm">
-                        <button onclick="switchToArbeit()" id="btn-arbeit"
-                                class="px-4 py-1.5 rounded-3xl font-medium transition-all bg-white text-blue-700 shadow">Arbeit</button>
-                        <button onclick="switchToFrei()" id="btn-frei"
-                                class="px-4 py-1.5 rounded-3xl font-medium transition-all">Frei</button>
-                    </div>
-
-                    <button onclick="finishDay()" id="btn-finish-day"
-                            class="px-3 sm:px-4 py-2 bg-white text-blue-700 hover:bg-white/90 rounded-3xl text-sm font-bold flex items-center gap-x-2 shadow">
-                        <i class="fa-solid fa-check-double"></i>
-                        <span id="btn-finish-day-text" class="hidden md:inline">TAG ABSCHLIESSEN</span>
-                    </button>
-
                     <button onclick="toggleDarkMode()" id="btn-dark-mode" class="px-3 py-2 bg-white/15 hover:bg-white/25 rounded-3xl text-sm font-medium flex items-center justify-center" title="Dark Mode">
                         <i class="fa-solid fa-moon" id="dark-mode-icon"></i>
                     </button>
@@ -285,7 +272,12 @@
                             <div id="current-day-date" class="text-base font-medium text-slate-500 dark:text-slate-400"></div>
                         </div>
                         <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                            <div id="day-type-badge" class="inline-block text-xs px-3 py-0.5 rounded-2xl font-bold"></div>
+                            <div id="day-mode-toggle" class="inline-flex bg-slate-100 dark:bg-slate-800/80 rounded-2xl p-0.5 text-xs">
+                                <button onclick="switchToArbeit()" id="btn-arbeit"
+                                        class="px-3 py-1 rounded-xl font-bold transition-all">Arbeit</button>
+                                <button onclick="switchToFrei()" id="btn-frei"
+                                        class="px-3 py-1 rounded-xl font-bold transition-all">Frei</button>
+                            </div>
                             <div id="day-completed-badge" class="hidden inline-flex items-center gap-1 text-xs px-3 py-0.5 rounded-2xl font-bold badge-completed">
                                 <i class="fa-solid fa-check fa-xs"></i>
                                 <span>Abgeschlossen</span>
@@ -304,7 +296,7 @@
                                 <div id="total-protein" class="text-4xl font-bold accent-gold">150g</div>
                             </div>
                         </div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Essen heute: <span id="daily-target">2030</span> kcal · mind. <span id="daily-protein-target">150</span>g Protein <span id="deficit-display" class="text-slate-400 dark:text-slate-500"></span></div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">mind. <span id="daily-protein-target">150</span>g Protein <span id="deficit-display" class="text-slate-400 dark:text-slate-500"></span></div>
                     </div>
                 </div>
 
@@ -617,14 +609,6 @@
                         <div class="text-sm text-slate-500 dark:text-slate-400">Dunkles Erscheinungsbild</div>
                     </div>
                 </label>
-
-                <label class="flex items-center gap-4 px-4 py-3 ui-panel rounded-2xl cursor-pointer">
-                    <input type="checkbox" id="settings-auto-close" class="w-5 h-5 rounded accent-teal-600">
-                    <div>
-                        <div class="font-medium text-slate-700 dark:text-slate-200">Automatisch um Mitternacht abschließen</div>
-                        <div class="text-sm text-slate-500 dark:text-slate-400">Speichert den Tag, falls du es vergisst</div>
-                    </div>
-                </label>
             </div>
 
             <div class="shrink-0 px-5 sm:px-7 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-3 bg-white dark:bg-slate-900">
@@ -636,7 +620,7 @@
 
     <script>
         const BASE_PROTEIN = { arbeit: 150, frei: 135 };
-        const MENU_PLANS_VERSION = 4;
+        const MENU_PLANS_VERSION = 5;
 
         const MEAL_SLOTS = ['Frühstück', 'Mittag', 'Snack', 'Abend'];
         const MEAL_SLOT_COLORS = [
@@ -687,6 +671,7 @@
             { id: 'linsen100', label: 'Rote Linsen (trocken) 100g', kcal: 352, protein: 26 },
             { id: 'skyr85', label: 'Skyr 85g', kcal: 54, protein: 9 },
             { id: 'skyr170', label: 'Skyr 170g', kcal: 107, protein: 19 },
+            { id: 'skyr450', label: 'Skyr 450g', kcal: 283, protein: 50 },
             { id: 'suesskartoffel100', label: 'Süsskartoffeln (roh) 100g', kcal: 86, protein: 2 },
             { id: 'thon155', label: 'Thon 155g', kcal: 180, protein: 40 },
             { id: 'zucchini200', label: 'Zucchini 200g', kcal: 34, protein: 2 }
@@ -694,21 +679,20 @@
 
         const DEFAULT_MENU_PLANS = {
             arbeit: {
-                'Frühstück': ['skyr170', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
-                'Mittag': ['rinderhack250', 'zucchini200', 'reis100', 'parmesan30', 'skyr85', 'erbsen100'],
-                'Snack': ['skyr170', 'banane', 'apfel', 'heidel50', 'haferkleie20'],
-                'Abend': ['zucchini200', 'reis100', 'skyr85', 'ei1', 'ei1', 'ei1', 'erbsen100']
+                'Frühstück': ['skyr450', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
+                'Mittag': ['rinderhack250', 'zucchini200', 'reis100', 'parmesan30', 'erbsen100'],
+                'Snack': ['banane', 'apfel', 'heidel50', 'haferkleie20'],
+                'Abend': ['zucchini200', 'reis100', 'ei1', 'ei1', 'ei1', 'erbsen100']
             },
             frei: {
-                'Frühstück': ['skyr170', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
-                'Mittag': ['rinderhack250', 'zucchini200', 'parmesan30', 'skyr85'],
-                'Snack': ['skyr85', 'heidel50', 'banane', 'apfel'],
-                'Abend': ['zucchini200', 'reis100', 'ei1', 'ei1', 'ei1', 'skyr85']
+                'Frühstück': ['skyr450', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
+                'Mittag': ['rinderhack250', 'zucchini200', 'parmesan30'],
+                'Snack': ['heidel50', 'banane', 'apfel'],
+                'Abend': ['zucchini200', 'reis100', 'ei1', 'ei1', 'ei1']
             }
         };
 
         const DEFAULT_SETTINGS = {
-            autoCloseAtMidnight: true,
             darkMode: true,
             pushupButtons: [10, 15, 20],
             pullupButtons: [4, 6, 8],
@@ -1483,13 +1467,6 @@
             renderMenuBuilder();
         }
 
-        function calculateTarget() {
-            const mode = getEffectiveMode();
-            let target = getBaseKcal(mode);
-            dailyData.training.forEach(t => { target += t.kcalBonus || 0; });
-            return Math.round(target);
-        }
-
         function hasDayActivity() {
             return dailyData.training.length > 0 || dailyData.pushups > 0 || dailyData.pullups > 0
                 || dailyData.rumpfbeugen > 0 || dailyData.burpees > 0;
@@ -1540,9 +1517,7 @@
             const shouldArchive = hasDayActivity() || dailyData.dayCompleted;
             if (shouldArchive) {
                 archiveCurrentDay(true, oldDate);
-                if (settings.autoCloseAtMidnight && !dailyData.dayCompleted) {
-                    sessionStorage.setItem('autoClosedNotice', oldDate);
-                }
+                sessionStorage.setItem('autoClosedNotice', oldDate);
             }
 
             dailyData = { date: today, training: [], pushups: 0, pullups: 0, rumpfbeugen: 0, burpees: 0, dayCompleted: false };
@@ -1600,18 +1575,7 @@
                 btn.classList.toggle('opacity-40', locked);
                 btn.classList.toggle('pointer-events-none', locked);
             });
-        }
-
-        function updateFinishDayButton() {
-            const btn = document.getElementById('btn-finish-day');
-            const text = document.getElementById('btn-finish-day-text');
-            if (dailyData.dayCompleted) {
-                btn.className = 'px-3 sm:px-4 py-2 bg-white/30 text-white/90 rounded-3xl text-sm font-bold flex items-center gap-x-2 cursor-default';
-                text.textContent = 'ABGESCHLOSSEN';
-            } else {
-                btn.className = 'px-3 sm:px-4 py-2 bg-white text-blue-700 hover:bg-white/90 rounded-3xl text-sm font-bold flex items-center gap-x-2 shadow';
-                text.textContent = 'TAG ABSCHLIESSEN';
-            }
+            if (!locked) updateModeToggle();
         }
 
         function updateUI() {
@@ -1620,22 +1584,11 @@
             document.getElementById('current-day-date').textContent = formatDateDE(getTodayKey());
             
             const effectiveMode = (getDayType() === 'frei') ? 'frei' : currentMode;
-            const badge = document.getElementById('day-type-badge');
             const completedBadge = document.getElementById('day-completed-badge');
 
-            if (effectiveMode === 'frei') {
-                badge.textContent = 'Frei';
-                badge.className = 'inline-block text-xs px-3 py-0.5 rounded-2xl font-bold badge-frei';
-            } else {
-                badge.textContent = 'Arbeit';
-                badge.className = 'inline-block text-xs px-3 py-0.5 rounded-2xl font-bold bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300';
-            }
-
             completedBadge.classList.toggle('hidden', !dailyData.dayCompleted);
+            updateModeToggle();
             
-            const target = calculateTarget();
-            document.getElementById('daily-target').textContent = target;
-            updateFinishDayButton();
             updateDayLockUI();
 
             renderTodayMeals();
@@ -1671,16 +1624,24 @@
             updateDeficitDisplay();
             renderWeightSection();
             renderWeeklyOverview();
+        }
 
+        function updateModeToggle() {
             const btnArbeit = document.getElementById('btn-arbeit');
             const btnFrei = document.getElementById('btn-frei');
-            
+            if (!btnArbeit || !btnFrei) return;
+
+            const base = 'px-3 py-1 rounded-xl font-bold transition-all';
+            const inactive = `${base} text-slate-500 dark:text-slate-400`;
+            const arbeitActive = `${base} bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300`;
+            const freiActive = `${base} badge-frei`;
+
             if (currentMode === 'arbeit') {
-                btnArbeit.classList.add('bg-white', 'text-blue-700', 'shadow');
-                btnFrei.classList.remove('bg-white', 'text-blue-700', 'shadow');
+                btnArbeit.className = arbeitActive;
+                btnFrei.className = inactive;
             } else {
-                btnFrei.classList.add('bg-white', 'text-blue-700', 'shadow');
-                btnArbeit.classList.remove('bg-white', 'text-blue-700', 'shadow');
+                btnFrei.className = freiActive;
+                btnArbeit.className = inactive;
             }
         }
 
@@ -1808,7 +1769,6 @@
             dailyData.training.forEach(t => { baseKcal += t.kcalBonus || 0; });
             document.getElementById('total-kcal').textContent = Math.round(baseKcal);
             document.getElementById('total-protein').textContent = `${getBaseProtein(effectiveMode)}g`;
-            document.getElementById('daily-target').textContent = calculateTarget();
             updateDeficitDisplay();
             renderTodayMeals();
         }
@@ -1959,7 +1919,6 @@
             saveData();
             updateStrengthDaysDisplay();
             renderStrengthProgress();
-            updateFinishDayButton();
         }
 
         function emptyStrengthDay() {
@@ -2341,19 +2300,8 @@
             saveData();
         }
 
-        function finishDay() {
-            if (dailyData.dayCompleted) return;
-
-            archiveCurrentDay(false);
-            dailyData.dayCompleted = true;
-            saveData();
-            updateUI();
-            alert('Tag gespeichert und abgeschlossen. Morgen startet automatisch ein neuer Tag.');
-        }
-
         function showSettings() {
             ensureMenuData();
-            document.getElementById('settings-auto-close').checked = settings.autoCloseAtMidnight;
             document.getElementById('settings-dark-mode').checked = !!settings.darkMode;
             document.getElementById('settings-budget-arbeit').value = getDailyBudget('arbeit');
             document.getElementById('settings-budget-frei').value = getDailyBudget('frei');
@@ -2412,7 +2360,6 @@
         }
 
         function saveSettings() {
-            settings.autoCloseAtMidnight = document.getElementById('settings-auto-close').checked;
             settings.darkMode = document.getElementById('settings-dark-mode').checked;
             applyDarkMode(settings.darkMode);
             updateDarkModeIcon();
