@@ -348,7 +348,7 @@
                         <div><div class="text-xs text-slate-500 dark:text-slate-400">BURPEES</div><div class="text-3xl font-bold text-orange-600 dark:text-orange-400" id="burpees-today">0</div></div>
                     </div>
                     <div id="strength-progress" class="hidden mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2"></div>
-                    <div id="strength-days-list" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2 max-h-36 overflow-y-auto"></div>
+                    <div id="strength-days-list" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2 max-h-48 overflow-y-auto"></div>
                 </div>
             </div>
 
@@ -780,6 +780,20 @@
 
         function isoAtNoon(dateKey) {
             return new Date(dateKey + 'T12:00:00').toISOString();
+        }
+
+        function nextDateKey(dateStr) {
+            const d = new Date(dateStr + 'T12:00:00');
+            d.setDate(d.getDate() + 1);
+            return formatDateKey(d);
+        }
+
+        function dateKeyFromEntry(entry) {
+            if (typeof entry.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
+                return entry.date;
+            }
+            const d = new Date(entry.date);
+            return formatDateKey(d);
         }
 
         function loadDemoData() {
@@ -1513,16 +1527,32 @@
             }
             if (dailyData.date === today) return false;
 
-            const oldDate = dailyData.date;
-            const shouldArchive = hasDayActivity() || dailyData.dayCompleted;
-            if (shouldArchive) {
-                archiveCurrentDay(true, oldDate);
-                sessionStorage.setItem('autoClosedNotice', oldDate);
+            let rolled = false;
+            let lastArchivedDate = null;
+
+            while (dailyData.date < today) {
+                const oldDate = dailyData.date;
+                if (hasDayActivity() || dailyData.dayCompleted) {
+                    archiveCurrentDay(true, oldDate);
+                    lastArchivedDate = oldDate;
+                }
+                dailyData = {
+                    date: nextDateKey(oldDate),
+                    training: [],
+                    pushups: 0,
+                    pullups: 0,
+                    rumpfbeugen: 0,
+                    burpees: 0,
+                    dayCompleted: false
+                };
+                rolled = true;
             }
 
-            dailyData = { date: today, training: [], pushups: 0, pullups: 0, rumpfbeugen: 0, burpees: 0, dayCompleted: false };
-            saveData();
-            return true;
+            if (lastArchivedDate) {
+                sessionStorage.setItem('autoClosedNotice', lastArchivedDate);
+            }
+            if (rolled) saveData();
+            return rolled;
         }
 
         function showAutoCloseNoticeIfNeeded() {
@@ -1929,19 +1959,28 @@
             return totals.pushups || totals.pullups || totals.rumpfbeugen || totals.burpees;
         }
 
-        function mergeStrengthDay(target, source) {
-            target.pushups = Math.max(target.pushups, source.pushups || 0);
-            target.pullups = Math.max(target.pullups, source.pullups || 0);
-            target.rumpfbeugen = Math.max(target.rumpfbeugen, source.rumpfbeugen || 0);
-            target.burpees = Math.max(target.burpees, source.burpees || 0);
-        }
-
         function getStrengthDaysSummary() {
             const byDay = {};
+            const archivedDates = new Set(
+                dayHistory
+                    .filter(e => hasStrengthTotals(e))
+                    .map(e => e.date)
+            );
+
+            dayHistory.forEach(e => {
+                const totals = {
+                    pushups: e.pushups || 0,
+                    pullups: e.pullups || 0,
+                    rumpfbeugen: e.rumpfbeugen || 0,
+                    burpees: e.burpees || 0
+                };
+                if (!hasStrengthTotals(totals)) return;
+                byDay[e.date] = { ...totals };
+            });
 
             strengthHistory.forEach(e => {
-                const d = new Date(e.date);
-                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                const key = dateKeyFromEntry(e);
+                if (archivedDates.has(key) || key === dailyData.date) return;
                 if (!byDay[key]) byDay[key] = emptyStrengthDay();
                 byDay[key].pushups += e.pushups || 0;
                 byDay[key].pullups += e.pullups || 0;
@@ -1949,16 +1988,13 @@
                 byDay[key].burpees += e.burpees || 0;
             });
 
-            dayHistory.forEach(e => {
-                const totals = { pushups: e.pushups, pullups: e.pullups, rumpfbeugen: e.rumpfbeugen, burpees: e.burpees };
-                if (!hasStrengthTotals(totals)) return;
-                if (!byDay[e.date]) byDay[e.date] = emptyStrengthDay();
-                mergeStrengthDay(byDay[e.date], totals);
-            });
-
             if (dailyData.date && hasStrengthTotals(dailyData)) {
-                if (!byDay[dailyData.date]) byDay[dailyData.date] = emptyStrengthDay();
-                mergeStrengthDay(byDay[dailyData.date], dailyData);
+                byDay[dailyData.date] = {
+                    pushups: dailyData.pushups || 0,
+                    pullups: dailyData.pullups || 0,
+                    rumpfbeugen: dailyData.rumpfbeugen || 0,
+                    burpees: dailyData.burpees || 0
+                };
             }
 
             const days = Object.keys(byDay).sort().reverse().map(date => ({
@@ -2075,18 +2111,14 @@
 
         function updateStrengthDaysDisplay() {
             const { days } = getStrengthDaysSummary();
-            const today = getTodayKey();
-            const displayDays = dailyData.dayCompleted
-                ? days
-                : days.filter(d => d.date !== today);
             const container = document.getElementById('strength-days-list');
 
-            if (displayDays.length === 0) {
-                container.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center">Noch keine früheren Einträge</div>';
+            if (days.length === 0) {
+                container.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center">Noch keine Einträge</div>';
                 return;
             }
 
-            container.innerHTML = renderStrengthHistoryTable(displayDays);
+            container.innerHTML = renderStrengthHistoryTable(days);
         }
 
         function getLastNDayKeys(n = 7, endOffset = 0) {
