@@ -2135,10 +2135,10 @@
             return records;
         }
 
-        function getStrengthBestDayTotal() {
+        function getStrengthBestWeekTotal() {
             let best = 0;
-            getStrengthDaysSummary().days.forEach(d => {
-                best = Math.max(best, getStrengthDayTotal(d));
+            getStrengthWeeksSummary().weeks.forEach(w => {
+                best = Math.max(best, getStrengthWeekTotal(w));
             });
             return best;
         }
@@ -2146,7 +2146,7 @@
         function renderStrengthProgress() {
             const container = document.getElementById('strength-progress');
             const records = getStrengthRecords();
-            const bestTotal = getStrengthBestDayTotal();
+            const bestWeekTotal = getStrengthBestWeekTotal();
 
             if (!hasStrengthTotals(records)) {
                 container.classList.add('hidden');
@@ -2164,15 +2164,15 @@
                     </div>
                 `).join('');
 
-            const totalCard = bestTotal > 0 ? `
+            const totalCard = bestWeekTotal > 0 ? `
                 <div class="rounded-xl border-2 border-teal-300/90 bg-gradient-to-b from-teal-50 to-teal-100/50 dark:from-teal-950/50 dark:to-teal-900/30 dark:border-teal-600 px-2 py-2 text-center min-w-0 shadow-sm">
                     <i class="fa-solid fa-trophy text-[9px] text-teal-600 dark:text-teal-400 mb-1"></i>
-                    <div class="text-xl font-bold tabular-nums leading-none text-teal-700 dark:text-teal-300">${bestTotal}</div>
-                    <div class="text-[9px] font-semibold text-teal-600 dark:text-teal-400 mt-1 leading-tight">Total</div>
+                    <div class="text-xl font-bold tabular-nums leading-none text-teal-700 dark:text-teal-300">${bestWeekTotal}</div>
+                    <div class="text-[9px] font-semibold text-teal-600 dark:text-teal-400 mt-1 leading-tight">Woche</div>
                 </div>
             ` : '';
 
-            const cardCount = STRENGTH_EXERCISES.filter(ex => records[ex.key] > 0).length + (bestTotal > 0 ? 1 : 0);
+            const cardCount = STRENGTH_EXERCISES.filter(ex => records[ex.key] > 0).length + (bestWeekTotal > 0 ? 1 : 0);
             const gridCols = cardCount >= 4 ? 'grid-cols-4' : cardCount === 3 ? 'grid-cols-3' : 'grid-cols-2';
 
             container.innerHTML = `
