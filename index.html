@@ -267,10 +267,10 @@
             </div>
             
             <!-- Heute | Essen | Training | Kraft -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:items-stretch">
 
-                <!-- Linke Spalte: HEUTE + Essen/Training (unabhängig von Kraft-Höhe) -->
-                <div class="lg:col-span-7 flex flex-col gap-4 min-w-0">
+                <!-- Linke Spalte: HEUTE + Essen/Training (Essen/Training füllen Resthöhe bis Kraft) -->
+                <div class="lg:col-span-7 flex flex-col gap-4 min-w-0 lg:min-h-0">
 
                 <!-- Daily Header + Totals -->
                 <div class="ui-card ui-card-teal rounded-3xl p-3">
@@ -311,9 +311,9 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-7 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-7 gap-4 lg:flex-1 lg:min-h-0 lg:grid-rows-1 lg:items-stretch">
                 <!-- Heute Essen -->
-                <div class="ui-card rounded-3xl p-4 sm:col-span-4">
+                <div class="ui-card rounded-3xl p-4 sm:col-span-4 lg:h-full">
                     <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
                         <i class="fa-solid fa-utensils"></i>
                         <span>HEUTE ESSEN</span>
@@ -323,7 +323,7 @@
                 </div>
 
                 <!-- Zusätzlich wegen Training -->
-                <div class="ui-card rounded-3xl p-3 lg:p-3.5 sm:col-span-3 min-w-0">
+                <div class="ui-card rounded-3xl p-3 lg:p-3.5 sm:col-span-3 min-w-0 lg:h-full">
                     <div class="flex items-start justify-between mb-2 px-0.5 gap-1">
                         <div class="section-header text-emerald-700 dark:text-emerald-400 leading-tight min-w-0">
                             <div class="flex items-center gap-x-1.5">
@@ -343,7 +343,7 @@
                 </div>
 
                 <!-- Kraft-Training (rechts, eigene Spalte) -->
-                <div id="strength-card" class="ui-card rounded-3xl p-4 lg:col-span-5 lg:self-start min-w-0 flex flex-col">
+                <div id="strength-card" class="ui-card rounded-3xl p-4 lg:col-span-5 min-w-0 flex flex-col lg:h-full">
                     <div id="strength-card-tap" onclick="showStrengthModal()"
                          class="cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] shrink-0">
                         <div class="flex justify-between items-center mb-3">
