@@ -113,16 +113,6 @@
             color: #f5e88a;
         }
 
-        .accent-gold-bg {
-            background: #fefce8;
-            color: #6b6400;
-        }
-
-        .dark .accent-gold-bg {
-            background: rgba(245, 232, 138, 0.14);
-            color: #f5e88a;
-        }
-
         .badge-frei {
             background: #fef9c3;
             color: #6b6400;
@@ -584,7 +574,7 @@
                             <i class="fa-solid fa-eraser"></i> Beispieldaten entfernen
                         </button>
                     </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Testdaten für 12 Wochen (Gewicht, Kraft, Wochen-Chips) — relativ zu heute.</p>
+                    <p id="demo-data-hint" class="text-xs text-slate-400 dark:text-slate-500 mt-2"></p>
                 </div>
 
                 <label class="flex items-center gap-4 px-4 py-3 ui-panel rounded-2xl cursor-pointer">
@@ -683,6 +673,43 @@
             pullupButtons: [4, 6, 8],
             burpeeButtons: [5, 10, 15]
         };
+
+        const WEIGHT_HISTORY_ENTRIES = 12;
+
+        const STRENGTH_EXERCISES = [
+            {
+                key: 'pullups', label: 'Klimmzüge', short: 'Klimm.',
+                icon: 'fa-arrow-up',
+                chip: 'bg-sky-50 text-sky-800 dark:bg-sky-950/50 dark:text-sky-200',
+                card: 'border-sky-200/80 bg-sky-50/70 dark:border-sky-800/40 dark:bg-sky-950/30',
+                value: 'text-sky-700 dark:text-sky-300',
+                buttonsKey: 'pullupButtons',
+                buttonsId: 'strength-pullup-buttons',
+                buttonClass: 'bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300'
+            },
+            {
+                key: 'pushups', label: 'Liegestütz', short: 'Lieg.',
+                icon: 'fa-dumbbell',
+                chip: 'bg-yellow-50 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-200',
+                card: 'border-yellow-200/80 bg-yellow-50/70 dark:border-yellow-800/40 dark:bg-yellow-950/30',
+                value: 'text-yellow-700 dark:text-yellow-300',
+                buttonsKey: 'pushupButtons',
+                buttonsId: 'strength-pushup-buttons',
+                buttonClass: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300'
+            },
+            {
+                key: 'burpees', label: 'Burpees', short: 'Burp.',
+                icon: 'fa-fire',
+                chip: 'bg-rose-50 text-rose-800 dark:bg-rose-950/50 dark:text-rose-200',
+                card: 'border-rose-200/80 bg-rose-50/70 dark:border-rose-800/40 dark:bg-rose-950/30',
+                value: 'text-rose-700 dark:text-rose-300',
+                buttonsKey: 'burpeeButtons',
+                buttonsId: 'strength-burpee-buttons',
+                buttonClass: 'bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300'
+            }
+        ];
+
+        const STRENGTH_HISTORY_GRID = 'grid-cols-[5.5rem_repeat(3,minmax(1.65rem,1fr))_2.25rem]';
 
         let settings = { ...DEFAULT_SETTINGS };
         let menuBuilderMode = 'arbeit';
@@ -867,7 +894,7 @@
 
                 dayHistory.push({
                     date,
-                    mode: 'arbeit',
+                    mode: effectiveMode,
                     effectiveMode,
                     baseKcal,
                     maintenanceKcal: maintenance,
@@ -943,7 +970,32 @@
             };
         }
 
+        function emptyStrengthTotals() {
+            return Object.fromEntries(STRENGTH_EXERCISES.map(ex => [ex.key, 0]));
+        }
+
+        function readStrengthTotals(source) {
+            const totals = emptyStrengthTotals();
+            STRENGTH_EXERCISES.forEach(ex => {
+                totals[ex.key] = source[ex.key] || 0;
+            });
+            return totals;
+        }
+
+        function hasStrengthTotals(totals) {
+            return STRENGTH_EXERCISES.some(ex => totals[ex.key] > 0);
+        }
+
+        function pruneStrengthHistory() {
+            const covered = new Set(
+                dayHistory.filter(e => hasStrengthTotals(readStrengthTotals(e))).map(e => e.date)
+            );
+            if (dailyData.date) covered.add(dailyData.date);
+            strengthHistory = strengthHistory.filter(e => !covered.has(dateKeyFromEntry(e)));
+        }
+
         function saveData() {
+            pruneStrengthHistory();
             localStorage.setItem('ernaehrung_v3', JSON.stringify({
                 mode: currentMode,
                 settings,
@@ -1493,8 +1545,7 @@
         }
 
         function hasDayActivity() {
-            return dailyData.training.length > 0 || dailyData.pushups > 0 || dailyData.pullups > 0
-                || dailyData.burpees > 0;
+            return dailyData.training.length > 0 || hasStrengthTotals(dailyData);
         }
 
         function archiveCurrentDay(autoClosed = false, dateStr = dailyData.date) {
@@ -1516,9 +1567,7 @@
                 menuDeficit: Math.round(maintenanceKcal - baseKcal),
                 totalKcal: Math.round(totalKcal),
                 training: [...dailyData.training],
-                pushups: dailyData.pushups,
-                pullups: dailyData.pullups,
-                burpees: dailyData.burpees,
+                ...readStrengthTotals(dailyData),
                 completedAt: new Date().toISOString(),
                 autoClosed
             };
@@ -1599,13 +1648,8 @@
 
             renderRefuelSection();
             
-            document.getElementById('pushups-today').textContent = dailyData.pushups;
-            document.getElementById('pullups-today').textContent = dailyData.pullups;
-            document.getElementById('burpees-today').textContent = dailyData.burpees;
-            updateStrengthWeekSummary();
-            updateStrengthDaysDisplay();
-            renderStrengthProgress();
-            
+            updateStrengthUI();
+
             let baseKcal = getBaseKcal(effectiveMode);
             dailyData.training.forEach(t => baseKcal += t.kcalBonus || 0);
             document.getElementById('total-kcal').textContent = Math.round(baseKcal);
@@ -1855,21 +1899,12 @@
         }
 
         function renderStrengthButtons() {
-            const pushups = settings.pushupButtons || DEFAULT_SETTINGS.pushupButtons;
-            const pullups = settings.pullupButtons || DEFAULT_SETTINGS.pullupButtons;
-            const burpees = settings.burpeeButtons || DEFAULT_SETTINGS.burpeeButtons;
-
-            document.getElementById('strength-pushup-buttons').innerHTML = pushups.map(amount =>
-                `<button onclick="quickAddStrength('pushups', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 rounded-2xl text-sm font-bold">+${amount}</button>`
-            ).join('');
-
-            document.getElementById('strength-pullup-buttons').innerHTML = pullups.map(amount =>
-                `<button onclick="quickAddStrength('pullups', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 rounded-2xl text-sm font-bold">+${amount}</button>`
-            ).join('');
-
-            document.getElementById('strength-burpee-buttons').innerHTML = burpees.map(amount =>
-                `<button onclick="quickAddStrength('burpees', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 rounded-2xl text-sm font-bold">+${amount}</button>`
-            ).join('');
+            STRENGTH_EXERCISES.forEach(ex => {
+                const values = settings[ex.buttonsKey] || DEFAULT_SETTINGS[ex.buttonsKey];
+                document.getElementById(ex.buttonsId).innerHTML = values.map(amount =>
+                    `<button onclick="quickAddStrength('${ex.key}', ${amount})" class="flex-1 min-w-[4rem] py-3 ${ex.buttonClass} rounded-2xl text-sm font-bold">+${amount}</button>`
+                ).join('');
+            });
         }
 
         function showStrengthModal() {
@@ -1885,56 +1920,46 @@
 
         function quickAddStrength(type, amount) {
             dailyData[type] = (dailyData[type] || 0) + amount;
-            const todayEl = document.getElementById(`${type}-today`);
-            if (todayEl) todayEl.textContent = dailyData[type];
             hideStrengthModal();
             saveData();
+            updateStrengthUI();
+        }
+
+        function updateStrengthUI() {
+            STRENGTH_EXERCISES.forEach(ex => {
+                const el = document.getElementById(`${ex.key}-today`);
+                if (el) el.textContent = dailyData[ex.key] || 0;
+            });
             updateStrengthWeekSummary();
             updateStrengthDaysDisplay();
             renderStrengthProgress();
-        }
-
-        function emptyStrengthDay() {
-            return { pushups: 0, pullups: 0, burpees: 0 };
-        }
-
-        function hasStrengthTotals(totals) {
-            return totals.pushups || totals.pullups || totals.burpees;
         }
 
         function getStrengthDays() {
             const byDay = {};
             const archivedDates = new Set(
                 dayHistory
-                    .filter(e => hasStrengthTotals(e))
+                    .filter(e => hasStrengthTotals(readStrengthTotals(e)))
                     .map(e => e.date)
             );
 
             dayHistory.forEach(e => {
-                const totals = {
-                    pushups: e.pushups || 0,
-                    pullups: e.pullups || 0,
-                    burpees: e.burpees || 0
-                };
+                const totals = readStrengthTotals(e);
                 if (!hasStrengthTotals(totals)) return;
-                byDay[e.date] = { ...totals };
+                byDay[e.date] = totals;
             });
 
             strengthHistory.forEach(e => {
                 const key = dateKeyFromEntry(e);
                 if (archivedDates.has(key) || key === dailyData.date) return;
-                if (!byDay[key]) byDay[key] = emptyStrengthDay();
-                byDay[key].pushups += e.pushups || 0;
-                byDay[key].pullups += e.pullups || 0;
-                byDay[key].burpees += e.burpees || 0;
+                if (!byDay[key]) byDay[key] = emptyStrengthTotals();
+                STRENGTH_EXERCISES.forEach(ex => {
+                    byDay[key][ex.key] += e[ex.key] || 0;
+                });
             });
 
             if (dailyData.date && hasStrengthTotals(dailyData)) {
-                byDay[dailyData.date] = {
-                    pushups: dailyData.pushups || 0,
-                    pullups: dailyData.pullups || 0,
-                    burpees: dailyData.burpees || 0
-                };
+                byDay[dailyData.date] = readStrengthTotals(dailyData);
             }
 
             return Object.keys(byDay).sort().reverse().map(date => ({
@@ -1952,46 +1977,16 @@
                     byWeek[weekStart] = {
                         weekStart,
                         weekEnd: getWeekEndKey(weekStart),
-                        pushups: 0,
-                        pullups: 0,
-                        burpees: 0
+                        ...emptyStrengthTotals()
                     };
                 }
-                byWeek[weekStart].pushups += d.pushups || 0;
-                byWeek[weekStart].pullups += d.pullups || 0;
-                byWeek[weekStart].burpees += d.burpees || 0;
+                STRENGTH_EXERCISES.forEach(ex => {
+                    byWeek[weekStart][ex.key] += d[ex.key] || 0;
+                });
             });
 
             return Object.keys(byWeek).sort().reverse().map(weekStart => byWeek[weekStart]);
         }
-
-        const WEIGHT_HISTORY_ENTRIES = 12;
-
-        const STRENGTH_EXERCISES = [
-            {
-                key: 'pullups', label: 'Klimmzüge', short: 'Klimm.',
-                icon: 'fa-arrow-up',
-                chip: 'bg-sky-50 text-sky-800 dark:bg-sky-950/50 dark:text-sky-200',
-                card: 'border-sky-200/80 bg-sky-50/70 dark:border-sky-800/40 dark:bg-sky-950/30',
-                value: 'text-sky-700 dark:text-sky-300'
-            },
-            {
-                key: 'pushups', label: 'Liegestütz', short: 'Lieg.',
-                icon: 'fa-dumbbell',
-                chip: 'bg-yellow-50 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-200',
-                card: 'border-yellow-200/80 bg-yellow-50/70 dark:border-yellow-800/40 dark:bg-yellow-950/30',
-                value: 'text-yellow-700 dark:text-yellow-300'
-            },
-            {
-                key: 'burpees', label: 'Burpees', short: 'Burp.',
-                icon: 'fa-fire',
-                chip: 'bg-rose-50 text-rose-800 dark:bg-rose-950/50 dark:text-rose-200',
-                card: 'border-rose-200/80 bg-rose-50/70 dark:border-rose-800/40 dark:bg-rose-950/30',
-                value: 'text-rose-700 dark:text-rose-300'
-            }
-        ];
-
-        const STRENGTH_HISTORY_GRID = 'grid-cols-[5.5rem_repeat(3,minmax(1.65rem,1fr))_2.25rem]';
 
         function getStrengthTotal(entry) {
             return STRENGTH_EXERCISES.reduce((sum, ex) => sum + (entry[ex.key] || 0), 0);
@@ -2032,7 +2027,7 @@
         }
 
         function getStrengthRecords() {
-            const records = emptyStrengthDay();
+            const records = emptyStrengthTotals();
             getStrengthDays().forEach(d => {
                 STRENGTH_EXERCISES.forEach(ex => {
                     records[ex.key] = Math.max(records[ex.key], d[ex.key] || 0);
@@ -2125,7 +2120,7 @@
             for (let i = n - 1; i >= 0; i--) {
                 const x = new Date(d);
                 x.setDate(x.getDate() - i);
-                keys.push(`${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`);
+                keys.push(formatDateKey(x));
             }
             return keys;
         }
@@ -2238,7 +2233,8 @@
             weekKeys.forEach(key => {
                 const archived = dayHistory.find(e => e.date === key);
                 if (archived) {
-                    completedDays++;
+                    const hadActivity = (archived.training?.length > 0) || hasStrengthTotals(readStrengthTotals(archived));
+                    if (hadActivity) completedDays++;
                     if (archived.training?.length > 0) trainingDays++;
                     deficits.push(archived.menuDeficit != null
                         ? archived.menuDeficit
@@ -2438,6 +2434,11 @@
         }
 
         function init() {
+            const demoHint = document.getElementById('demo-data-hint');
+            if (demoHint) {
+                demoHint.textContent = `Testdaten für ${DEMO_DAYS} Tage Gewicht & Kraft — relativ zu heute.`;
+            }
+
             loadData();
             ensureMenuData();
             const rolledOver = checkDayRollover();
