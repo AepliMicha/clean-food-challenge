@@ -610,7 +610,7 @@
                             <i class="fa-solid fa-eraser"></i> Beispieldaten entfernen
                         </button>
                     </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Testdaten für 3 Kalenderwochen (Gewicht, Kraft, Wochen-Chips) — relativ zu heute.</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Testdaten für 12 Wochen (Gewicht, Kraft, Wochen-Chips) — relativ zu heute.</p>
                 </div>
 
                 <label class="flex items-center gap-4 px-4 py-3 ui-panel rounded-2xl cursor-pointer">
@@ -849,7 +849,8 @@
             return formatDateKey(d);
         }
 
-        const DEMO_WEEKS = 3;
+        const DEMO_DAYS = 84;
+        const DEMO_WEIGHT_WEEKS = 12;
         const DEMO_STRENGTH_PATTERN = [
             { pushups: 15, pullups: 3, rumpfbeugen: 15, burpees: 5 },
             { pushups: 20, pullups: 4, rumpfbeugen: 18, burpees: 0 },
@@ -860,20 +861,10 @@
             { pushups: 35, pullups: 8, rumpfbeugen: 28, burpees: 8 }
         ];
 
-        function getDemoWeekStart(weeksBefore) {
-            const d = new Date(getWeekStartKey(getTodayKey()) + 'T12:00:00');
-            d.setDate(d.getDate() - weeksBefore * 7);
-            return formatDateKey(d);
-        }
-
         function getDemoHistoryDayKeys() {
             const keys = [];
-            const start = getDemoWeekStart(DEMO_WEEKS - 1);
-            const end = dateKeyDaysAgo(1);
-            let cursor = start;
-            while (cursor <= end) {
-                keys.push(cursor);
-                cursor = nextDateKey(cursor);
+            for (let daysAgo = DEMO_DAYS; daysAgo >= 1; daysAgo--) {
+                keys.push(dateKeyDaysAgo(daysAgo));
             }
             return keys;
         }
@@ -890,14 +881,14 @@
         }
 
         function loadDemoData() {
-            if (!confirm('Beispieldaten laden? Gewicht, Kraft und Tages-Historie (3 Kalenderwochen) werden überschrieben.')) return;
+            if (!confirm(`Beispieldaten laden? Gewicht, Kraft und Tages-Historie (${DEMO_DAYS} Tage) werden überschrieben.`)) return;
 
             ensureMenuData();
             const maintenance = getMaintenanceKcal();
 
-            const fridays = getPastFridayKeys(DEMO_WEEKS);
-            const weights = [67.4, 67.2, 67.0];
-            weightHistory = fridays.map((date, i) => ({ date, kg: weights[i] ?? 67 }));
+            const fridays = getPastFridayKeys(DEMO_WEIGHT_WEEKS);
+            const weights = [68.4, 68.2, 68.0, 67.9, 67.7, 67.6, 67.4, 67.2, 67.0, 66.9, 66.8, 66.6];
+            weightHistory = fridays.map((date, i) => ({ date, kg: weights[i] ?? 66.6 }));
 
             const demoDays = getDemoHistoryDayKeys();
             dayHistory = [];
