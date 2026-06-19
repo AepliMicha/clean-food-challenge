@@ -318,12 +318,12 @@
                         </div>
                         <div class="grid grid-cols-4 gap-2 text-center items-end">
                             <div>
-                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">LIEGESTÜTZ</div>
-                                <div class="text-3xl font-bold tabular-nums text-yellow-600 dark:text-yellow-400" id="pushups-today">0</div>
-                            </div>
-                            <div>
                                 <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">KLIMMZÜGE</div>
                                 <div class="text-3xl font-bold tabular-nums text-sky-600 dark:text-sky-400" id="pullups-today">0</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">LIEGESTÜTZ</div>
+                                <div class="text-3xl font-bold tabular-nums text-yellow-600 dark:text-yellow-400" id="pushups-today">0</div>
                             </div>
                             <div>
                                 <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">BURPEES</div>
@@ -413,12 +413,12 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">LIEGESTÜTZ</label>
-                    <div id="strength-pushup-buttons" class="flex flex-wrap gap-2"></div>
-                </div>
-                <div>
                     <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">KLIMMZÜGE</label>
                     <div id="strength-pullup-buttons" class="flex flex-wrap gap-2"></div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">LIEGESTÜTZ</label>
+                    <div id="strength-pushup-buttons" class="flex flex-wrap gap-2"></div>
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">BURPEES</label>
@@ -543,13 +543,13 @@
                     <div class="settings-section-title mb-3">KRAFT-BUTTONS</div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Liegestütz (kommagetrennt)</label>
-                            <input type="text" id="settings-pushup-buttons" placeholder="10, 15, 20"
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Klimmzüge (kommagetrennt)</label>
+                            <input type="text" id="settings-pullup-buttons" placeholder="4, 6, 8"
                                    class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
                         </div>
                         <div>
-                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Klimmzüge (kommagetrennt)</label>
-                            <input type="text" id="settings-pullup-buttons" placeholder="4, 6, 8"
+                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Liegestütz (kommagetrennt)</label>
+                            <input type="text" id="settings-pushup-buttons" placeholder="10, 15, 20"
                                    class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
                         </div>
                         <div>
@@ -1969,18 +1969,18 @@
 
         const STRENGTH_EXERCISES = [
             {
-                key: 'pushups', label: 'Liegestütz', short: 'Lieg.',
-                icon: 'fa-dumbbell',
-                chip: 'bg-yellow-50 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-200',
-                card: 'border-yellow-200/80 bg-yellow-50/70 dark:border-yellow-800/40 dark:bg-yellow-950/30',
-                value: 'text-yellow-700 dark:text-yellow-300'
-            },
-            {
                 key: 'pullups', label: 'Klimmzüge', short: 'Klimm.',
                 icon: 'fa-arrow-up',
                 chip: 'bg-sky-50 text-sky-800 dark:bg-sky-950/50 dark:text-sky-200',
                 card: 'border-sky-200/80 bg-sky-50/70 dark:border-sky-800/40 dark:bg-sky-950/30',
                 value: 'text-sky-700 dark:text-sky-300'
+            },
+            {
+                key: 'pushups', label: 'Liegestütz', short: 'Lieg.',
+                icon: 'fa-dumbbell',
+                chip: 'bg-yellow-50 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-200',
+                card: 'border-yellow-200/80 bg-yellow-50/70 dark:border-yellow-800/40 dark:bg-yellow-950/30',
+                value: 'text-yellow-700 dark:text-yellow-300'
             },
             {
                 key: 'burpees', label: 'Burpees', short: 'Burp.',
