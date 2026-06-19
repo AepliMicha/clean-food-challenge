@@ -347,10 +347,9 @@
                                 <span id="strength-tap-hint">Tippen</span>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="grid grid-cols-3 gap-3 text-center">
                             <div><div class="text-xs text-slate-500 dark:text-slate-400">LIEGESTÜTZ</div><div class="text-3xl font-bold accent-gold" id="pushups-today">0</div></div>
                             <div><div class="text-xs text-slate-500 dark:text-slate-400">KLIMMZÜGE</div><div class="text-3xl font-bold text-teal-600 dark:text-teal-400" id="pullups-today">0</div></div>
-                            <div><div class="text-xs text-slate-500 dark:text-slate-400">RUMPFBEUGEN</div><div class="text-3xl font-bold text-purple-600 dark:text-purple-400" id="rumpfbeugen-today">0</div></div>
                             <div><div class="text-xs text-slate-500 dark:text-slate-400">BURPEES</div><div class="text-3xl font-bold text-orange-600 dark:text-orange-400" id="burpees-today">0</div></div>
                         </div>
                     </div>
@@ -428,7 +427,7 @@
                 <button onclick="hideStrengthModal()" class="text-3xl text-slate-300 dark:text-slate-500">&times;</button>
             </div>
             
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">LIEGESTÜTZ</label>
                     <div id="strength-pushup-buttons" class="flex flex-wrap gap-2"></div>
@@ -436,10 +435,6 @@
                 <div>
                     <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">KLIMMZÜGE</label>
                     <div id="strength-pullup-buttons" class="flex flex-wrap gap-2"></div>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">RUMPFBEUGEN</label>
-                    <div id="strength-rumpfbeugen-buttons" class="flex flex-wrap gap-2"></div>
                 </div>
                 <div>
                     <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">BURPEES</label>
@@ -574,11 +569,6 @@
                                    class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
                         </div>
                         <div>
-                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Rumpfbeugen (kommagetrennt)</label>
-                            <input type="text" id="settings-rumpfbeugen-buttons" placeholder="15, 20, 25"
-                                   class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
-                        </div>
-                        <div>
                             <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Burpees (kommagetrennt)</label>
                             <input type="text" id="settings-burpee-buttons" placeholder="5, 10, 15"
                                    class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
@@ -707,7 +697,6 @@
             darkMode: true,
             pushupButtons: [10, 15, 20],
             pullupButtons: [4, 6, 8],
-            rumpfbeugenButtons: [15, 20, 25],
             burpeeButtons: [5, 10, 15]
         };
 
@@ -718,7 +707,7 @@
         let ingredientEditorDraft = null;
         let dragIngState = { id: null, sourceSlot: null, sourceIndex: null };
         let currentMode = 'arbeit';
-        let dailyData = { date: null, training: [], pushups: 0, pullups: 0, rumpfbeugen: 0, burpees: 0, dayCompleted: false };
+        let dailyData = { date: null, training: [], pushups: 0, pullups: 0, burpees: 0, dayCompleted: false };
         let dayHistory = [];
         let strengthHistory = [];
         let weightHistory = [];
@@ -852,13 +841,13 @@
         const DEMO_DAYS = 84;
         const DEMO_WEIGHT_WEEKS = 12;
         const DEMO_STRENGTH_PATTERN = [
-            { pushups: 15, pullups: 3, rumpfbeugen: 15, burpees: 5 },
-            { pushups: 20, pullups: 4, rumpfbeugen: 18, burpees: 0 },
-            { pushups: 18, pullups: 3, rumpfbeugen: 20, burpees: 5 },
-            { pushups: 22, pullups: 5, rumpfbeugen: 15, burpees: 0 },
-            { pushups: 25, pullups: 4, rumpfbeugen: 22, burpees: 8 },
-            { pushups: 30, pullups: 6, rumpfbeugen: 25, burpees: 10 },
-            { pushups: 35, pullups: 8, rumpfbeugen: 28, burpees: 8 }
+            { pushups: 15, pullups: 3, burpees: 5 },
+            { pushups: 20, pullups: 4, burpees: 0 },
+            { pushups: 18, pullups: 3, burpees: 5 },
+            { pushups: 22, pullups: 5, burpees: 0 },
+            { pushups: 25, pullups: 4, burpees: 8 },
+            { pushups: 30, pullups: 6, burpees: 10 },
+            { pushups: 35, pullups: 8, burpees: 8 }
         ];
 
         function getDemoHistoryDayKeys() {
@@ -875,7 +864,6 @@
             return {
                 pushups: base.pushups + weekIndex * 5,
                 pullups: base.pullups + weekIndex,
-                rumpfbeugen: base.rumpfbeugen + weekIndex * 4,
                 burpees: base.burpees + Math.min(weekIndex * 2, 6)
             };
         }
@@ -914,7 +902,6 @@
                     training,
                     pushups: strength.pushups,
                     pullups: strength.pullups,
-                    rumpfbeugen: strength.rumpfbeugen,
                     burpees: strength.burpees,
                     completedAt: isoAtNoon(date),
                     autoClosed: false
@@ -924,7 +911,6 @@
                     date: isoAtNoon(date),
                     pushups: strength.pushups,
                     pullups: strength.pullups,
-                    rumpfbeugen: strength.rumpfbeugen,
                     burpees: strength.burpees
                 });
             });
@@ -934,7 +920,6 @@
                 training: [],
                 pushups: 15,
                 pullups: 4,
-                rumpfbeugen: 12,
                 burpees: 0,
                 dayCompleted: false
             };
@@ -960,7 +945,6 @@
                 training: [],
                 pushups: 0,
                 pullups: 0,
-                rumpfbeugen: 0,
                 burpees: 0,
                 dayCompleted: false
             };
@@ -989,7 +973,6 @@
                 training: parsed.dailyData?.training || [],
                 pushups: parsed.dailyData?.pushups || 0,
                 pullups: parsed.dailyData?.pullups || 0,
-                rumpfbeugen: parsed.dailyData?.rumpfbeugen || 0,
                 burpees: parsed.dailyData?.burpees || 0,
                 dayCompleted: parsed.dailyData?.dayCompleted || false
             };
@@ -1546,7 +1529,7 @@
 
         function hasDayActivity() {
             return dailyData.training.length > 0 || dailyData.pushups > 0 || dailyData.pullups > 0
-                || dailyData.rumpfbeugen > 0 || dailyData.burpees > 0;
+                || dailyData.burpees > 0;
         }
 
         function archiveCurrentDay(autoClosed = false, dateStr = dailyData.date) {
@@ -1570,7 +1553,6 @@
                 training: [...dailyData.training],
                 pushups: dailyData.pushups,
                 pullups: dailyData.pullups,
-                rumpfbeugen: dailyData.rumpfbeugen,
                 burpees: dailyData.burpees,
                 completedAt: new Date().toISOString(),
                 autoClosed
@@ -1604,7 +1586,6 @@
                     training: [],
                     pushups: 0,
                     pullups: 0,
-                    rumpfbeugen: 0,
                     burpees: 0,
                     dayCompleted: false
                 };
@@ -1700,8 +1681,6 @@
                 dailyData.dayCompleted ? 0 : dailyData.pushups;
             document.getElementById('pullups-today').textContent =
                 dailyData.dayCompleted ? 0 : dailyData.pullups;
-            document.getElementById('rumpfbeugen-today').textContent =
-                dailyData.dayCompleted ? 0 : dailyData.rumpfbeugen;
             document.getElementById('burpees-today').textContent =
                 dailyData.dayCompleted ? 0 : dailyData.burpees;
             updateStrengthDaysDisplay();
@@ -1963,7 +1942,6 @@
         function renderStrengthButtons() {
             const pushups = settings.pushupButtons || DEFAULT_SETTINGS.pushupButtons;
             const pullups = settings.pullupButtons || DEFAULT_SETTINGS.pullupButtons;
-            const rumpfbeugen = settings.rumpfbeugenButtons || DEFAULT_SETTINGS.rumpfbeugenButtons;
             const burpees = settings.burpeeButtons || DEFAULT_SETTINGS.burpeeButtons;
 
             document.getElementById('strength-pushup-buttons').innerHTML = pushups.map(amount =>
@@ -1972,10 +1950,6 @@
 
             document.getElementById('strength-pullup-buttons').innerHTML = pullups.map(amount =>
                 `<button onclick="quickAddStrength('pullups', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 rounded-2xl text-sm font-bold">+${amount}</button>`
-            ).join('');
-
-            document.getElementById('strength-rumpfbeugen-buttons').innerHTML = rumpfbeugen.map(amount =>
-                `<button onclick="quickAddStrength('rumpfbeugen', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-2xl text-sm font-bold">+${amount}</button>`
             ).join('');
 
             document.getElementById('strength-burpee-buttons').innerHTML = burpees.map(amount =>
@@ -2004,7 +1978,6 @@
                 date: new Date().toISOString(),
                 pushups: type === 'pushups' ? amount : 0,
                 pullups: type === 'pullups' ? amount : 0,
-                rumpfbeugen: type === 'rumpfbeugen' ? amount : 0,
                 burpees: type === 'burpees' ? amount : 0
             });
             hideStrengthModal();
@@ -2014,11 +1987,11 @@
         }
 
         function emptyStrengthDay() {
-            return { pushups: 0, pullups: 0, rumpfbeugen: 0, burpees: 0 };
+            return { pushups: 0, pullups: 0, burpees: 0 };
         }
 
         function hasStrengthTotals(totals) {
-            return totals.pushups || totals.pullups || totals.rumpfbeugen || totals.burpees;
+            return totals.pushups || totals.pullups || totals.burpees;
         }
 
         function getStrengthDaysSummary() {
@@ -2033,7 +2006,6 @@
                 const totals = {
                     pushups: e.pushups || 0,
                     pullups: e.pullups || 0,
-                    rumpfbeugen: e.rumpfbeugen || 0,
                     burpees: e.burpees || 0
                 };
                 if (!hasStrengthTotals(totals)) return;
@@ -2046,7 +2018,6 @@
                 if (!byDay[key]) byDay[key] = emptyStrengthDay();
                 byDay[key].pushups += e.pushups || 0;
                 byDay[key].pullups += e.pullups || 0;
-                byDay[key].rumpfbeugen += e.rumpfbeugen || 0;
                 byDay[key].burpees += e.burpees || 0;
             });
 
@@ -2054,7 +2025,6 @@
                 byDay[dailyData.date] = {
                     pushups: dailyData.pushups || 0,
                     pullups: dailyData.pullups || 0,
-                    rumpfbeugen: dailyData.rumpfbeugen || 0,
                     burpees: dailyData.burpees || 0
                 };
             }
@@ -2079,13 +2049,11 @@
                         weekEnd: getWeekEndKey(weekStart),
                         pushups: 0,
                         pullups: 0,
-                        rumpfbeugen: 0,
                         burpees: 0
                     };
                 }
                 byWeek[weekStart].pushups += d.pushups || 0;
                 byWeek[weekStart].pullups += d.pullups || 0;
-                byWeek[weekStart].rumpfbeugen += d.rumpfbeugen || 0;
                 byWeek[weekStart].burpees += d.burpees || 0;
             });
 
@@ -2096,11 +2064,10 @@
         const STRENGTH_EXERCISES = [
             { key: 'pushups', label: 'Liegestütz', chip: 'bg-yellow-50 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-200' },
             { key: 'pullups', label: 'Klimmzüge', chip: 'bg-teal-50 text-teal-800 dark:bg-teal-950/50 dark:text-teal-200' },
-            { key: 'rumpfbeugen', label: 'Rumpfbeugen', chip: 'bg-purple-50 text-purple-800 dark:bg-purple-950/50 dark:text-purple-200' },
             { key: 'burpees', label: 'Burpees', chip: 'bg-orange-50 text-orange-800 dark:bg-orange-950/50 dark:text-orange-200' }
         ];
 
-        const STRENGTH_HISTORY_GRID = 'grid-cols-[5.5rem_repeat(4,minmax(1.65rem,1fr))]';
+        const STRENGTH_HISTORY_GRID = 'grid-cols-[5.5rem_repeat(3,minmax(1.65rem,1fr))]';
 
         function renderStrengthHistoryTable(displayWeeks) {
             const header = `
@@ -2400,8 +2367,6 @@
                 formatButtonValues(settings.pushupButtons || DEFAULT_SETTINGS.pushupButtons);
             document.getElementById('settings-pullup-buttons').value =
                 formatButtonValues(settings.pullupButtons || DEFAULT_SETTINGS.pullupButtons);
-            document.getElementById('settings-rumpfbeugen-buttons').value =
-                formatButtonValues(settings.rumpfbeugenButtons || DEFAULT_SETTINGS.rumpfbeugenButtons);
             document.getElementById('settings-burpee-buttons').value =
                 formatButtonValues(settings.burpeeButtons || DEFAULT_SETTINGS.burpeeButtons);
             menuBuilderDraft = {
@@ -2453,10 +2418,6 @@
             settings.pullupButtons = parseButtonValues(
                 document.getElementById('settings-pullup-buttons').value,
                 DEFAULT_SETTINGS.pullupButtons
-            );
-            settings.rumpfbeugenButtons = parseButtonValues(
-                document.getElementById('settings-rumpfbeugen-buttons').value,
-                DEFAULT_SETTINGS.rumpfbeugenButtons
             );
             settings.burpeeButtons = parseButtonValues(
                 document.getElementById('settings-burpee-buttons').value,
