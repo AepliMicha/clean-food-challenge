@@ -610,7 +610,7 @@
                             <i class="fa-solid fa-eraser"></i> Beispieldaten entfernen
                         </button>
                     </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Testdaten für Gewicht, Kraft-Bestwerte und Wochen-Chips — relativ zu heute berechnet.</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Testdaten für 3 Kalenderwochen (Gewicht, Kraft, Wochen-Chips) — relativ zu heute.</p>
                 </div>
 
                 <label class="flex items-center gap-4 px-4 py-3 ui-panel rounded-2xl cursor-pointer">
@@ -849,47 +849,66 @@
             return formatDateKey(d);
         }
 
+        const DEMO_WEEKS = 3;
+        const DEMO_STRENGTH_PATTERN = [
+            { pushups: 15, pullups: 3, rumpfbeugen: 15, burpees: 5 },
+            { pushups: 20, pullups: 4, rumpfbeugen: 18, burpees: 0 },
+            { pushups: 18, pullups: 3, rumpfbeugen: 20, burpees: 5 },
+            { pushups: 22, pullups: 5, rumpfbeugen: 15, burpees: 0 },
+            { pushups: 25, pullups: 4, rumpfbeugen: 22, burpees: 8 },
+            { pushups: 30, pullups: 6, rumpfbeugen: 25, burpees: 10 },
+            { pushups: 35, pullups: 8, rumpfbeugen: 28, burpees: 8 }
+        ];
+
+        function getDemoWeekStart(weeksBefore) {
+            const d = new Date(getWeekStartKey(getTodayKey()) + 'T12:00:00');
+            d.setDate(d.getDate() - weeksBefore * 7);
+            return formatDateKey(d);
+        }
+
+        function getDemoHistoryDayKeys() {
+            const keys = [];
+            const start = getDemoWeekStart(DEMO_WEEKS - 1);
+            const end = dateKeyDaysAgo(1);
+            let cursor = start;
+            while (cursor <= end) {
+                keys.push(cursor);
+                cursor = nextDateKey(cursor);
+            }
+            return keys;
+        }
+
+        function getDemoStrengthForDay(dayIndex) {
+            const base = DEMO_STRENGTH_PATTERN[dayIndex % DEMO_STRENGTH_PATTERN.length];
+            const weekIndex = Math.floor(dayIndex / 7);
+            return {
+                pushups: base.pushups + weekIndex * 5,
+                pullups: base.pullups + weekIndex,
+                rumpfbeugen: base.rumpfbeugen + weekIndex * 4,
+                burpees: base.burpees + Math.min(weekIndex * 2, 6)
+            };
+        }
+
         function loadDemoData() {
-            if (!confirm('Beispieldaten laden? Gewicht, Kraft und Tages-Historie werden mit Testwerten überschrieben.')) return;
+            if (!confirm('Beispieldaten laden? Gewicht, Kraft und Tages-Historie (3 Kalenderwochen) werden überschrieben.')) return;
 
             ensureMenuData();
             const maintenance = getMaintenanceKcal();
 
-            const fridays = getPastFridayKeys(12);
-            const weights = [68.4, 68.2, 68.0, 67.9, 67.7, 67.6, 67.4, 67.2, 67.0, 66.9, 66.8, 66.6];
-            weightHistory = fridays.map((date, i) => ({ date, kg: weights[i] ?? 66.6 }));
+            const fridays = getPastFridayKeys(DEMO_WEEKS);
+            const weights = [67.4, 67.2, 67.0];
+            weightHistory = fridays.map((date, i) => ({ date, kg: weights[i] ?? 67 }));
 
-            const olderWeek = [
-                { pushups: 15, pullups: 3, rumpfbeugen: 15, burpees: 5 },
-                { pushups: 20, pullups: 4, rumpfbeugen: 18, burpees: 0 },
-                { pushups: 18, pullups: 3, rumpfbeugen: 20, burpees: 5 },
-                { pushups: 22, pullups: 5, rumpfbeugen: 15, burpees: 0 },
-                { pushups: 15, pullups: 4, rumpfbeugen: 22, burpees: 8 },
-                { pushups: 25, pullups: 4, rumpfbeugen: 18, burpees: 5 },
-                { pushups: 20, pullups: 5, rumpfbeugen: 20, burpees: 0 }
-            ];
-            const recentWeek = [
-                { pushups: 35, pullups: 6, rumpfbeugen: 25, burpees: 10 },
-                { pushups: 40, pullups: 8, rumpfbeugen: 20, burpees: 5 },
-                { pushups: 30, pullups: 5, rumpfbeugen: 30, burpees: 8 },
-                { pushups: 45, pullups: 10, rumpfbeugen: 25, burpees: 10 },
-                { pushups: 25, pullups: 6, rumpfbeugen: 20, burpees: 5 },
-                { pushups: 35, pullups: 8, rumpfbeugen: 28, burpees: 10 },
-                { pushups: 30, pullups: 7, rumpfbeugen: 22, burpees: 8 }
-            ];
-
+            const demoDays = getDemoHistoryDayKeys();
             dayHistory = [];
             strengthHistory = [];
 
-            for (let daysAgo = 14; daysAgo >= 1; daysAgo--) {
-                const date = dateKeyDaysAgo(daysAgo);
+            demoDays.forEach((date, i) => {
                 const isFrei = getDayType(date) === 'frei';
                 const effectiveMode = isFrei ? 'frei' : 'arbeit';
                 const baseKcal = isFrei ? 1880 : 2030;
-                const strength = daysAgo <= 7
-                    ? recentWeek[7 - daysAgo]
-                    : olderWeek[14 - daysAgo];
-                const training = daysAgo % 3 === 0
+                const strength = getDemoStrengthForDay(i);
+                const training = i % 3 === 0
                     ? [{ type: 'gravel', label: 'Gravel Tour 45 km', kcalBonus: 480, date: isoAtNoon(date) }]
                     : [];
 
@@ -917,7 +936,7 @@
                     rumpfbeugen: strength.rumpfbeugen,
                     burpees: strength.burpees
                 });
-            }
+            });
 
             dailyData = {
                 date: getTodayKey(),
