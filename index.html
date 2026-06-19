@@ -267,10 +267,13 @@
             </div>
             
             <!-- Heute | Essen | Training | Kraft -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 lg:grid-rows-[auto_1fr] gap-4 items-stretch">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:items-start">
 
-                <!-- Daily Header + Totals (breit wie Essen + Training) -->
-                <div class="ui-card ui-card-teal rounded-3xl p-3 lg:col-span-7 lg:col-start-1 lg:row-start-1 lg:self-start">
+                <!-- Linke Spalte: HEUTE + Essen/Training (unabhängig von Kraft-Höhe) -->
+                <div class="lg:col-span-7 flex flex-col gap-4 min-w-0">
+
+                <!-- Daily Header + Totals -->
+                <div class="ui-card ui-card-teal rounded-3xl p-3">
                     <div class="flex justify-between items-center gap-3">
                         <div>
                             <div class="section-header text-teal-700 dark:text-teal-400">HEUTE</div>
@@ -308,8 +311,9 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-7 gap-4">
                 <!-- Heute Essen -->
-                <div class="ui-card rounded-3xl p-4 h-full lg:col-span-4 lg:col-start-1 lg:row-start-2">
+                <div class="ui-card rounded-3xl p-4 sm:col-span-4">
                     <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
                         <i class="fa-solid fa-utensils"></i>
                         <span>HEUTE ESSEN</span>
@@ -319,7 +323,7 @@
                 </div>
 
                 <!-- Zusätzlich wegen Training -->
-                <div class="ui-card rounded-3xl p-3 lg:p-3.5 h-full lg:col-span-3 lg:col-start-5 lg:row-start-2 min-w-0">
+                <div class="ui-card rounded-3xl p-3 lg:p-3.5 sm:col-span-3 min-w-0">
                     <div class="flex items-start justify-between mb-2 px-0.5 gap-1">
                         <div class="section-header text-emerald-700 dark:text-emerald-400 leading-tight min-w-0">
                             <div class="flex items-center gap-x-1.5">
@@ -332,11 +336,14 @@
                             <i class="fa-solid fa-plus fa-xs"></i>
                         </button>
                     </div>
-                    <div id="refuel-section" class="min-h-[100px]"></div>
+                    <div id="refuel-section" class="min-h-0"></div>
+                </div>
                 </div>
 
-                <!-- Kraft-Training (rechts, volle Höhe) -->
-                <div id="strength-card" class="ui-card rounded-3xl p-4 h-full lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:row-span-2 min-w-0 flex flex-col min-h-0">
+                </div>
+
+                <!-- Kraft-Training (rechts, eigene Spalte) -->
+                <div id="strength-card" class="ui-card rounded-3xl p-4 lg:col-span-5 lg:self-start min-w-0 flex flex-col">
                     <div id="strength-card-tap" onclick="showStrengthModal()"
                          class="cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] shrink-0">
                         <div class="flex justify-between items-center mb-3">
@@ -366,8 +373,7 @@
                     </div>
                     <div id="strength-progress" class="hidden mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-2 shrink-0"></div>
                     <div id="strength-days-list"
-                         class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex-1 min-h-0 max-h-48 lg:max-h-none overflow-y-auto"
-                         onwheel="event.stopPropagation()"></div>
+                         class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 shrink-0"></div>
                 </div>
             </div>
 
@@ -397,8 +403,7 @@
                     <div id="weekly-overview" class="flex flex-wrap gap-1.5 justify-end min-w-0"></div>
                 </div>
                 <div id="weight-history-list"
-                     class="space-y-0.5 max-h-28 overflow-y-auto pt-2 border-t border-slate-100 dark:border-slate-700 shrink min-h-0"
-                     onwheel="event.stopPropagation()"></div>
+                     class="space-y-0.5 pt-2 border-t border-slate-100 dark:border-slate-700 shrink-0"></div>
             </div>
         </div>
     </div>
@@ -849,7 +854,7 @@
             return formatDateKey(d);
         }
 
-        const DEMO_DAYS = 84;
+        const DEMO_DAYS = 28;
         const DEMO_WEIGHT_WEEKS = 12;
         const DEMO_STRENGTH_PATTERN = [
             { pushups: 15, pullups: 3, burpees: 5 },
@@ -2074,6 +2079,9 @@
             return { totalWeeks: weeks.length, weeks };
         }
 
+        const STRENGTH_HISTORY_WEEKS = 4;
+        const WEIGHT_HISTORY_ENTRIES = 5;
+
         const STRENGTH_EXERCISES = [
             {
                 key: 'pushups', label: 'Liegestütz', short: 'Lieg.',
@@ -2220,8 +2228,9 @@
         function updateStrengthDaysDisplay() {
             const { weeks } = getStrengthWeeksSummary();
             const container = document.getElementById('strength-days-list');
+            const displayWeeks = weeks.slice(0, STRENGTH_HISTORY_WEEKS);
 
-            if (weeks.length === 0) {
+            if (displayWeeks.length === 0) {
                 container.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center">Noch keine Einträge</div>';
                 return;
             }
@@ -2233,7 +2242,7 @@
                     </span>
                     <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Wochen-Historie</span>
                 </div>
-                ${renderStrengthHistoryTable(weeks)}
+                ${renderStrengthHistoryTable(displayWeeks)}
             `;
         }
 
@@ -2328,7 +2337,7 @@
                 listEl.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-1">Noch keine Einträge</div>';
                 return;
             }
-            listEl.innerHTML = sorted.slice(0, 12).map((e, i) => {
+            listEl.innerHTML = sorted.slice(0, WEIGHT_HISTORY_ENTRIES).map((e, i) => {
                 const prev = sorted[i + 1];
                 let deltaHtml = '<span class="text-slate-300 dark:text-slate-600">—</span>';
                 if (prev) {
