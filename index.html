@@ -319,7 +319,7 @@
                         <div class="grid grid-cols-4 gap-2 text-center items-end">
                             <div>
                                 <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">LIEGESTÜTZ</div>
-                                <div class="text-3xl font-bold tabular-nums text-amber-600 dark:text-amber-400" id="pushups-today">0</div>
+                                <div class="text-3xl font-bold tabular-nums text-yellow-600 dark:text-yellow-400" id="pushups-today">0</div>
                             </div>
                             <div>
                                 <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">KLIMMZÜGE</div>
@@ -327,7 +327,7 @@
                             </div>
                             <div>
                                 <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">BURPEES</div>
-                                <div class="text-3xl font-bold tabular-nums text-orange-600 dark:text-orange-400" id="burpees-today">0</div>
+                                <div class="text-3xl font-bold tabular-nums text-rose-600 dark:text-rose-400" id="burpees-today">0</div>
                             </div>
                             <div>
                                 <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight tracking-wide">DIESE WOCHE</div>
@@ -1860,7 +1860,7 @@
             const burpees = settings.burpeeButtons || DEFAULT_SETTINGS.burpeeButtons;
 
             document.getElementById('strength-pushup-buttons').innerHTML = pushups.map(amount =>
-                `<button onclick="quickAddStrength('pushups', ${amount})" class="flex-1 min-w-[4rem] py-3 accent-gold-bg rounded-2xl text-sm font-bold">+${amount}</button>`
+                `<button onclick="quickAddStrength('pushups', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 rounded-2xl text-sm font-bold">+${amount}</button>`
             ).join('');
 
             document.getElementById('strength-pullup-buttons').innerHTML = pullups.map(amount =>
@@ -1868,7 +1868,7 @@
             ).join('');
 
             document.getElementById('strength-burpee-buttons').innerHTML = burpees.map(amount =>
-                `<button onclick="quickAddStrength('burpees', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 rounded-2xl text-sm font-bold">+${amount}</button>`
+                `<button onclick="quickAddStrength('burpees', ${amount})" class="flex-1 min-w-[4rem] py-3 bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 rounded-2xl text-sm font-bold">+${amount}</button>`
             ).join('');
         }
 
@@ -1971,9 +1971,9 @@
             {
                 key: 'pushups', label: 'Liegestütz', short: 'Lieg.',
                 icon: 'fa-dumbbell',
-                chip: 'bg-amber-50 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200',
-                card: 'border-amber-200/80 bg-amber-50/70 dark:border-amber-800/40 dark:bg-amber-950/30',
-                value: 'text-amber-700 dark:text-amber-300'
+                chip: 'bg-yellow-50 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-200',
+                card: 'border-yellow-200/80 bg-yellow-50/70 dark:border-yellow-800/40 dark:bg-yellow-950/30',
+                value: 'text-yellow-700 dark:text-yellow-300'
             },
             {
                 key: 'pullups', label: 'Klimmzüge', short: 'Klimm.',
@@ -1985,9 +1985,9 @@
             {
                 key: 'burpees', label: 'Burpees', short: 'Burp.',
                 icon: 'fa-fire',
-                chip: 'bg-orange-50 text-orange-800 dark:bg-orange-950/50 dark:text-orange-200',
-                card: 'border-orange-200/80 bg-orange-50/70 dark:border-orange-800/40 dark:bg-orange-950/30',
-                value: 'text-orange-700 dark:text-orange-300'
+                chip: 'bg-rose-50 text-rose-800 dark:bg-rose-950/50 dark:text-rose-200',
+                card: 'border-rose-200/80 bg-rose-50/70 dark:border-rose-800/40 dark:bg-rose-950/30',
+                value: 'text-rose-700 dark:text-rose-300'
             }
         ];
 
