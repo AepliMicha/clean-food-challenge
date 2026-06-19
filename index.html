@@ -2103,20 +2103,6 @@
             return header + rows;
         }
 
-        function sumStrengthForDayKeys(dayKeys) {
-            const set = new Set(dayKeys);
-            const totals = emptyStrengthDay();
-            getStrengthDaysSummary().days
-                .filter(d => set.has(d.date))
-                .forEach(d => {
-                    totals.pushups += d.pushups;
-                    totals.pullups += d.pullups;
-                    totals.rumpfbeugen += d.rumpfbeugen;
-                    totals.burpees += d.burpees;
-                });
-            return totals;
-        }
-
         function getStrengthRecords() {
             const records = emptyStrengthDay();
             getStrengthDaysSummary().days.forEach(d => {
@@ -2127,20 +2113,11 @@
             return records;
         }
 
-        function formatStrengthWeekDelta(current, previous) {
-            const diff = current - previous;
-            if (diff > 0) return `<span class="text-teal-600 dark:text-teal-400 font-semibold">+${diff}</span>`;
-            if (diff < 0) return `<span class="text-slate-400 dark:text-slate-500">${diff}</span>`;
-            return `<span class="text-slate-400 dark:text-slate-500">±0</span>`;
-        }
-
         function renderStrengthProgress() {
             const container = document.getElementById('strength-progress');
             const records = getStrengthRecords();
-            const thisWeek = sumStrengthForDayKeys(getLastNDayKeys(7, 0));
-            const lastWeek = sumStrengthForDayKeys(getLastNDayKeys(7, 7));
 
-            if (!hasStrengthTotals(records) && !hasStrengthTotals(thisWeek)) {
+            if (!hasStrengthTotals(records)) {
                 container.classList.add('hidden');
                 return;
             }
@@ -2155,24 +2132,10 @@
                     </span>
                 `).join('');
 
-            const weekItems = STRENGTH_EXERCISES
-                .filter(ex => thisWeek[ex.key] > 0 || lastWeek[ex.key] > 0)
-                .map(ex => `
-                    <span class="inline-flex items-baseline gap-1 text-xs text-slate-600 dark:text-slate-300">
-                        <span class="font-bold tabular-nums">${thisWeek[ex.key]}</span>
-                        <span>${ex.label}</span>
-                        ${formatStrengthWeekDelta(thisWeek[ex.key], lastWeek[ex.key])}
-                    </span>
-                `).join('');
-
             container.innerHTML = `
                 <div>
                     <div class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-1">Bestwert (1 Tag)</div>
                     <div class="flex flex-wrap gap-1.5">${recordChips || '<span class="text-xs text-slate-400">—</span>'}</div>
-                </div>
-                <div>
-                    <div class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-1">7 Tage vs. Woche davor</div>
-                    <div class="flex flex-wrap gap-x-3 gap-y-1">${weekItems || '<span class="text-xs text-slate-400">—</span>'}</div>
                 </div>
             `;
         }
