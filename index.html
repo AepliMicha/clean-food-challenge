@@ -1755,8 +1755,6 @@
             };
         }
 
-        const SKITOUR_MET = 6.5;
-
         function estimateSkitourHours(km, hm) {
             const climbH = hm / 400;
             const moveH = 0.5 + km / 10;
@@ -1768,8 +1766,21 @@
             return estimateSkitourHours(km, hm);
         }
 
+        function getSkitourMet(hm, hours) {
+            const climbRate = hm / Math.max(hours, 0.75);
+            if (climbRate >= 480) return 9.5;
+            if (climbRate >= 380) return 8.5;
+            if (climbRate >= 280) return 7.5;
+            if (climbRate >= 180) return 6.5;
+            return 5.5;
+        }
+
         function calculateSkitourKcal(kg, km, hm, duration = 0) {
-            return Math.round(SKITOUR_MET * kg * getSkitourHours(km, hm, duration));
+            const hours = getSkitourHours(km, hm, duration);
+            const met = getSkitourMet(hm, hours);
+            const activity = met * kg * hours;
+            const floor = kg * (hm * 0.008 + km * 0.12);
+            return Math.round(Math.max(activity, floor));
         }
 
         function syncSkitourDurationEstimate() {
@@ -1833,10 +1844,17 @@
 
             valueEl.textContent = `+${kcal}`;
             if (inputs.type === 'skitour') {
-                const est = estimateSkitourHours(inputs.km || 0, inputs.hm || 0);
-                const hours = getSkitourHours(inputs.km || 0, inputs.hm || 0, inputs.duration || 0);
+                const km = inputs.km || 0;
+                const hm = inputs.hm || 0;
+                const est = estimateSkitourHours(km, hm);
+                const hours = getSkitourHours(km, hm, inputs.duration || 0);
+                const met = getSkitourMet(hm, hours);
                 const manual = inputs.duration > 0 && Math.abs(inputs.duration - est) > 0.2;
-                hintEl.textContent = `${hours.toFixed(1).replace('.', ',')} h${manual ? '' : ' (geschätzt)'} · MET ${SKITOUR_MET}`;
+                let hint = `${hours.toFixed(1).replace('.', ',')} h${manual ? '' : ' (geschätzt)'} · MET ${met}`;
+                if (hm > 0 && hours < est - 0.4) {
+                    hint += ' · Dauer eher Gesamtzeit inkl. Abfahrt/Pause';
+                }
+                hintEl.textContent = hint;
                 hintEl.classList.remove('hidden');
             } else if (hintEl) {
                 hintEl.classList.add('hidden');
@@ -1930,7 +1948,7 @@
                             <input type="range" id="train-duration" min="1" max="8" step="0.25" value="${defaultHours}" class="w-full mt-1" oninput="document.getElementById('duration-val').textContent = parseFloat(this.value).toFixed(1).replace('.', ',') + ' h'; ${onSlide}">
                             <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>1 h</div><div id="duration-val">${defaultHours.toFixed(1).replace('.', ',')} h</div><div>8 h</div></div>
                         </div>
-                        <div class="text-xs text-slate-400 dark:text-slate-500">Extra-kcal = ${SKITOUR_MET} MET × kg × Dauer · km/hm schätzen die Startdauer</div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500">MET steigt bei steiler/schneller Tour · Dauer = Gesamtzeit Ort zu Ort</div>
                     </div>
                 `;
             }
