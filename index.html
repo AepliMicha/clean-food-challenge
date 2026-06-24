@@ -200,7 +200,47 @@
             display: none;
         }
 
+        .activity-pair-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
         @media (min-width: 1024px) {
+            .activity-pair-grid {
+                display: grid;
+                grid-template-columns: repeat(12, minmax(0, 1fr));
+                grid-template-rows: auto auto minmax(0, 1fr);
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .activity-card-subgrid {
+                display: grid;
+                grid-row: span 3 / span 3;
+                grid-template-rows: subgrid;
+                min-height: 0;
+            }
+
+            .activity-card-training {
+                grid-column: span 7 / span 7;
+            }
+
+            .activity-card-strength {
+                grid-column: span 5 / span 5;
+            }
+
+            .activity-history {
+                max-height: 14rem;
+                min-height: 0;
+                overflow-y: auto;
+            }
+
+            .activity-records.is-empty {
+                border-top-width: 0;
+                padding-top: 0;
+            }
+
             .records-panel-inner {
                 min-height: 7.25rem;
             }
@@ -261,68 +301,68 @@
                 <button onclick="dismissAutoCloseNotice()" class="text-yellow-500 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300 text-xl leading-none">&times;</button>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:items-stretch">
-                <div class="ui-card rounded-3xl p-3 lg:p-4 lg:col-span-7 min-w-0 flex flex-col h-full min-h-0">
-                    <div class="shrink-0">
-                        <div class="flex items-start justify-between mb-1.5 px-0.5 gap-1">
-                            <div class="section-header text-emerald-700 dark:text-emerald-400 leading-tight min-w-0">
-                                <div class="flex items-center gap-x-1.5">
-                                    <i class="fa-solid fa-person-running"></i>
-                                    <span>TRAINING</span>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <div class="activity-pair-grid lg:col-span-12">
+                    <div class="ui-card rounded-3xl p-3 lg:p-4 min-w-0 activity-card-subgrid activity-card-training flex flex-col lg:grid">
+                        <div class="activity-today min-h-0">
+                            <div class="flex items-start justify-between mb-1.5 px-0.5 gap-1">
+                                <div class="section-header text-emerald-700 dark:text-emerald-400 leading-tight min-w-0">
+                                    <div class="flex items-center gap-x-1.5">
+                                        <i class="fa-solid fa-person-running"></i>
+                                        <span>TRAINING</span>
+                                    </div>
+                                    <span class="text-[10px] font-medium opacity-75 block pl-[1.35rem]">Extra-kcal</span>
                                 </div>
-                                <span class="text-[10px] font-medium opacity-75 block pl-[1.35rem]">Extra-kcal</span>
+                                <button id="btn-add-training" onclick="showAddTrainingModal()" class="text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl font-medium shrink-0" title="Training hinzufügen">
+                                    <i class="fa-solid fa-plus fa-xs"></i>
+                                </button>
                             </div>
-                            <button id="btn-add-training" onclick="showAddTrainingModal()" class="text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl font-medium shrink-0" title="Training hinzufügen">
-                                <i class="fa-solid fa-plus fa-xs"></i>
-                            </button>
+                            <div class="flex items-baseline justify-between mb-2 px-1">
+                                <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Diese Woche</span>
+                                <span id="training-week-total" class="text-2xl font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400 leading-none">0</span>
+                            </div>
+                            <div id="refuel-section" class="min-h-0"></div>
                         </div>
-                        <div class="flex items-baseline justify-between mb-2 px-1">
-                            <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Diese Woche</span>
-                            <span id="training-week-total" class="text-2xl font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400 leading-none">0</span>
-                        </div>
-                        <div id="refuel-section" class="min-h-0"></div>
+                        <div id="training-progress" class="activity-records is-empty pt-2 border-t border-slate-100 dark:border-slate-700 min-h-0"></div>
+                        <div id="training-weeks-list"
+                             class="activity-history mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 max-h-56 lg:max-h-none overflow-y-auto min-h-0"
+                             onwheel="event.stopPropagation()"></div>
                     </div>
-                    <div class="hidden lg:block flex-1 min-h-0" aria-hidden="true"></div>
-                    <div id="training-progress" class="hidden pt-2 border-t border-slate-100 dark:border-slate-700 shrink-0 records-panel-slot"></div>
-                    <div id="training-weeks-list"
-                         class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 max-h-56 overflow-y-auto min-h-0 flex-1 lg:flex-none"
-                         onwheel="event.stopPropagation()"></div>
-                </div>
 
-                <div id="strength-card" class="ui-card rounded-3xl p-4 lg:col-span-5 min-w-0 flex flex-col h-full min-h-0">
-                    <div id="strength-card-tap" onclick="showStrengthModal()"
-                         class="cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] shrink-0">
-                        <div class="flex justify-between items-center mb-3">
-                            <div class="section-header text-slate-700 dark:text-slate-300">KRAFT-TRAINING</div>
-                            <div class="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>Tippen</span>
+                    <div id="strength-card" class="ui-card rounded-3xl p-4 min-w-0 activity-card-subgrid activity-card-strength flex flex-col lg:grid">
+                        <div id="strength-card-tap" onclick="showStrengthModal()"
+                             class="activity-today cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] min-h-0">
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="section-header text-slate-700 dark:text-slate-300">KRAFT-TRAINING</div>
+                                <div class="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Tippen</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2 text-center items-end">
+                                <div>
+                                    <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">KLIMMZÜGE</div>
+                                    <div class="text-3xl font-bold tabular-nums text-sky-600 dark:text-sky-400" id="pullups-today">0</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">LIEGESTÜTZ</div>
+                                    <div class="text-3xl font-bold tabular-nums text-yellow-600 dark:text-yellow-400" id="pushups-today">0</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">BURPEES</div>
+                                    <div class="text-3xl font-bold tabular-nums text-rose-600 dark:text-rose-400" id="burpees-today">0</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight tracking-wide">DIESE WOCHE</div>
+                                    <div class="text-4xl font-extrabold tabular-nums text-slate-800 dark:text-slate-50 leading-none" id="strength-week-total">0</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-4 gap-2 text-center items-end">
-                            <div>
-                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">KLIMMZÜGE</div>
-                                <div class="text-3xl font-bold tabular-nums text-sky-600 dark:text-sky-400" id="pullups-today">0</div>
-                            </div>
-                            <div>
-                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">LIEGESTÜTZ</div>
-                                <div class="text-3xl font-bold tabular-nums text-yellow-600 dark:text-yellow-400" id="pushups-today">0</div>
-                            </div>
-                            <div>
-                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">BURPEES</div>
-                                <div class="text-3xl font-bold tabular-nums text-rose-600 dark:text-rose-400" id="burpees-today">0</div>
-                            </div>
-                            <div>
-                                <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight tracking-wide">DIESE WOCHE</div>
-                                <div class="text-4xl font-extrabold tabular-nums text-slate-800 dark:text-slate-50 leading-none" id="strength-week-total">0</div>
-                            </div>
-                        </div>
+                        <div id="strength-progress" class="activity-records is-empty pt-2 border-t border-slate-100 dark:border-slate-700 min-h-0"></div>
+                        <div id="strength-days-list"
+                             class="activity-history mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 max-h-56 lg:max-h-none overflow-y-auto min-h-0"
+                             onwheel="event.stopPropagation()"></div>
                     </div>
-                    <div class="hidden lg:block flex-1 min-h-0" aria-hidden="true"></div>
-                    <div id="strength-progress" class="hidden pt-2 border-t border-slate-100 dark:border-slate-700 shrink-0 records-panel-slot"></div>
-                    <div id="strength-days-list"
-                         class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 max-h-56 overflow-y-auto min-h-0 flex-1 lg:flex-none"
-                         onwheel="event.stopPropagation()"></div>
                 </div>
 
                 <div class="ui-card rounded-3xl p-4 lg:col-span-12 min-w-0">
@@ -2261,10 +2301,11 @@
             const bestWeekTotal = getTrainingBestWeekTotal();
 
             if (!hasTrainingRecords(records)) {
-                container.classList.add('hidden');
+                container.classList.add('is-empty');
+                container.innerHTML = '';
                 return;
             }
-            container.classList.remove('hidden');
+            container.classList.remove('is-empty');
 
             const recordCards = TRAINING_TYPES
                 .filter(type => records[type.key] > 0)
@@ -2498,10 +2539,11 @@
             const bestWeekTotal = getStrengthBestWeekTotal();
 
             if (!hasStrengthTotals(records)) {
-                container.classList.add('hidden');
+                container.classList.add('is-empty');
+                container.innerHTML = '';
                 return;
             }
-            container.classList.remove('hidden');
+            container.classList.remove('is-empty');
 
             const recordCards = STRENGTH_EXERCISES
                 .filter(ex => records[ex.key] > 0)
