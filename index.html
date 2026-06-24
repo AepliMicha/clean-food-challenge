@@ -378,6 +378,7 @@
                     <option value="climbing">Klettern / Bouldern</option>
                     <option value="gravel">Gravel Tour</option>
                     <option value="trail">Trailrunning</option>
+                    <option value="skitour">Skitour</option>
                     <option value="swim">Schwimmen (Kraul)</option>
                 </select>
                 <div id="training-input-fields"></div>
@@ -1685,6 +1686,7 @@
                 climbing: 'fa-mountain',
                 gravel: 'fa-bicycle',
                 trail: 'fa-person-running',
+                skitour: 'fa-person-skiing',
                 swim: 'fa-person-swimming'
             };
             return icons[type] || 'fa-dumbbell';
@@ -1763,6 +1765,9 @@
             if (inputs.type === 'trail') {
                 return Math.round(kg * ((inputs.km || 0) * 1.05 + (inputs.hm || 0) * 0.003));
             }
+            if (inputs.type === 'skitour') {
+                return Math.round(kg * ((inputs.km || 0) * 0.75 + (inputs.hm || 0) * 0.0055));
+            }
             if (inputs.type === 'swim') {
                 return Math.round(kg * (inputs.km || 0) * 4.3);
             }
@@ -1778,6 +1783,9 @@
             }
             if (inputs.type === 'trail') {
                 return `Trailrun ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''}`;
+            }
+            if (inputs.type === 'skitour') {
+                return `Skitour ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''}`;
             }
             if (inputs.type === 'swim') {
                 return `Kraul ${inputs.km}km`;
@@ -1859,6 +1867,22 @@
                             <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>0</div><div id="hm-val">800 hm</div><div>1200</div></div>
                         </div>
                         <div class="text-xs text-slate-400 dark:text-slate-500">ca. 1,05 kcal/kg/km + 0,003 kcal/kg/hm</div>
+                    </div>
+                `;
+            } else if (type === 'skitour') {
+                container.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km, Karte)</label>
+                            <input type="range" id="train-km" min="3" max="25" step="1" value="12" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + ' km'; ${onSlide}">
+                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>3 km</div><div id="km-val">12 km</div><div>25 km</div></div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Höhenmeter (ca.)</label>
+                            <input type="range" id="train-hm" min="200" max="2500" step="50" value="1000" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${onSlide}">
+                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>200</div><div id="hm-val">1000 hm</div><div>2500</div></div>
+                        </div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500">ca. 0,75 kcal/kg/km + 0,0055 kcal/kg/hm</div>
                     </div>
                 `;
             }
