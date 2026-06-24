@@ -251,43 +251,40 @@
     <div class="app-container">
         
         <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 text-white px-4 sm:px-6 py-3 sm:py-4">
-            <div class="flex flex-wrap items-center gap-3 sm:gap-4">
-                <div class="flex items-center gap-x-3 shrink-0">
-                    <div class="w-10 h-10 sm:w-11 sm:h-11 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center">
-                        <i class="fa-solid fa-apple-alt text-2xl sm:text-3xl"></i>
+        <div class="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 text-white px-4 sm:px-6 py-3">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
+                <div class="flex items-center gap-3 min-w-0 shrink-0">
+                    <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-apple-alt text-xl"></i>
                     </div>
-                    <h1 class="font-display text-lg sm:text-2xl tracking-tight leading-tight">Clean Food Challenge</h1>
+                    <div class="min-w-0">
+                        <div id="current-day-name" class="font-display text-xl sm:text-2xl tracking-tight leading-tight"></div>
+                        <div id="current-day-date" class="text-sm text-white/70 font-medium"></div>
+                    </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-x-3 sm:gap-x-5 gap-y-2 flex-1 min-w-0 order-3 w-full sm:order-none sm:w-auto">
-                    <div class="min-w-0">
-                        <div class="text-[10px] uppercase tracking-wider text-white/60 font-semibold">Heute</div>
-                        <div class="flex items-baseline gap-x-2 flex-wrap">
-                            <div id="current-day-name" class="text-lg sm:text-xl font-bold leading-tight"></div>
-                            <div id="current-day-date" class="text-sm text-white/75 font-medium"></div>
-                        </div>
-                    </div>
+                <div class="flex flex-wrap items-center gap-3 sm:gap-4 flex-1 min-w-0">
                     <div id="day-mode-toggle" class="inline-flex bg-white/15 rounded-2xl p-0.5 text-xs shrink-0">
                         <button onclick="switchToArbeit()" id="btn-arbeit"
                                 class="px-3 py-1 rounded-xl font-bold transition-all">Arbeit</button>
                         <button onclick="switchToFrei()" id="btn-frei"
                                 class="px-3 py-1 rounded-xl font-bold transition-all">Frei</button>
                     </div>
-                    <div class="flex items-baseline gap-x-4 shrink-0">
-                        <div>
-                            <div class="text-[10px] uppercase tracking-wide text-white/60">kcal</div>
-                            <div id="total-kcal" class="text-2xl sm:text-3xl font-bold tabular-nums leading-none">2030</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] uppercase tracking-wide text-white/60">Protein</div>
-                            <div id="total-protein" class="text-2xl sm:text-3xl font-bold accent-gold tabular-nums leading-none">150g</div>
-                        </div>
+                    <div class="hidden sm:block h-7 w-px bg-white/20 shrink-0"></div>
+                    <div class="flex items-baseline gap-1.5 shrink-0">
+                        <span id="total-kcal" class="text-2xl sm:text-3xl font-bold tabular-nums leading-none">2030</span>
+                        <span class="text-xs text-white/60 font-medium">kcal</span>
                     </div>
-                    <div class="text-xs text-white/70 min-w-0">mind. <span id="daily-protein-target">150</span>g Protein <span id="deficit-display" class="text-white/55"></span></div>
+                    <div class="flex items-baseline gap-1.5 shrink-0">
+                        <span id="total-protein" class="text-2xl sm:text-3xl font-bold accent-gold tabular-nums leading-none">150g</span>
+                        <span class="text-xs text-white/60 font-medium hidden xs:inline">Protein</span>
+                    </div>
+                    <div class="text-xs text-white/60 min-w-0 w-full sm:w-auto">
+                        mind. <span id="daily-protein-target">150</span>g · <span id="deficit-display" class="text-white/55"></span>
+                    </div>
                 </div>
 
-                <button onclick="showSettings()" class="ml-auto shrink-0 order-2 sm:order-none px-3 sm:px-4 py-2 bg-white/15 hover:bg-white/25 rounded-3xl text-sm font-medium flex items-center gap-x-2">
+                <button onclick="showSettings()" class="ml-auto shrink-0 px-3 py-2 bg-white/15 hover:bg-white/25 rounded-2xl text-sm font-medium flex items-center gap-x-2" title="Einstellungen">
                     <i class="fa-solid fa-cog"></i>
                     <span class="hidden sm:inline">Einstellungen</span>
                 </button>
@@ -305,15 +302,12 @@
                 <div class="activity-pair-grid lg:col-span-12">
                     <div class="ui-card rounded-3xl p-3 lg:p-4 min-w-0 activity-card-subgrid activity-card-training flex flex-col lg:grid">
                         <div class="activity-today min-h-0">
-                            <div class="flex items-start justify-between mb-1.5 px-0.5 gap-1">
-                                <div class="section-header text-emerald-700 dark:text-emerald-400 leading-tight min-w-0">
-                                    <div class="flex items-center gap-x-1.5">
-                                        <i class="fa-solid fa-person-running"></i>
-                                        <span>TRAINING</span>
-                                    </div>
-                                    <span class="text-[10px] font-medium opacity-75 block pl-[1.35rem]">Extra-kcal</span>
+                            <div class="flex items-center justify-between mb-2 px-0.5 gap-2">
+                                <div class="section-header text-emerald-700 dark:text-emerald-400 flex items-center gap-x-1.5 min-w-0">
+                                    <i class="fa-solid fa-person-running"></i>
+                                    <span>SPORT</span>
                                 </div>
-                                <button id="btn-add-training" onclick="showAddTrainingModal()" class="text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl font-medium shrink-0" title="Training hinzufügen">
+                                <button id="btn-add-training" onclick="showAddTrainingModal()" class="text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl font-medium shrink-0" title="Sport hinzufügen">
                                     <i class="fa-solid fa-plus fa-xs"></i>
                                 </button>
                             </div>
@@ -332,29 +326,32 @@
                     <div id="strength-card" class="ui-card rounded-3xl p-4 min-w-0 activity-card-subgrid activity-card-strength flex flex-col lg:grid">
                         <div id="strength-card-tap" onclick="showStrengthModal()"
                              class="activity-today cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] min-h-0">
-                            <div class="flex justify-between items-center mb-3">
-                                <div class="section-header text-slate-700 dark:text-slate-300">KRAFT-TRAINING</div>
-                                <div class="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                            <div class="flex items-center justify-between mb-2 px-0.5 gap-2">
+                                <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-1.5 min-w-0">
+                                    <i class="fa-solid fa-dumbbell"></i>
+                                    <span>KRAFT</span>
+                                </div>
+                                <div class="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 shrink-0">
                                     <i class="fa-solid fa-plus"></i>
                                     <span>Tippen</span>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-4 gap-2 text-center items-end">
+                            <div class="flex items-baseline justify-between mb-2 px-1">
+                                <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Diese Woche</span>
+                                <span id="strength-week-total" class="text-2xl font-extrabold tabular-nums text-slate-800 dark:text-slate-50 leading-none">0</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center">
                                 <div>
                                     <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">KLIMMZÜGE</div>
-                                    <div class="text-3xl font-bold tabular-nums text-sky-600 dark:text-sky-400" id="pullups-today">0</div>
+                                    <div class="text-2xl font-bold tabular-nums text-sky-600 dark:text-sky-400" id="pullups-today">0</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">LIEGESTÜTZ</div>
-                                    <div class="text-3xl font-bold tabular-nums text-yellow-600 dark:text-yellow-400" id="pushups-today">0</div>
+                                    <div class="text-2xl font-bold tabular-nums text-yellow-600 dark:text-yellow-400" id="pushups-today">0</div>
                                 </div>
                                 <div>
                                     <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">BURPEES</div>
-                                    <div class="text-3xl font-bold tabular-nums text-rose-600 dark:text-rose-400" id="burpees-today">0</div>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight tracking-wide">DIESE WOCHE</div>
-                                    <div class="text-4xl font-extrabold tabular-nums text-slate-800 dark:text-slate-50 leading-none" id="strength-week-total">0</div>
+                                    <div class="text-2xl font-bold tabular-nums text-rose-600 dark:text-rose-400" id="burpees-today">0</div>
                                 </div>
                             </div>
                         </div>
@@ -368,7 +365,7 @@
                 <div class="ui-card rounded-3xl p-4 lg:col-span-12 min-w-0">
                     <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
                         <i class="fa-solid fa-utensils"></i>
-                        <span>HEUTE ESSEN</span>
+                        <span>ESSEN</span>
                     </div>
                     <div id="meals-arbeit" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-sm"></div>
                     <div id="meals-frei" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-sm"></div>
