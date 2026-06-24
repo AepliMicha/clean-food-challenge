@@ -2155,10 +2155,15 @@
             return Object.keys(byWeek).sort().reverse().map(weekStart => byWeek[weekStart]);
         }
 
-        function formatTrainingWeekKcal(value) {
+        function formatTrainingKcal(value) {
             if (!value) return '·';
-            if (value >= 1000) return `${(value / 1000).toFixed(1).replace('.', ',')}k`;
-            return String(value);
+            return Math.round(value).toLocaleString('de-CH');
+        }
+
+        function formatTrainingKcalTooltip(value, label = '') {
+            if (!value) return '';
+            const spelled = `${Math.round(value).toLocaleString('de-CH')} kcal Extra`;
+            return label ? `${label}: ${spelled}` : spelled;
         }
 
         function renderTrainingHistoryTable(displayWeeks) {
@@ -2185,9 +2190,9 @@
                     <span class="text-[10px] leading-tight font-medium whitespace-nowrap ${isCurrent ? 'text-emerald-800 dark:text-emerald-200 font-bold' : 'text-slate-600 dark:text-slate-300'}" title="${formatDateDE(w.weekStart)} – ${formatDateDE(w.weekEnd)}">${getRelativeWeekLabel(w.weekStart)}</span>
                     ${TRAINING_TYPES.map(type => {
                         const v = w[type.key] || 0;
-                        return `<span class="text-center tabular-nums text-[9px] leading-tight ${v > 0 ? `font-bold ${type.value}` : 'text-slate-300 dark:text-slate-600'}">${formatTrainingWeekKcal(v)}</span>`;
+                        return `<span class="text-center tabular-nums text-[9px] leading-tight ${v > 0 ? `font-bold ${type.value}` : 'text-slate-300 dark:text-slate-600'}" title="${v > 0 ? formatTrainingKcalTooltip(v, type.short) : ''}">${formatTrainingKcal(v)}</span>`;
                     }).join('')}
-                    <span class="text-center tabular-nums text-[9px] font-bold leading-tight ${total > 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-300 dark:text-slate-600'}">${formatTrainingWeekKcal(total)}</span>
+                    <span class="text-center tabular-nums text-[9px] font-bold leading-tight ${total > 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-300 dark:text-slate-600'}" title="${total > 0 ? formatTrainingKcalTooltip(total, 'Gesamt') : ''}">${formatTrainingKcal(total)}</span>
                 </div>
             `;
             }).join('');
@@ -2251,18 +2256,18 @@
             const recordCards = TRAINING_TYPES
                 .filter(type => records[type.key] > 0)
                 .map(type => `
-                    <div class="rounded-xl border px-2 py-2 text-center min-w-0 ${type.card}">
+                    <div class="rounded-xl border px-2 py-2 text-center min-w-0 ${type.card}" title="${formatTrainingKcalTooltip(records[type.key], `Bester Tag · ${type.short}`)}">
                         <i class="fa-solid ${type.icon} text-[9px] opacity-50 mb-1 ${type.value}"></i>
-                        <div class="text-xl font-bold tabular-nums leading-none ${type.value}">${formatTrainingWeekKcal(records[type.key])}</div>
-                        <div class="text-[9px] text-slate-500 dark:text-slate-400 mt-1 leading-tight">${type.short}</div>
+                        <div class="text-xl font-bold tabular-nums leading-none ${type.value}">${formatTrainingKcal(records[type.key])}</div>
+                        <div class="text-[9px] text-slate-500 dark:text-slate-400 mt-1 leading-tight">${type.short} · kcal</div>
                     </div>
                 `).join('');
 
             const totalCard = bestWeekTotal > 0 ? `
-                <div class="rounded-xl border border-emerald-200/80 bg-emerald-50/70 dark:border-emerald-800/40 dark:bg-emerald-950/30 px-2 py-2 text-center min-w-0">
+                <div class="rounded-xl border border-emerald-200/80 bg-emerald-50/70 dark:border-emerald-800/40 dark:bg-emerald-950/30 px-2 py-2 text-center min-w-0" title="${formatTrainingKcalTooltip(bestWeekTotal, 'Beste Woche')}">
                     <i class="fa-solid fa-trophy text-[9px] opacity-50 mb-1 text-emerald-600 dark:text-emerald-400"></i>
-                    <div class="text-xl font-extrabold tabular-nums leading-none text-emerald-700 dark:text-emerald-300">${formatTrainingWeekKcal(bestWeekTotal)}</div>
-                    <div class="text-[9px] text-slate-500 dark:text-slate-400 mt-1 leading-tight">Woche</div>
+                    <div class="text-xl font-extrabold tabular-nums leading-none text-emerald-700 dark:text-emerald-300">${formatTrainingKcal(bestWeekTotal)}</div>
+                    <div class="text-[9px] text-slate-500 dark:text-slate-400 mt-1 leading-tight">Woche · kcal</div>
                 </div>
             ` : '';
 
