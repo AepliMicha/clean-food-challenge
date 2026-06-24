@@ -592,7 +592,7 @@
         const BASE_PROTEIN = { arbeit: 150, frei: 135 };
         const MENU_PLANS_VERSION = 5;
 
-        const MEAL_SLOTS = ['Frühstück', 'Snack', 'Mittag', 'Abend'];
+        const MEAL_SLOTS = ['Frühstück', 'Znüni', 'Mittag', 'Abend'];
         const MEAL_SLOT_COLORS = [
             'border-yellow-200 bg-yellow-50/40 dark:border-yellow-800 dark:bg-yellow-950/30',
             'border-yellow-200 bg-yellow-50/30 dark:border-yellow-800 dark:bg-yellow-950/25',
@@ -650,14 +650,14 @@
         const DEFAULT_MENU_PLANS = {
             arbeit: {
                 'Frühstück': ['skyr450', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
+                'Znüni': ['banane', 'apfel', 'heidel50', 'haferkleie20'],
                 'Mittag': ['rinderhack250', 'zucchini200', 'reis100', 'parmesan30', 'erbsen100'],
-                'Snack': ['banane', 'apfel', 'heidel50', 'haferkleie20'],
                 'Abend': ['zucchini200', 'reis100', 'ei1', 'ei1', 'ei1', 'erbsen100']
             },
             frei: {
                 'Frühstück': ['skyr450', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
+                'Znüni': ['heidel50', 'banane', 'apfel'],
                 'Mittag': ['rinderhack250', 'zucchini200', 'parmesan30'],
-                'Snack': ['heidel50', 'banane', 'apfel'],
                 'Abend': ['zucchini200', 'reis100', 'ei1', 'ei1', 'ei1']
             }
         };
@@ -1116,6 +1116,7 @@
                         }
                     });
                     settings.ingredients = sortIngredients(settings.ingredients);
+                    remapMealSlotName(settings.menuPlans, 'Snack', 'Znüni');
                     remapMenuIngredientIds(settings.menuPlans, {
                         reis75: 'reis100',
                         ei3: 'ei1',
@@ -2784,6 +2785,16 @@
             ingredientEditorDraft = null;
             document.getElementById('settings-modal').classList.remove('flex');
             document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function remapMealSlotName(plans, oldName, newName) {
+            ['arbeit', 'frei'].forEach(mode => {
+                if (!plans[mode] || plans[mode][oldName] == null) return;
+                if (plans[mode][newName] == null) {
+                    plans[mode][newName] = plans[mode][oldName];
+                }
+                delete plans[mode][oldName];
+            });
         }
 
         function remapMenuIngredientIds(plans, idMap) {
