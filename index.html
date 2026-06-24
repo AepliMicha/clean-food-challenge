@@ -242,7 +242,7 @@
             }
 
             .records-panel-inner {
-                min-height: 7.25rem;
+                min-height: 8.75rem;
             }
         }
     </style>
@@ -2307,18 +2307,18 @@
             const recordCards = TRAINING_TYPES
                 .filter(type => records[type.key] > 0)
                 .map(type => `
-                    <div class="rounded-xl border px-2 py-2 text-center min-w-0 ${type.card}" title="${formatTrainingKcalTooltip(records[type.key], `Bester Tag · ${type.short}`)}">
-                        <i class="fa-solid ${type.icon} text-[9px] opacity-50 mb-1 ${type.value}"></i>
-                        <div class="text-xl font-bold tabular-nums leading-none ${type.value}">${formatTrainingKcal(records[type.key])}</div>
-                        <div class="text-[9px] text-slate-500 dark:text-slate-400 mt-1 leading-tight">${type.short} · kcal</div>
+                    <div class="rounded-xl border px-2.5 py-2.5 text-center min-w-0 ${type.card}" title="${formatTrainingKcalTooltip(records[type.key], `Bester Tag · ${type.short}`)}">
+                        <i class="fa-solid ${type.icon} text-sm opacity-60 mb-1.5 ${type.value}"></i>
+                        <div class="text-2xl font-bold tabular-nums leading-none ${type.value}">${formatTrainingKcal(records[type.key])}</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-tight">${type.short} · kcal</div>
                     </div>
                 `).join('');
 
             const totalCard = bestWeekTotal > 0 ? `
-                <div class="rounded-xl border border-emerald-200/80 bg-emerald-50/70 dark:border-emerald-800/40 dark:bg-emerald-950/30 px-2 py-2 text-center min-w-0" title="${formatTrainingKcalTooltip(bestWeekTotal, 'Beste Woche')}">
-                    <i class="fa-solid fa-trophy text-[9px] opacity-50 mb-1 text-emerald-600 dark:text-emerald-400"></i>
-                    <div class="text-xl font-extrabold tabular-nums leading-none text-emerald-700 dark:text-emerald-300">${formatTrainingKcal(bestWeekTotal)}</div>
-                    <div class="text-[9px] text-slate-500 dark:text-slate-400 mt-1 leading-tight">Woche · kcal</div>
+                <div class="rounded-xl border border-emerald-200/80 bg-emerald-50/70 dark:border-emerald-800/40 dark:bg-emerald-950/30 px-2.5 py-2.5 text-center min-w-0" title="${formatTrainingKcalTooltip(bestWeekTotal, 'Beste Woche')}">
+                    <i class="fa-solid fa-trophy text-sm opacity-60 mb-1.5 text-emerald-600 dark:text-emerald-400"></i>
+                    <div class="text-2xl font-extrabold tabular-nums leading-none text-emerald-700 dark:text-emerald-300">${formatTrainingKcal(bestWeekTotal)}</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-tight">Woche · kcal</div>
                 </div>
             ` : '';
 
