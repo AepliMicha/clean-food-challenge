@@ -385,6 +385,7 @@
                 <div id="training-kcal-preview" class="hidden mt-2 px-4 py-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-800 rounded-2xl text-center">
                     <div class="text-xs text-emerald-600 dark:text-emerald-400">Geschätzte Extra-kcal</div>
                     <div id="training-kcal-preview-value" class="text-2xl font-bold text-emerald-700 dark:text-emerald-400">+0</div>
+                    <div id="training-kcal-preview-hint" class="hidden text-xs text-emerald-600/80 dark:text-emerald-400/80 mt-1"></div>
                 </div>
             </div>
             <div class="mt-6 flex gap-3">
@@ -1754,6 +1755,18 @@
             };
         }
 
+        const SKITOUR_MET = 6.5;
+
+        function estimateSkitourHours(km, hm) {
+            const climbH = hm / 400;
+            const moveH = 0.5 + km / 10;
+            return Math.max(1.5, Math.min(5.5, climbH + moveH));
+        }
+
+        function calculateSkitourKcal(kg, km, hm) {
+            return Math.round(SKITOUR_MET * kg * estimateSkitourHours(km, hm));
+        }
+
         function calculateTrainingKcal(inputs) {
             const kg = getBodyWeightKg();
             if (inputs.type === 'climbing') {
@@ -1766,7 +1779,7 @@
                 return Math.round(kg * ((inputs.km || 0) * 1.05 + (inputs.hm || 0) * 0.003));
             }
             if (inputs.type === 'skitour') {
-                return Math.round(kg * ((inputs.km || 0) * 0.75 + (inputs.hm || 0) * 0.0055));
+                return calculateSkitourKcal(kg, inputs.km || 0, inputs.hm || 0);
             }
             if (inputs.type === 'swim') {
                 return Math.round(kg * (inputs.km || 0) * 4.3);
@@ -1796,10 +1809,18 @@
         function updateTrainingKcalPreview() {
             const preview = document.getElementById('training-kcal-preview');
             const valueEl = document.getElementById('training-kcal-preview-value');
+            const hintEl = document.getElementById('training-kcal-preview-hint');
             const inputs = getTrainingInputs();
             const kcal = calculateTrainingKcal(inputs);
 
             valueEl.textContent = `+${kcal}`;
+            if (inputs.type === 'skitour') {
+                const hours = estimateSkitourHours(inputs.km || 0, inputs.hm || 0);
+                hintEl.textContent = `ca. ${hours.toFixed(1).replace('.', ',')} h Aufwand · MET ${SKITOUR_MET}`;
+                hintEl.classList.remove('hidden');
+            } else if (hintEl) {
+                hintEl.classList.add('hidden');
+            }
             preview.classList.remove('hidden');
         }
 
@@ -1874,15 +1895,15 @@
                     <div class="space-y-3">
                         <div>
                             <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km, Karte)</label>
-                            <input type="range" id="train-km" min="3" max="25" step="1" value="12" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + ' km'; ${onSlide}">
-                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>3 km</div><div id="km-val">12 km</div><div>25 km</div></div>
+                            <input type="range" id="train-km" min="2" max="25" step="1" value="5" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + ' km'; ${onSlide}">
+                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>2 km</div><div id="km-val">5 km</div><div>25 km</div></div>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Höhenmeter (ca.)</label>
-                            <input type="range" id="train-hm" min="200" max="2500" step="50" value="1000" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${onSlide}">
-                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>200</div><div id="hm-val">1000 hm</div><div>2500</div></div>
+                            <input type="range" id="train-hm" min="200" max="2500" step="50" value="750" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${onSlide}">
+                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>200</div><div id="hm-val">750 hm</div><div>2500</div></div>
                         </div>
-                        <div class="text-xs text-slate-400 dark:text-slate-500">ca. 0,75 kcal/kg/km + 0,0055 kcal/kg/hm</div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500">Dauer aus hm/km geschätzt · ca. ${SKITOUR_MET} MET (Tourenski + Rucksack)</div>
                     </div>
                 `;
             }
