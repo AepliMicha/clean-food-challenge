@@ -2216,8 +2216,14 @@
             return label ? `${label}: ${spelled}` : spelled;
         }
 
-        function renderActivityHistoryHeader() {
-            return `<div class="section-header mb-2 px-0.5">Wochenhistorie</div>`;
+        function renderActivityHistoryHeader(variant = 'sport') {
+            const tone = variant === 'sport'
+                ? 'text-emerald-700 dark:text-emerald-400'
+                : 'text-slate-700 dark:text-slate-300';
+            return `<div class="section-header mb-2 px-0.5 flex items-center gap-x-1.5 ${tone}">
+                <i class="fa-solid fa-calendar-week"></i>
+                <span>Wochenhistorie</span>
+            </div>`;
         }
 
         function renderTrainingHistoryTable(displayWeeks) {
@@ -2354,11 +2360,11 @@
             const displayWeeks = getTrainingWeeks();
 
             if (displayWeeks.length === 0) {
-                container.innerHTML = `${renderActivityHistoryHeader()}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
+                container.innerHTML = `${renderActivityHistoryHeader('sport')}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
                 return;
             }
 
-            container.innerHTML = renderActivityHistoryHeader() + renderTrainingHistoryTable(displayWeeks);
+            container.innerHTML = renderActivityHistoryHeader('sport') + renderTrainingHistoryTable(displayWeeks);
         }
 
         function updateTrainingUI() {
@@ -2585,11 +2591,11 @@
             const displayWeeks = getStrengthWeeks();
 
             if (displayWeeks.length === 0) {
-                container.innerHTML = `${renderActivityHistoryHeader()}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
+                container.innerHTML = `${renderActivityHistoryHeader('strength')}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
                 return;
             }
 
-            container.innerHTML = renderActivityHistoryHeader() + renderStrengthHistoryTable(displayWeeks);
+            container.innerHTML = renderActivityHistoryHeader('strength') + renderStrengthHistoryTable(displayWeeks);
         }
 
         function getLastNDayKeys(n = 7, endOffset = 0) {
