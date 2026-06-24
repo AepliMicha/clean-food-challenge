@@ -1763,8 +1763,25 @@
             return Math.max(1.5, Math.min(5.5, climbH + moveH));
         }
 
-        function calculateSkitourKcal(kg, km, hm) {
-            return Math.round(SKITOUR_MET * kg * estimateSkitourHours(km, hm));
+        function getSkitourHours(km, hm, duration = 0) {
+            if (duration > 0) return duration;
+            return estimateSkitourHours(km, hm);
+        }
+
+        function calculateSkitourKcal(kg, km, hm, duration = 0) {
+            return Math.round(SKITOUR_MET * kg * getSkitourHours(km, hm, duration));
+        }
+
+        function syncSkitourDurationEstimate() {
+            const kmEl = document.getElementById('train-km');
+            const hmEl = document.getElementById('train-hm');
+            const durEl = document.getElementById('train-duration');
+            const durVal = document.getElementById('duration-val');
+            if (!kmEl || !hmEl || !durEl) return;
+
+            const est = estimateSkitourHours(parseFloat(kmEl.value) || 0, parseInt(hmEl.value, 10) || 0);
+            durEl.value = est;
+            if (durVal) durVal.textContent = `${est.toFixed(1).replace('.', ',')} h`;
         }
 
         function calculateTrainingKcal(inputs) {
@@ -1779,7 +1796,7 @@
                 return Math.round(kg * ((inputs.km || 0) * 1.05 + (inputs.hm || 0) * 0.003));
             }
             if (inputs.type === 'skitour') {
-                return calculateSkitourKcal(kg, inputs.km || 0, inputs.hm || 0);
+                return calculateSkitourKcal(kg, inputs.km || 0, inputs.hm || 0, inputs.duration || 0);
             }
             if (inputs.type === 'swim') {
                 return Math.round(kg * (inputs.km || 0) * 4.3);
@@ -1798,7 +1815,8 @@
                 return `Trailrun ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''}`;
             }
             if (inputs.type === 'skitour') {
-                return `Skitour ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''}`;
+                const hours = getSkitourHours(inputs.km || 0, inputs.hm || 0, inputs.duration || 0);
+                return `Skitour ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''} · ${hours.toFixed(1).replace('.', ',')}h`;
             }
             if (inputs.type === 'swim') {
                 return `Kraul ${inputs.km}km`;
@@ -1815,8 +1833,10 @@
 
             valueEl.textContent = `+${kcal}`;
             if (inputs.type === 'skitour') {
-                const hours = estimateSkitourHours(inputs.km || 0, inputs.hm || 0);
-                hintEl.textContent = `ca. ${hours.toFixed(1).replace('.', ',')} h Aufwand · MET ${SKITOUR_MET}`;
+                const est = estimateSkitourHours(inputs.km || 0, inputs.hm || 0);
+                const hours = getSkitourHours(inputs.km || 0, inputs.hm || 0, inputs.duration || 0);
+                const manual = inputs.duration > 0 && Math.abs(inputs.duration - est) > 0.2;
+                hintEl.textContent = `${hours.toFixed(1).replace('.', ',')} h${manual ? '' : ' (geschätzt)'} · MET ${SKITOUR_MET}`;
                 hintEl.classList.remove('hidden');
             } else if (hintEl) {
                 hintEl.classList.add('hidden');
@@ -1891,19 +1911,26 @@
                     </div>
                 `;
             } else if (type === 'skitour') {
+                const skitourOnSlide = 'syncSkitourDurationEstimate(); updateTrainingKcalPreview()';
+                const defaultHours = estimateSkitourHours(5, 750);
                 container.innerHTML = `
                     <div class="space-y-3">
                         <div>
                             <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km, Karte)</label>
-                            <input type="range" id="train-km" min="2" max="25" step="1" value="5" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + ' km'; ${onSlide}">
+                            <input type="range" id="train-km" min="2" max="25" step="1" value="5" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + ' km'; ${skitourOnSlide}">
                             <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>2 km</div><div id="km-val">5 km</div><div>25 km</div></div>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Höhenmeter (ca.)</label>
-                            <input type="range" id="train-hm" min="200" max="2500" step="50" value="750" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${onSlide}">
+                            <input type="range" id="train-hm" min="200" max="2500" step="50" value="750" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${skitourOnSlide}">
                             <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>200</div><div id="hm-val">750 hm</div><div>2500</div></div>
                         </div>
-                        <div class="text-xs text-slate-400 dark:text-slate-500">Dauer aus hm/km geschätzt · ca. ${SKITOUR_MET} MET (Tourenski + Rucksack)</div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Dauer (Stunden, bei Bedarf anpassen)</label>
+                            <input type="range" id="train-duration" min="1" max="8" step="0.25" value="${defaultHours}" class="w-full mt-1" oninput="document.getElementById('duration-val').textContent = parseFloat(this.value).toFixed(1).replace('.', ',') + ' h'; ${onSlide}">
+                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>1 h</div><div id="duration-val">${defaultHours.toFixed(1).replace('.', ',')} h</div><div>8 h</div></div>
+                        </div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500">Extra-kcal = ${SKITOUR_MET} MET × kg × Dauer · km/hm schätzen die Startdauer</div>
                     </div>
                 `;
             }
