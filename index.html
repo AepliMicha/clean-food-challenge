@@ -1755,6 +1755,52 @@
             };
         }
 
+        function estimateGravelHours(km, hm) {
+            const rideH = km / 22;
+            const climbH = hm / 500;
+            return Math.max(0.75, Math.min(8, rideH + climbH));
+        }
+
+        function getGravelHours(km, hm, duration = 0) {
+            if (duration > 0) return duration;
+            return estimateGravelHours(km, hm);
+        }
+
+        function getGravelMet(km, hours, hm) {
+            const speed = km / Math.max(hours, 0.5);
+            let met = 5.5;
+            if (speed >= 28) met = 10;
+            else if (speed >= 24) met = 9;
+            else if (speed >= 20) met = 8;
+            else if (speed >= 16) met = 7;
+            else if (speed >= 12) met = 6;
+            const climbRate = hm / Math.max(hours, 0.5);
+            if (climbRate >= 400) met += 1.5;
+            else if (climbRate >= 250) met += 1;
+            else if (climbRate >= 100) met += 0.5;
+            return Math.min(met, 11.5);
+        }
+
+        function calculateGravelKcal(kg, km, hm, duration = 0) {
+            const hours = getGravelHours(km, hm, duration);
+            const met = getGravelMet(km, hours, hm);
+            const activity = met * kg * hours;
+            const floor = kg * (km * 0.28 + hm * 0.002);
+            return Math.round(Math.max(activity, floor));
+        }
+
+        function syncGravelDurationEstimate() {
+            const kmEl = document.getElementById('train-km');
+            const hmEl = document.getElementById('train-hm');
+            const durEl = document.getElementById('train-duration');
+            const durVal = document.getElementById('duration-val');
+            if (!kmEl || !hmEl || !durEl) return;
+
+            const est = estimateGravelHours(parseFloat(kmEl.value) || 0, parseInt(hmEl.value, 10) || 0);
+            durEl.value = est;
+            if (durVal) durVal.textContent = `${est.toFixed(1).replace('.', ',')} h`;
+        }
+
         function estimateSkitourHours(km, hm) {
             const climbH = hm / 400;
             const moveH = 0.5 + km / 10;
@@ -1801,7 +1847,7 @@
                 return Math.round(kg * (inputs.duration || 2) * 5.5);
             }
             if (inputs.type === 'gravel') {
-                return Math.round(kg * ((inputs.km || 0) * 0.52 + (inputs.hm || 0) * 0.002));
+                return calculateGravelKcal(kg, inputs.km || 0, inputs.hm || 0, inputs.duration || 0);
             }
             if (inputs.type === 'trail') {
                 return Math.round(kg * ((inputs.km || 0) * 1.05 + (inputs.hm || 0) * 0.003));
@@ -1820,7 +1866,8 @@
                 return `Klettern ${inputs.duration}h`;
             }
             if (inputs.type === 'gravel') {
-                return `Gravel ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''}`;
+                const hours = getGravelHours(inputs.km || 0, inputs.hm || 0, inputs.duration || 0);
+                return `Gravel ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''} · ${hours.toFixed(1).replace('.', ',')}h`;
             }
             if (inputs.type === 'trail') {
                 return `Trailrun ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''}`;
@@ -1843,15 +1890,19 @@
             const kcal = calculateTrainingKcal(inputs);
 
             valueEl.textContent = `+${kcal}`;
-            if (inputs.type === 'skitour') {
+            if (inputs.type === 'gravel' || inputs.type === 'skitour') {
                 const km = inputs.km || 0;
                 const hm = inputs.hm || 0;
-                const est = estimateSkitourHours(km, hm);
-                const hours = getSkitourHours(km, hm, inputs.duration || 0);
-                const met = getSkitourMet(hm, hours);
+                const est = inputs.type === 'gravel' ? estimateGravelHours(km, hm) : estimateSkitourHours(km, hm);
+                const hours = inputs.type === 'gravel'
+                    ? getGravelHours(km, hm, inputs.duration || 0)
+                    : getSkitourHours(km, hm, inputs.duration || 0);
+                const met = inputs.type === 'gravel'
+                    ? getGravelMet(km, hours, hm)
+                    : getSkitourMet(hm, hours);
                 const manual = inputs.duration > 0 && Math.abs(inputs.duration - est) > 0.2;
                 let hint = `${hours.toFixed(1).replace('.', ',')} h${manual ? '' : ' (geschätzt)'} · MET ${met}`;
-                if (hm > 0 && hours < est - 0.4) {
+                if (inputs.type === 'skitour' && hm > 0 && hours < est - 0.4) {
                     hint += ' · Dauer eher Gesamtzeit inkl. Abfahrt/Pause';
                 }
                 hintEl.textContent = hint;
@@ -1888,19 +1939,26 @@
                     </div>
                 `;
             } else if (type === 'gravel') {
+                const gravelOnSlide = 'syncGravelDurationEstimate(); updateTrainingKcalPreview()';
+                const defaultHours = estimateGravelHours(50, 500);
                 container.innerHTML = `
                     <div class="space-y-3">
                         <div>
                             <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km)</label>
-                            <input type="range" id="train-km" min="10" max="120" step="5" value="50" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + ' km'; ${onSlide}">
+                            <input type="range" id="train-km" min="10" max="120" step="5" value="50" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + ' km'; ${gravelOnSlide}">
                             <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>10 km</div><div id="km-val">50 km</div><div>120 km</div></div>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Höhenmeter (ca.)</label>
-                            <input type="range" id="train-hm" min="0" max="2000" step="50" value="500" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${onSlide}">
+                            <input type="range" id="train-hm" min="0" max="2000" step="50" value="500" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${gravelOnSlide}">
                             <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>0</div><div id="hm-val">500 hm</div><div>2000</div></div>
                         </div>
-                        <div class="text-xs text-slate-400 dark:text-slate-500">ca. 0,52 kcal/kg/km + 0,002 kcal/kg/hm</div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Dauer (Stunden, bei Bedarf anpassen)</label>
+                            <input type="range" id="train-duration" min="0.75" max="8" step="0.25" value="${defaultHours}" class="w-full mt-1" oninput="document.getElementById('duration-val').textContent = parseFloat(this.value).toFixed(1).replace('.', ',') + ' h'; ${onSlide}">
+                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>45 min</div><div id="duration-val">${defaultHours.toFixed(1).replace('.', ',')} h</div><div>8 h</div></div>
+                        </div>
+                        <div class="text-xs text-slate-400 dark:text-slate-500">MET nach Tempo (km/h) + hm · Dauer = Gesamtzeit</div>
                     </div>
                 `;
             } else if (type === 'swim') {
