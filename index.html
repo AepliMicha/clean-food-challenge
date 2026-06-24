@@ -205,27 +205,46 @@
     <div class="app-container">
         
         <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 text-white px-4 sm:px-6 py-4">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-x-3">
-                    <div class="w-11 h-11 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center">
-                        <i class="fa-solid fa-apple-alt text-3xl"></i>
+        <div class="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 text-white px-4 sm:px-6 py-3 sm:py-4">
+            <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+                <div class="flex items-center gap-x-3 shrink-0">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center">
+                        <i class="fa-solid fa-apple-alt text-2xl sm:text-3xl"></i>
                     </div>
-                    <div>
-                        <h1 class="font-display text-xl sm:text-2xl tracking-tight leading-tight">Clean Food Challenge</h1>
-                    </div>
+                    <h1 class="font-display text-lg sm:text-2xl tracking-tight leading-tight">Clean Food Challenge</h1>
                 </div>
-                
-                <div class="flex items-center gap-2 flex-wrap">
-                    <button onclick="toggleDarkMode()" id="btn-dark-mode" class="px-3 py-2 bg-white/15 hover:bg-white/25 rounded-3xl text-sm font-medium flex items-center justify-center" title="Dark Mode">
-                        <i class="fa-solid fa-moon" id="dark-mode-icon"></i>
-                    </button>
 
-                    <button onclick="showSettings()" class="px-3 sm:px-4 py-2 bg-white/15 hover:bg-white/25 rounded-3xl text-sm font-medium flex items-center gap-x-2">
-                        <i class="fa-solid fa-cog"></i>
-                        <span class="hidden sm:inline">Einstellungen</span>
-                    </button>
+                <div class="flex flex-wrap items-center gap-x-3 sm:gap-x-5 gap-y-2 flex-1 min-w-0 order-3 w-full sm:order-none sm:w-auto">
+                    <div class="min-w-0">
+                        <div class="text-[10px] uppercase tracking-wider text-white/60 font-semibold">Heute</div>
+                        <div class="flex items-baseline gap-x-2 flex-wrap">
+                            <div id="current-day-name" class="text-lg sm:text-xl font-bold leading-tight"></div>
+                            <div id="current-day-date" class="text-sm text-white/75 font-medium"></div>
+                        </div>
+                    </div>
+                    <div id="day-mode-toggle" class="inline-flex bg-white/15 rounded-2xl p-0.5 text-xs shrink-0">
+                        <button onclick="switchToArbeit()" id="btn-arbeit"
+                                class="px-3 py-1 rounded-xl font-bold transition-all">Arbeit</button>
+                        <button onclick="switchToFrei()" id="btn-frei"
+                                class="px-3 py-1 rounded-xl font-bold transition-all">Frei</button>
+                    </div>
+                    <div class="flex items-baseline gap-x-4 shrink-0">
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wide text-white/60">kcal</div>
+                            <div id="total-kcal" class="text-2xl sm:text-3xl font-bold tabular-nums leading-none">2030</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wide text-white/60">Protein</div>
+                            <div id="total-protein" class="text-2xl sm:text-3xl font-bold accent-gold tabular-nums leading-none">150g</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-white/70 min-w-0">mind. <span id="daily-protein-target">150</span>g Protein <span id="deficit-display" class="text-white/55"></span></div>
                 </div>
+
+                <button onclick="showSettings()" class="ml-auto shrink-0 order-2 sm:order-none px-3 sm:px-4 py-2 bg-white/15 hover:bg-white/25 rounded-3xl text-sm font-medium flex items-center gap-x-2">
+                    <i class="fa-solid fa-cog"></i>
+                    <span class="hidden sm:inline">Einstellungen</span>
+                </button>
             </div>
         </div>
 
@@ -237,36 +256,7 @@
             </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:items-stretch">
-                <div class="ui-card ui-card-teal rounded-3xl p-3 lg:col-span-3 lg:self-start min-w-0">
-                    <div class="flex flex-col gap-3">
-                        <div>
-                            <div class="section-header text-teal-700 dark:text-teal-400">HEUTE</div>
-                            <div class="flex items-baseline gap-x-2 flex-wrap">
-                                <div id="current-day-name" class="text-2xl font-bold text-slate-800 dark:text-slate-100"></div>
-                                <div id="current-day-date" class="text-base font-medium text-slate-500 dark:text-slate-400"></div>
-                            </div>
-                            <div id="day-mode-toggle" class="inline-flex bg-slate-100 dark:bg-slate-800/80 rounded-2xl p-0.5 text-xs mt-1">
-                                <button onclick="switchToArbeit()" id="btn-arbeit"
-                                        class="px-3 py-1 rounded-xl font-bold transition-all">Arbeit</button>
-                                <button onclick="switchToFrei()" id="btn-frei"
-                                        class="px-3 py-1 rounded-xl font-bold transition-all">Frei</button>
-                            </div>
-                        </div>
-                        <div class="flex items-baseline gap-x-4">
-                            <div>
-                                <div class="text-xs text-teal-600 dark:text-teal-400">KCAL</div>
-                                <div id="total-kcal" class="text-3xl font-bold text-teal-700 dark:text-teal-400 tabular-nums">2030</div>
-                            </div>
-                            <div>
-                                <div class="text-xs accent-gold">PROTEIN</div>
-                                <div id="total-protein" class="text-3xl font-bold accent-gold tabular-nums">150g</div>
-                            </div>
-                        </div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400">mind. <span id="daily-protein-target">150</span>g Protein <span id="deficit-display" class="text-slate-400 dark:text-slate-500"></span></div>
-                    </div>
-                </div>
-
-                <div class="ui-card rounded-3xl p-3 lg:p-4 lg:col-span-4 min-w-0 flex flex-col lg:min-h-0">
+                <div class="ui-card rounded-3xl p-3 lg:p-4 lg:col-span-7 min-w-0 flex flex-col lg:min-h-0">
                     <div class="flex items-start justify-between mb-1.5 px-0.5 gap-1 shrink-0">
                         <div class="section-header text-emerald-700 dark:text-emerald-400 leading-tight min-w-0">
                             <div class="flex items-center gap-x-1.5">
@@ -601,11 +591,11 @@
         const BASE_PROTEIN = { arbeit: 150, frei: 135 };
         const MENU_PLANS_VERSION = 5;
 
-        const MEAL_SLOTS = ['Frühstück', 'Mittag', 'Snack', 'Abend'];
+        const MEAL_SLOTS = ['Frühstück', 'Snack', 'Mittag', 'Abend'];
         const MEAL_SLOT_COLORS = [
             'border-yellow-200 bg-yellow-50/40 dark:border-yellow-800 dark:bg-yellow-950/30',
-            'border-teal-200 dark:border-teal-800 dark:bg-teal-950/30',
             'border-yellow-200 bg-yellow-50/30 dark:border-yellow-800 dark:bg-yellow-950/25',
+            'border-teal-200 dark:border-teal-800 dark:bg-teal-950/30',
             'border-purple-200 dark:border-purple-800 dark:bg-purple-950/30'
         ];
         const MEAL_KCAL_COLORS = [
@@ -1288,13 +1278,13 @@
             el.title = `Erhaltung ${maintenance} kcal − Menü ${menuKcal} kcal (Sport-Extra separat)`;
             if (deficit > 0) {
                 el.textContent = `(−${deficit} Defizit)`;
-                el.className = 'text-slate-400 dark:text-slate-500';
+                el.className = 'text-white/55';
             } else if (deficit < 0) {
                 el.textContent = `(+${Math.abs(deficit)} Überschuss)`;
-                el.className = 'text-red-500 dark:text-red-400';
+                el.className = 'text-red-200';
             } else {
                 el.textContent = '(Erhaltung)';
-                el.className = 'text-slate-400 dark:text-slate-500';
+                el.className = 'text-white/55';
             }
         }
 
@@ -1742,8 +1732,8 @@
             if (!btnArbeit || !btnFrei) return;
 
             const base = 'px-3 py-1 rounded-xl font-bold transition-all';
-            const inactive = `${base} text-slate-500 dark:text-slate-400`;
-            const arbeitActive = `${base} bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300`;
+            const inactive = `${base} text-white/55 hover:text-white/80`;
+            const arbeitActive = `${base} bg-white/25 text-white shadow-sm`;
             const freiActive = `${base} badge-frei`;
 
             if (currentMode === 'arbeit') {
