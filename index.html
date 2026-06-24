@@ -301,15 +301,17 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 <div class="activity-pair-grid lg:col-span-12">
                     <div class="ui-card rounded-3xl p-3 lg:p-4 min-w-0 activity-card-subgrid activity-card-training flex flex-col lg:grid">
-                        <div class="activity-today min-h-0">
+                        <div id="sport-card-tap" onclick="showAddTrainingModal()"
+                             class="activity-today cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] min-h-0">
                             <div class="flex items-center justify-between mb-2 px-0.5 gap-2">
                                 <div class="section-header text-emerald-700 dark:text-emerald-400 flex items-center gap-x-1.5 min-w-0">
                                     <i class="fa-solid fa-person-running"></i>
                                     <span>SPORT</span>
                                 </div>
-                                <button id="btn-add-training" onclick="showAddTrainingModal()" class="text-xs px-2 py-1 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl font-medium shrink-0" title="Sport hinzufügen">
-                                    <i class="fa-solid fa-plus fa-xs"></i>
-                                </button>
+                                <div class="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 shrink-0">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Tippen</span>
+                                </div>
                             </div>
                             <div class="flex items-baseline justify-between mb-2 px-1">
                                 <span class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Diese Woche</span>
@@ -1813,7 +1815,7 @@
         function renderRefuelSection() {
             const container = document.getElementById('refuel-section');
             if (dailyData.training.length === 0) {
-                container.innerHTML = `<div class="text-xs text-slate-400 py-5 text-center leading-relaxed">Noch kein Training.<br>«+» tippen.</div>`;
+                container.innerHTML = `<div class="text-xs text-slate-400 py-5 text-center leading-relaxed">Noch kein Training.<br>Tippen zum Hinzufügen.</div>`;
                 return;
             }
 
@@ -1824,8 +1826,8 @@
                 const label = escapeHtml(t.label);
                 const kcal = t.kcalBonus || 0;
                 return `
-                    <div class="relative px-2 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-100 dark:border-emerald-800 min-w-0" title="${label}">
-                        <button type="button" onclick="removeTraining(${index})" class="absolute top-1 right-1 text-emerald-400 hover:text-red-500 leading-none p-0.5" aria-label="Entfernen"><i class="fa-solid fa-times text-[9px]"></i></button>
+                    <div class="relative px-2 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-100 dark:border-emerald-800 min-w-0" title="${label}" onclick="event.stopPropagation()">
+                        <button type="button" onclick="event.stopPropagation(); removeTraining(${index})" class="absolute top-1 right-1 text-emerald-400 hover:text-red-500 leading-none p-0.5" aria-label="Entfernen"><i class="fa-solid fa-times text-[9px]"></i></button>
                         <div class="flex items-center gap-1 pr-3 min-w-0">
                             <i class="fa-solid ${icon} text-emerald-600 dark:text-emerald-400 w-3 text-center shrink-0 text-[9px]"></i>
                             <span class="truncate text-[10px] font-medium text-emerald-800 dark:text-emerald-200 leading-tight">${label}</span>
@@ -1841,7 +1843,7 @@
                     ${sportCards}
                 </div>
                 ${showTotal ? `
-                    <div class="mt-1.5 pt-1.5 border-t border-slate-200 dark:border-slate-600 flex items-baseline justify-between px-0.5">
+                    <div class="mt-1.5 pt-1.5 border-t border-slate-200 dark:border-slate-600 flex items-baseline justify-between px-0.5" onclick="event.stopPropagation()">
                         <span class="text-[10px] text-slate-500 dark:text-slate-400">Gesamt</span>
                         <span class="text-base font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">+${formatTrainingKcal(Math.round(extraKcal))}</span>
                     </div>
