@@ -2358,11 +2358,11 @@
             const displayWeeks = getTrainingWeeks();
 
             if (displayWeeks.length === 0) {
-                container.innerHTML = `${renderActivityHistoryHeader('sport')}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
+                container.innerHTML = `${renderActivityHistoryHeader()}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
                 return;
             }
 
-            container.innerHTML = renderActivityHistoryHeader('sport') + renderTrainingHistoryTable(displayWeeks);
+            container.innerHTML = renderActivityHistoryHeader() + renderTrainingHistoryTable(displayWeeks);
         }
 
         function updateTrainingUI() {
@@ -2589,11 +2589,11 @@
             const displayWeeks = getStrengthWeeks();
 
             if (displayWeeks.length === 0) {
-                container.innerHTML = `${renderActivityHistoryHeader('strength')}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
+                container.innerHTML = `${renderActivityHistoryHeader()}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
                 return;
             }
 
-            container.innerHTML = renderActivityHistoryHeader('strength') + renderStrengthHistoryTable(displayWeeks);
+            container.innerHTML = renderActivityHistoryHeader() + renderStrengthHistoryTable(displayWeeks);
         }
 
         function getLastNDayKeys(n = 7, endOffset = 0) {
