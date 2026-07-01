@@ -2786,18 +2786,6 @@
             container.innerHTML = renderActivityHistoryHeader() + renderStrengthHistoryTable(displayWeeks);
         }
 
-        function getLastNDayKeys(n = 7, endOffset = 0) {
-            const keys = [];
-            const d = new Date(getTodayKey() + 'T12:00:00');
-            d.setDate(d.getDate() - endOffset);
-            for (let i = n - 1; i >= 0; i--) {
-                const x = new Date(d);
-                x.setDate(x.getDate() - i);
-                keys.push(formatDateKey(x));
-            }
-            return keys;
-        }
-
         function getCurrentWeekDayKeys() {
             const weekStart = getWeekStartKey(getTodayKey());
             const keys = [];
