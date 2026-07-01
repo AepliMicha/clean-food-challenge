@@ -125,11 +125,18 @@
         .protein-ampel-low { color: #dc2626; }
         .dark .protein-ampel-low { color: #f87171; }
 
+        #training-weeks-list,
         #strength-days-list {
             min-height: 0;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
             touch-action: pan-y;
+        }
+
+        .activity-history-weeks {
+            flex-shrink: 0;
+            height: 15.5rem;
+            overflow-y: auto;
         }
 
         .app-container {
@@ -205,10 +212,9 @@
                 grid-column: span 5 / span 5;
             }
 
-            .activity-history {
-                max-height: 14rem;
-                min-height: 0;
-                overflow-y: auto;
+            .activity-history-weeks {
+                height: auto;
+                max-height: none;
             }
 
             .activity-records.is-empty {
@@ -280,7 +286,7 @@
                         </div>
                         <div id="training-progress" class="activity-records is-empty pt-2 border-t border-slate-100 dark:border-slate-700 min-h-0"></div>
                         <div id="training-weeks-list"
-                             class="activity-history mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 max-h-56 lg:max-h-none overflow-y-auto min-h-0"
+                             class="activity-history activity-history-weeks mt-2 pt-2 border-t border-slate-100 dark:border-slate-700"
                              onwheel="event.stopPropagation()"></div>
                     </div>
 
@@ -314,7 +320,7 @@
                         </div>
                         <div id="strength-progress" class="activity-records is-empty pt-2 border-t border-slate-100 dark:border-slate-700 min-h-0"></div>
                         <div id="strength-days-list"
-                             class="activity-history mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 max-h-56 lg:max-h-none overflow-y-auto min-h-0"
+                             class="activity-history activity-history-weeks mt-2 pt-2 border-t border-slate-100 dark:border-slate-700"
                              onwheel="event.stopPropagation()"></div>
                     </div>
                 </div>
