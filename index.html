@@ -244,14 +244,21 @@
                     </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                    <div class="flex items-baseline gap-1.5 shrink-0">
-                        <span id="total-kcal" class="text-2xl sm:text-3xl font-bold tabular-nums leading-none">—</span>
-                        <span class="text-xs text-white/60 font-medium">kcal</span>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 flex-1 min-w-0">
+                    <div class="flex items-baseline gap-2 sm:gap-3 shrink-0">
+                        <div class="flex items-baseline gap-1.5">
+                            <span id="header-menu-kcal" class="text-2xl sm:text-3xl font-bold tabular-nums leading-none">—</span>
+                            <span class="text-xs text-white/60 font-medium leading-tight">kcal<br>Menü</span>
+                        </div>
+                        <span class="text-white/35 text-lg font-medium leading-none pb-0.5">+</span>
+                        <div class="flex items-baseline gap-1.5">
+                            <span id="header-sport-kcal" class="text-xl sm:text-2xl font-bold tabular-nums leading-none text-white/40">0</span>
+                            <span id="header-sport-label" class="text-xs text-white/50 font-medium leading-tight">kcal<br>Sport</span>
+                        </div>
                     </div>
                     <div class="flex items-baseline gap-1.5 shrink-0">
                         <span id="total-protein" class="text-2xl sm:text-3xl font-bold accent-gold tabular-nums leading-none">—</span>
-                        <span class="text-xs text-white/60 font-medium hidden sm:inline">Protein</span>
+                        <span class="text-xs text-white/60 font-medium hidden sm:inline leading-tight">Protein</span>
                     </div>
                     <div class="text-xs text-white/60 min-w-0 w-full sm:w-auto">
                         mind. <span id="daily-protein-target">150</span>g · <span id="deficit-display" class="text-white/55"></span>
@@ -1248,6 +1255,31 @@
             return w > 0 ? w : DEFAULT_BODY_WEIGHT_KG;
         }
 
+        function updateHeaderKcalDisplay() {
+            const menuKcal = Math.round(getBaseKcal());
+            const sportKcal = Math.round(
+                dailyData.training.reduce((s, t) => s + (t.kcalBonus || 0), 0)
+            );
+            const budget = getDailyBudget();
+
+            const menuEl = document.getElementById('header-menu-kcal');
+            menuEl.textContent = menuKcal;
+            menuEl.title = `Menü ${menuKcal} kcal · Budget ${budget} kcal`;
+
+            const sportEl = document.getElementById('header-sport-kcal');
+            const sportLabel = document.getElementById('header-sport-label');
+            sportEl.textContent = sportKcal;
+            if (sportKcal > 0) {
+                sportEl.className = 'text-xl sm:text-2xl font-bold tabular-nums leading-none text-emerald-200';
+                sportLabel.className = 'text-xs text-emerald-200/80 font-medium leading-tight';
+                sportEl.title = `Sport extra heute +${sportKcal} kcal`;
+            } else {
+                sportEl.className = 'text-xl sm:text-2xl font-bold tabular-nums leading-none text-white/40';
+                sportLabel.className = 'text-xs text-white/50 font-medium leading-tight';
+                sportEl.title = 'Kein Sport heute — kein Extra';
+            }
+        }
+
         function updateDeficitDisplay() {
             const maintenance = getMaintenanceKcal();
             const menuKcal = getBaseKcal();
@@ -1646,14 +1678,7 @@
 
             updateStrengthUI();
 
-            const menuKcal = getBaseKcal();
-            let sportKcal = 0;
-            dailyData.training.forEach(t => { sportKcal += t.kcalBonus || 0; });
-            const totalKcalEl = document.getElementById('total-kcal');
-            totalKcalEl.textContent = Math.round(menuKcal + sportKcal);
-            totalKcalEl.title = sportKcal > 0
-                ? `Menü ${menuKcal} kcal + Sport ${Math.round(sportKcal)} kcal`
-                : `Menü ${menuKcal} kcal`;
+            updateHeaderKcalDisplay();
             document.getElementById('total-protein').textContent = `${getBaseProtein()}g`;
             document.getElementById('daily-protein-target').textContent = BASE_PROTEIN;
             updateDeficitDisplay();
@@ -1915,14 +1940,7 @@
         }
 
         function updateKcalDisplays() {
-            const menuKcal = getBaseKcal();
-            let sportKcal = 0;
-            dailyData.training.forEach(t => { sportKcal += t.kcalBonus || 0; });
-            const totalKcalEl = document.getElementById('total-kcal');
-            totalKcalEl.textContent = Math.round(menuKcal + sportKcal);
-            totalKcalEl.title = sportKcal > 0
-                ? `Menü ${menuKcal} kcal + Sport ${Math.round(sportKcal)} kcal`
-                : `Menü ${menuKcal} kcal`;
+            updateHeaderKcalDisplay();
             document.getElementById('total-protein').textContent = `${getBaseProtein()}g`;
             updateDeficitDisplay();
             renderTodayMeals();
