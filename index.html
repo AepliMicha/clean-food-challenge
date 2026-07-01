@@ -113,16 +113,6 @@
             color: #f5e88a;
         }
 
-        .badge-frei {
-            background: #fef9c3;
-            color: #6b6400;
-        }
-
-        .dark .badge-frei {
-            background: rgba(245, 232, 138, 0.18);
-            color: #f5e88a;
-        }
-
         .meal-row {
             border: 1px solid #f1f5f9;
         }
@@ -264,13 +254,6 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                    <div id="day-mode-toggle" class="inline-flex bg-white/15 rounded-2xl p-0.5 text-xs shrink-0">
-                        <button onclick="switchToArbeit()" id="btn-arbeit"
-                                class="px-3 py-1 rounded-xl font-bold transition-all">Arbeit</button>
-                        <button onclick="switchToFrei()" id="btn-frei"
-                                class="px-3 py-1 rounded-xl font-bold transition-all">Frei</button>
-                    </div>
-                    <div class="hidden sm:block h-7 w-px bg-white/20 shrink-0"></div>
                     <div class="flex items-baseline gap-1.5 shrink-0">
                         <span id="total-kcal" class="text-2xl sm:text-3xl font-bold tabular-nums leading-none">2030</span>
                         <span class="text-xs text-white/60 font-medium">kcal</span>
@@ -356,8 +339,7 @@
                         <i class="fa-solid fa-utensils"></i>
                         <span>ESSEN</span>
                     </div>
-                    <div id="meals-arbeit" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-sm"></div>
-                    <div id="meals-frei" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-sm"></div>
+                    <div id="meals-today" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-sm"></div>
                 </div>
             </div>
 
@@ -548,12 +530,6 @@
                                    oninput="updateMaintenanceDisplay()"
                                    class="ui-input hidden w-full border rounded-2xl px-3 py-2 mt-2 text-base">
                         </div>
-                        <div class="col-span-2 flex gap-3 items-end">
-                            <button type="button" id="menu-tab-arbeit" onclick="switchMenuBuilderTab('arbeit')"
-                                    class="flex-1 py-2.5 rounded-2xl text-sm font-semibold bg-blue-100 text-blue-700">Arbeit</button>
-                            <button type="button" id="menu-tab-frei" onclick="switchMenuBuilderTab('frei')"
-                                    class="flex-1 py-2.5 rounded-2xl text-sm font-semibold text-slate-500">Frei</button>
-                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-[minmax(220px,280px)_1fr] gap-4 lg:gap-5 items-start">
@@ -665,8 +641,8 @@
     </div>
 
     <script>
-        const BASE_PROTEIN = { arbeit: 150, frei: 135 };
-        const MENU_PLANS_VERSION = 5;
+        const BASE_PROTEIN = 150;
+        const MENU_PLANS_VERSION = 6;
 
         const MEAL_SLOTS = ['Frühstück', 'Znüni', 'Mittag', 'Abend'];
         const MEAL_SLOT_COLORS = [
@@ -725,19 +701,11 @@
             { id: 'zucchini200', label: 'Zucchini 200g', kcal: 34, protein: 2 }
         ];
 
-        const DEFAULT_MENU_PLANS = {
-            arbeit: {
-                'Frühstück': ['skyr450', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
-                'Znüni': ['banane', 'apfel', 'heidel50', 'haferkleie20'],
-                'Mittag': ['rinderhack250', 'zucchini200', 'reis100', 'parmesan30', 'erbsen100'],
-                'Abend': ['zucchini200', 'reis100', 'ei1', 'ei1', 'ei1', 'erbsen100']
-            },
-            frei: {
-                'Frühstück': ['skyr450', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
-                'Znüni': ['heidel50', 'banane', 'apfel'],
-                'Mittag': ['rinderhack250', 'zucchini200', 'parmesan30'],
-                'Abend': ['zucchini200', 'reis100', 'ei1', 'ei1', 'ei1']
-            }
+        const DEFAULT_MENU_PLAN = {
+            'Frühstück': ['skyr450', 'haferkleie20', 'banane', 'apfel', 'heidel50'],
+            'Znüni': ['banane', 'apfel', 'heidel50', 'haferkleie20'],
+            'Mittag': ['rinderhack250', 'zucchini200', 'reis100', 'parmesan30', 'erbsen100'],
+            'Abend': ['zucchini200', 'reis100', 'ei1', 'ei1', 'ei1', 'erbsen100']
         };
 
         const DEFAULT_SETTINGS = {
@@ -820,12 +788,10 @@
         const TRAINING_HISTORY_GRID = 'grid-cols-[5rem_repeat(5,minmax(1.65rem,1fr))_2.25rem]';
 
         let settings = { ...DEFAULT_SETTINGS };
-        let menuBuilderMode = 'arbeit';
         let activeMealSlot = 'Frühstück';
         let menuBuilderDraft = null;
         let ingredientEditorDraft = null;
         let dragIngState = { id: null, sourceSlot: null, sourceIndex: null };
-        let currentMode = 'arbeit';
         let dailyData = { date: null, training: [], pushups: 0, pullups: 0, burpees: 0 };
         let dayHistory = [];
         let strengthHistory = [];
@@ -1053,16 +1019,12 @@
             strengthHistory = [];
 
             demoDays.forEach((date, i) => {
-                const isFrei = getDayType(date) === 'frei';
-                const effectiveMode = isFrei ? 'frei' : 'arbeit';
-                const baseKcal = getDailyBudget();
+                const baseKcal = sumMenuKcal(settings.menuPlan, settings.ingredients);
                 const strength = getDemoStrengthForDay(i);
                 const training = getDemoTrainingForDay(i, date);
 
                 dayHistory.push({
                     date,
-                    mode: effectiveMode,
-                    effectiveMode,
                     baseKcal,
                     maintenanceKcal: maintenance,
                     menuDeficit: maintenance - baseKcal,
@@ -1124,7 +1086,6 @@
             }
 
             const parsed = JSON.parse(saved);
-            currentMode = parsed.mode || 'arbeit';
             settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
             ensureMenuData();
             dayHistory = parsed.dayHistory || [];
@@ -1168,7 +1129,6 @@
         function saveData() {
             pruneStrengthHistory();
             localStorage.setItem('ernaehrung_v3', JSON.stringify({
-                mode: currentMode,
                 settings,
                 dailyData,
                 dayHistory,
@@ -1177,29 +1137,43 @@
             }));
         }
 
-        function getDayType(dateStr = null) {
-            const d = dateStr ? new Date(dateStr + 'T12:00:00') : new Date();
-            const day = d.getDay();
-            return (day === 0 || day === 6) ? 'frei' : 'arbeit';
+        function isLegacyDualMenuPlans(plans) {
+            return plans && typeof plans === 'object' && (plans.arbeit || plans.frei) && plans['Frühstück'] == null;
         }
 
-        function getEffectiveMode(dateStr = null) {
-            return getDayType(dateStr) === 'frei' ? 'frei' : currentMode;
+        function migrateToSingleMenuPlan(plans) {
+            if (!plans) return JSON.parse(JSON.stringify(DEFAULT_MENU_PLAN));
+            if (isLegacyDualMenuPlans(plans)) {
+                return JSON.parse(JSON.stringify(plans.arbeit || plans.frei || DEFAULT_MENU_PLAN));
+            }
+            return plans;
+        }
+
+        function ensureSingleMenuPlan() {
+            const source = settings.menuPlan || settings.menuPlans;
+            settings.menuPlan = migrateToSingleMenuPlan(source);
+            delete settings.menuPlans;
         }
 
         function ensureMenuData() {
-            if (settings.ingredients?.length && settings.menuPlans) {
+            if (settings.ingredients?.length && (settings.menuPlan || settings.menuPlans)) {
                 ensureWeeklyLossGoal();
+                ensureSingleMenuPlan();
                 if (settings.bodyWeightKg == null) settings.bodyWeightKg = DEFAULT_BODY_WEIGHT_KG;
                 if (settings.heightCm == null) settings.heightCm = DEFAULT_HEIGHT_CM;
                 if (settings.age == null) settings.age = DEFAULT_AGE;
                 if (settings.sex == null) settings.sex = 'm';
                 ensureMaintenanceDefault();
+                if ((settings.menuPlansVersion || 1) < 6) {
+                    ensureSingleMenuPlan();
+                    settings.menuPlansVersion = 6;
+                }
                 if ((settings.menuPlansVersion || 1) < MENU_PLANS_VERSION) {
                     settings.ingredients = JSON.parse(JSON.stringify(DEFAULT_INGREDIENTS));
-                    settings.menuPlans = JSON.parse(JSON.stringify(DEFAULT_MENU_PLANS));
+                    settings.menuPlan = JSON.parse(JSON.stringify(DEFAULT_MENU_PLAN));
+                    delete settings.menuPlans;
                     settings.menuPlansVersion = MENU_PLANS_VERSION;
-                } else {
+                } else if ((settings.menuPlansVersion || 1) >= MENU_PLANS_VERSION) {
                     const defaultById = Object.fromEntries(DEFAULT_INGREDIENTS.map(i => [i.id, i]));
                     const knownIds = new Set(DEFAULT_INGREDIENTS.map(i => i.id));
                     settings.ingredients = settings.ingredients.filter(ing => knownIds.has(ing.id));
@@ -1217,8 +1191,8 @@
                         }
                     });
                     settings.ingredients = sortIngredients(settings.ingredients);
-                    remapMealSlotName(settings.menuPlans, 'Snack', 'Znüni');
-                    remapMenuIngredientIds(settings.menuPlans, {
+                    remapMealSlotName(settings.menuPlan, 'Snack', 'Znüni');
+                    remapMenuIngredientIds(settings.menuPlan, {
                         reis75: 'reis100',
                         ei3: 'ei1',
                         feta30: 'feta125',
@@ -1226,12 +1200,12 @@
                         quark200: 'quark250',
                         heidel30: 'heidel50'
                     });
-                    pruneMenuPlans(settings.menuPlans, knownIds);
+                    pruneMenuPlan(settings.menuPlan, knownIds);
                 }
                 return;
             }
             settings.ingredients = JSON.parse(JSON.stringify(DEFAULT_INGREDIENTS));
-            settings.menuPlans = JSON.parse(JSON.stringify(DEFAULT_MENU_PLANS));
+            settings.menuPlan = JSON.parse(JSON.stringify(DEFAULT_MENU_PLAN));
             settings.menuPlansVersion = MENU_PLANS_VERSION;
             settings.weeklyLossKg = DEFAULT_WEEKLY_LOSS_KG;
             settings.bodyWeightKg = DEFAULT_BODY_WEIGHT_KG;
@@ -1255,10 +1229,10 @@
             return sortIngredients(settings.ingredients);
         }
 
-        function getBuilderMenuPlans() {
-            if (menuBuilderDraft) return menuBuilderDraft.menuPlans;
+        function getActiveMenuPlan() {
+            if (menuBuilderDraft?.menuPlan) return menuBuilderDraft.menuPlan;
             ensureMenuData();
-            return settings.menuPlans;
+            return settings.menuPlan;
         }
 
         function getIngredient(id, ingredients = null) {
@@ -1436,14 +1410,13 @@
             }
         }
 
-        function getMenuDeficit(mode = null) {
-            return getMaintenanceKcal() - getBaseKcal(mode || getEffectiveMode());
+        function getMenuDeficit() {
+            return getMaintenanceKcal() - getBaseKcal();
         }
 
         function updateDeficitDisplay() {
-            const mode = getEffectiveMode();
             const maintenance = getMaintenanceKcal();
-            const menuKcal = getBaseKcal(mode);
+            const menuKcal = getBaseKcal();
             const deficit = Math.round(maintenance - menuKcal);
             const el = document.getElementById('deficit-display');
             if (!el) return;
@@ -1468,11 +1441,11 @@
             return getDailyBudget();
         }
 
-        function sumMenuKcal(mode, plans = null, ingredients = null) {
-            const plan = (plans || getBuilderMenuPlans())[mode] || {};
+        function sumMenuKcal(plan = null, ingredients = null) {
+            const menu = plan || getActiveMenuPlan();
             let total = 0;
             MEAL_SLOTS.forEach(slot => {
-                (plan[slot] || []).forEach(ingId => {
+                (menu[slot] || []).forEach(ingId => {
                     const ing = getIngredient(ingId, ingredients);
                     if (ing) total += ing.kcal || 0;
                 });
@@ -1480,11 +1453,11 @@
             return total;
         }
 
-        function sumMenuProtein(mode, plans = null, ingredients = null) {
-            const plan = (plans || getBuilderMenuPlans())[mode] || {};
+        function sumMenuProtein(plan = null, ingredients = null) {
+            const menu = plan || getActiveMenuPlan();
             let total = 0;
             MEAL_SLOTS.forEach(slot => {
-                (plan[slot] || []).forEach(ingId => {
+                (menu[slot] || []).forEach(ingId => {
                     const ing = getIngredient(ingId, ingredients);
                     if (ing) total += ing.protein || 0;
                 });
@@ -1492,13 +1465,13 @@
             return total;
         }
 
-        function getBaseProtein(mode = null) {
+        function getBaseProtein() {
             ensureMenuData();
-            return sumMenuProtein(mode || getEffectiveMode(), settings.menuPlans, settings.ingredients);
+            return sumMenuProtein(settings.menuPlan, settings.ingredients);
         }
 
-        function getRemainingKcal(mode) {
-            return getDailyBudget() - sumMenuKcal(mode);
+        function getRemainingKcal() {
+            return getDailyBudget() - sumMenuKcal();
         }
 
         function escapeHtml(str) {
@@ -1509,37 +1482,35 @@
                 .replace(/"/g, '&quot;');
         }
 
-        function getBaseKcal(mode = null) {
+        function getBaseKcal() {
             ensureMenuData();
-            return sumMenuKcal(mode || getEffectiveMode(), settings.menuPlans, settings.ingredients);
+            return sumMenuKcal(settings.menuPlan, settings.ingredients);
         }
 
         function renderTodayMeals() {
             ensureMenuData();
-            ['arbeit', 'frei'].forEach(mode => {
-                const container = document.getElementById(`meals-${mode}`);
-                if (!container) return;
-                const plan = settings.menuPlans[mode] || {};
-                container.innerHTML = MEAL_SLOTS.map((slot, si) => {
-                    const ids = plan[slot] || [];
-                    const items = ids.map(id => getIngredient(id, settings.ingredients)).filter(Boolean);
-                    const ingredientText = items.map(i => i.label).join(' · ') || '—';
-                    const slotKcal = items.reduce((sum, i) => sum + (i.kcal || 0), 0);
-                    const slotProtein = items.reduce((sum, i) => sum + (i.protein || 0), 0);
-                    return `
-                        <div class="meal-row flex justify-between items-center py-2 px-3 rounded-2xl">
-                            <div>
-                                <span class="font-medium text-slate-800 dark:text-slate-100">${slot}</span><br>
-                                <span class="text-xs ${MEAL_INGREDIENT_COLORS[si]}">${escapeHtml(ingredientText)}</span>
-                            </div>
-                            <div class="text-right font-bold ${MEAL_KCAL_COLORS[si]} shrink-0 ml-2">
-                                <div>${slotKcal} kcal</div>
-                                <div class="text-xs font-semibold accent-gold">${slotProtein}g Protein</div>
-                            </div>
+            const container = document.getElementById('meals-today');
+            if (!container) return;
+            const plan = settings.menuPlan || {};
+            container.innerHTML = MEAL_SLOTS.map((slot, si) => {
+                const ids = plan[slot] || [];
+                const items = ids.map(id => getIngredient(id, settings.ingredients)).filter(Boolean);
+                const ingredientText = items.map(i => i.label).join(' · ') || '—';
+                const slotKcal = items.reduce((sum, i) => sum + (i.kcal || 0), 0);
+                const slotProtein = items.reduce((sum, i) => sum + (i.protein || 0), 0);
+                return `
+                    <div class="meal-row flex justify-between items-center py-2 px-3 rounded-2xl">
+                        <div>
+                            <span class="font-medium text-slate-800 dark:text-slate-100">${slot}</span><br>
+                            <span class="text-xs ${MEAL_INGREDIENT_COLORS[si]}">${escapeHtml(ingredientText)}</span>
                         </div>
-                    `;
-                }).join('');
-            });
+                        <div class="text-right font-bold ${MEAL_KCAL_COLORS[si]} shrink-0 ml-2">
+                            <div>${slotKcal} kcal</div>
+                            <div class="text-xs font-semibold accent-gold">${slotProtein}g Protein</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function setActiveMealSlot(slot) {
@@ -1547,33 +1518,19 @@
             renderMenuBuilder();
         }
 
-        function switchMenuBuilderTab(mode) {
-            menuBuilderMode = mode;
-            const btnA = document.getElementById('menu-tab-arbeit');
-            const btnF = document.getElementById('menu-tab-frei');
-            if (mode === 'arbeit') {
-                btnA.className = 'flex-1 py-2.5 rounded-2xl text-sm font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300';
-                btnF.className = 'flex-1 py-2.5 rounded-2xl text-sm font-semibold text-slate-500 dark:text-slate-400';
-            } else {
-                btnF.className = 'flex-1 py-2.5 rounded-2xl text-sm font-semibold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300';
-                btnA.className = 'flex-1 py-2.5 rounded-2xl text-sm font-semibold text-slate-500 dark:text-slate-400';
-            }
-            renderMenuBuilder();
-        }
-
         function addIngredientToSlot(slot, ingredientId) {
             if (!menuBuilderDraft) return;
             if (!getIngredient(ingredientId)) return;
-            if (!menuBuilderDraft.menuPlans[menuBuilderMode][slot]) {
-                menuBuilderDraft.menuPlans[menuBuilderMode][slot] = [];
+            if (!menuBuilderDraft.menuPlan[slot]) {
+                menuBuilderDraft.menuPlan[slot] = [];
             }
-            menuBuilderDraft.menuPlans[menuBuilderMode][slot].push(ingredientId);
+            menuBuilderDraft.menuPlan[slot].push(ingredientId);
             renderMenuBuilder();
         }
 
         function removeIngredientFromSlot(slot, index) {
             if (!menuBuilderDraft) return;
-            menuBuilderDraft.menuPlans[menuBuilderMode][slot].splice(index, 1);
+            menuBuilderDraft.menuPlan[slot].splice(index, 1);
             renderMenuBuilder();
         }
 
@@ -1607,17 +1564,17 @@
             const { id, sourceSlot, sourceIndex } = dragIngState;
             if (!id || !menuBuilderDraft) return;
 
-            const plans = menuBuilderDraft.menuPlans;
-            if (!plans[menuBuilderMode][slot]) plans[menuBuilderMode][slot] = [];
-            const target = plans[menuBuilderMode][slot];
+            const plan = menuBuilderDraft.menuPlan;
+            if (!plan[slot]) plan[slot] = [];
+            const target = plan[slot];
 
             if (sourceSlot === null) {
                 target.push(id);
             } else if (sourceSlot === slot) {
-                const [moved] = plans[menuBuilderMode][sourceSlot].splice(sourceIndex, 1);
+                const [moved] = plan[sourceSlot].splice(sourceIndex, 1);
                 target.push(moved);
             } else {
-                plans[menuBuilderMode][sourceSlot].splice(sourceIndex, 1);
+                plan[sourceSlot].splice(sourceIndex, 1);
                 target.push(id);
             }
 
@@ -1626,16 +1583,16 @@
         }
 
         function sumSlotKcal(slot) {
-            const plans = getBuilderMenuPlans();
-            return (plans[menuBuilderMode][slot] || []).reduce((sum, ingId) => {
+            const plan = getActiveMenuPlan();
+            return (plan[slot] || []).reduce((sum, ingId) => {
                 const ing = getIngredient(ingId);
                 return sum + (ing?.kcal || 0);
             }, 0);
         }
 
         function sumSlotProtein(slot) {
-            const plans = getBuilderMenuPlans();
-            return (plans[menuBuilderMode][slot] || []).reduce((sum, ingId) => {
+            const plan = getActiveMenuPlan();
+            return (plan[slot] || []).reduce((sum, ingId) => {
                 const ing = getIngredient(ingId);
                 return sum + (ing?.protein || 0);
             }, 0);
@@ -1643,11 +1600,10 @@
 
         function renderMenuBuilder() {
             if (!menuBuilderDraft) return;
-            const mode = menuBuilderMode;
             const ingredients = menuBuilderDraft.ingredients;
-            const plans = menuBuilderDraft.menuPlans;
-            const used = sumMenuKcal(mode, plans, ingredients);
-            const usedProtein = sumMenuProtein(mode, plans, ingredients);
+            const plan = menuBuilderDraft.menuPlan;
+            const used = sumMenuKcal(plan, ingredients);
+            const usedProtein = sumMenuProtein(plan, ingredients);
             const budget = getBuilderBudget();
             const remaining = budget - used;
 
@@ -1660,7 +1616,7 @@
                 ? `Noch ${remaining} kcal · ${used}/${budget} kcal`
                 : `${Math.abs(remaining)} kcal drüber · ${used}/${budget} kcal`;
 
-            const proteinTarget = BASE_PROTEIN[mode];
+            const proteinTarget = BASE_PROTEIN;
             if (ampelEl) {
                 let ampelClass = 'protein-ampel-ok';
                 let ampelText = `${usedProtein} / ${proteinTarget}g Protein ✓`;
@@ -1692,7 +1648,7 @@
 
             const slotsEl = document.getElementById('meal-slots-container');
             slotsEl.innerHTML = MEAL_SLOTS.map((slot, si) => {
-                const ids = plans[mode][slot] || [];
+                const ids = plan[slot] || [];
                 const slotKcal = sumSlotKcal(slot);
                 const slotProtein = sumSlotProtein(slot);
                 const isActive = activeMealSlot === slot;
@@ -1783,8 +1739,7 @@
         function archiveCurrentDay(autoClosed = false, dateStr = dailyData.date) {
             if (!dateStr) return;
 
-            const effectiveMode = getEffectiveMode(dateStr);
-            const baseKcal = getBaseKcal(effectiveMode);
+            const baseKcal = getBaseKcal();
             const maintenanceKcal = getMaintenanceKcal();
             let totalKcal = baseKcal;
             dailyData.training.forEach(t => { totalKcal += t.kcalBonus || 0; });
@@ -1792,8 +1747,6 @@
             const existing = dayHistory.findIndex(e => e.date === dateStr);
             const entry = {
                 date: dateStr,
-                mode: currentMode,
-                effectiveMode,
                 baseKcal,
                 maintenanceKcal,
                 menuDeficit: Math.round(maintenanceKcal - baseKcal),
@@ -1844,54 +1797,21 @@
             document.getElementById('current-day-name').textContent = dayNames[new Date().getDay()];
             document.getElementById('current-day-date').textContent = formatDateDE(getTodayKey());
             
-            const effectiveMode = (getDayType() === 'frei') ? 'frei' : currentMode;
-            updateModeToggle();
-
             renderTodayMeals();
-            const arbeitBlock = document.getElementById('meals-arbeit');
-            const freiBlock = document.getElementById('meals-frei');
-            if (effectiveMode === 'frei') {
-                arbeitBlock.classList.add('hidden');
-                freiBlock.classList.remove('hidden');
-            } else {
-                arbeitBlock.classList.remove('hidden');
-                freiBlock.classList.add('hidden');
-            }
-
             renderRefuelSection();
             updateTrainingUI();
 
             updateStrengthUI();
 
-            let baseKcal = getBaseKcal(effectiveMode);
+            let baseKcal = getBaseKcal();
             dailyData.training.forEach(t => baseKcal += t.kcalBonus || 0);
             document.getElementById('total-kcal').textContent = Math.round(baseKcal);
-            document.getElementById('total-protein').textContent = `${getBaseProtein(effectiveMode)}g`;
-            document.getElementById('daily-protein-target').textContent =
-                effectiveMode === 'frei' ? BASE_PROTEIN.frei : BASE_PROTEIN.arbeit;
+            document.getElementById('total-protein').textContent = `${getBaseProtein()}g`;
+            document.getElementById('daily-protein-target').textContent = BASE_PROTEIN;
             updateDeficitDisplay();
             renderWeightSection();
             renderWeeklyOverview();
             renderDayHistoryList();
-        }
-
-        function updateModeToggle() {
-            const btnArbeit = document.getElementById('btn-arbeit');
-            const btnFrei = document.getElementById('btn-frei');
-            if (!btnArbeit || !btnFrei) return;
-
-            const base = 'px-3 py-1 rounded-xl font-bold transition-all';
-            const inactive = `${base} text-white/55 hover:text-white/80`;
-            const arbeitActive = `${base} bg-white/25 text-white shadow-sm`;
-            const freiActive = `${base} badge-frei`;
-
-            if (currentMode === 'arbeit') {
-                btnArbeit.className = arbeitActive;
-                btnFrei.className = inactive;
-            } else {
-                btnFrei.className = freiActive;
-                btnArbeit.className = inactive;
-            }
         }
 
         function getTrainingIcon(type) {
@@ -2333,11 +2253,10 @@
         }
 
         function updateKcalDisplays() {
-            const effectiveMode = getEffectiveMode();
-            let baseKcal = getBaseKcal(effectiveMode);
+            let baseKcal = getBaseKcal();
             dailyData.training.forEach(t => { baseKcal += t.kcalBonus || 0; });
             document.getElementById('total-kcal').textContent = Math.round(baseKcal);
-            document.getElementById('total-protein').textContent = `${getBaseProtein(effectiveMode)}g`;
+            document.getElementById('total-protein').textContent = `${getBaseProtein()}g`;
             updateDeficitDisplay();
             renderTodayMeals();
         }
@@ -3104,7 +3023,7 @@
                 chip('Kraft', strengthDays),
                 chip('Ø Defizit', avgDeficit != null ? `−${avgDeficit}` : '—'),
                 chip('Gewicht', weightStat),
-                chip('Protein', `${BASE_PROTEIN.arbeit}g`)
+                chip('Protein', `${BASE_PROTEIN}g`)
             ].join('');
         }
 
@@ -3138,18 +3057,6 @@
             event.target.value = '';
         }
 
-        function switchToArbeit() {
-            currentMode = 'arbeit';
-            updateUI();
-            saveData();
-        }
-
-        function switchToFrei() {
-            currentMode = 'frei';
-            updateUI();
-            saveData();
-        }
-
         function showSettings() {
             ensureMenuData();
             document.getElementById('settings-dark-mode').checked = !!settings.darkMode;
@@ -3170,11 +3077,10 @@
                 formatButtonValues(settings.burpeeButtons || DEFAULT_SETTINGS.burpeeButtons);
             menuBuilderDraft = {
                 ingredients: JSON.parse(JSON.stringify(settings.ingredients)),
-                menuPlans: JSON.parse(JSON.stringify(settings.menuPlans))
+                menuPlan: JSON.parse(JSON.stringify(settings.menuPlan))
             };
             ingredientEditorDraft = menuBuilderDraft.ingredients;
-            menuBuilderMode = 'arbeit';
-            switchMenuBuilderTab('arbeit');
+            renderMenuBuilder();
             renderIngredientEditor();
             document.getElementById('settings-modal').classList.remove('hidden');
             document.getElementById('settings-modal').classList.add('flex');
@@ -3187,32 +3093,26 @@
             document.getElementById('settings-modal').classList.add('hidden');
         }
 
-        function remapMealSlotName(plans, oldName, newName) {
-            ['arbeit', 'frei'].forEach(mode => {
-                if (!plans[mode] || plans[mode][oldName] == null) return;
-                if (plans[mode][newName] == null) {
-                    plans[mode][newName] = plans[mode][oldName];
-                }
-                delete plans[mode][oldName];
+        function remapMealSlotName(plan, oldName, newName) {
+            if (!plan || plan[oldName] == null) return;
+            if (plan[newName] == null) {
+                plan[newName] = plan[oldName];
+            }
+            delete plan[oldName];
+        }
+
+        function remapMenuIngredientIds(plan, idMap) {
+            MEAL_SLOTS.forEach(slot => {
+                const list = plan?.[slot];
+                if (!list) return;
+                plan[slot] = list.map(id => idMap[id] || id);
             });
         }
 
-        function remapMenuIngredientIds(plans, idMap) {
-            ['arbeit', 'frei'].forEach(mode => {
-                MEAL_SLOTS.forEach(slot => {
-                    const list = plans[mode]?.[slot];
-                    if (!list) return;
-                    plans[mode][slot] = list.map(id => idMap[id] || id);
-                });
-            });
-        }
-
-        function pruneMenuPlans(plans, validIds) {
-            ['arbeit', 'frei'].forEach(mode => {
-                MEAL_SLOTS.forEach(slot => {
-                    const list = plans[mode][slot] || [];
-                    plans[mode][slot] = list.filter(id => validIds.has(id));
-                });
+        function pruneMenuPlan(plan, validIds) {
+            MEAL_SLOTS.forEach(slot => {
+                const list = plan[slot] || [];
+                plan[slot] = list.filter(id => validIds.has(id));
             });
         }
 
@@ -3250,8 +3150,8 @@
             }
             if (menuBuilderDraft) {
                 settings.ingredients = JSON.parse(JSON.stringify(menuBuilderDraft.ingredients));
-                settings.menuPlans = JSON.parse(JSON.stringify(menuBuilderDraft.menuPlans));
-                pruneMenuPlans(settings.menuPlans, new Set(settings.ingredients.map(i => i.id)));
+                settings.menuPlan = JSON.parse(JSON.stringify(menuBuilderDraft.menuPlan));
+                pruneMenuPlan(settings.menuPlan, new Set(settings.ingredients.map(i => i.id)));
             }
             menuBuilderDraft = null;
             ingredientEditorDraft = null;
