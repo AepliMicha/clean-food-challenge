@@ -240,10 +240,10 @@
                     </div>
                     <div class="min-w-0">
                         <div id="current-day-name" class="font-display text-xl sm:text-2xl tracking-tight leading-tight"></div>
-                        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                            <div id="current-day-date" class="text-sm text-white/70 font-medium"></div>
-                            <span id="streak-counter" class="text-xs text-amber-200/90 font-semibold tabular-nums" title="seit 7.12.2025"></span>
-                        </div>
+                        <div id="current-day-date" class="text-sm text-white/70 font-medium"></div>
+                        <div id="streak-counter"
+                             class="inline-flex items-center mt-1.5 px-2.5 py-1 rounded-xl bg-amber-300/20 border border-amber-200/35 text-sm sm:text-base font-bold text-amber-100 tabular-nums tracking-tight shadow-sm"
+                             title="seit 7.12.2025"></div>
                     </div>
                 </div>
 
@@ -1279,7 +1279,7 @@
                 el.textContent = '';
                 return;
             }
-            el.textContent = `· ${days} ${days === 1 ? 'Tag' : 'Tage'} (${formatStreakMonths(days)} Monate)`;
+            el.textContent = `${days} ${days === 1 ? 'Tag' : 'Tage'} (${formatStreakMonths(days)} Monate)`;
             el.title = `seit ${formatDateDE(STREAK_START)}`;
         }
 
