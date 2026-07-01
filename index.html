@@ -662,7 +662,7 @@
         const DEFAULT_BODY_WEIGHT_KG = 67;
         const DEFAULT_HEIGHT_CM = 173;
         const DEFAULT_AGE = 48;
-        const BASE_ACTIVITY_FACTOR = 1.375;
+        const BASE_ACTIVITY_FACTOR = 1.725;
 
         const DEFAULT_INGREDIENTS = [
             { id: 'apfel', label: 'Apfel', kcal: 78, protein: 0 },
@@ -1345,7 +1345,7 @@
             display.textContent = `${tdee} kcal/Tag`;
             if (hint) {
                 hint.textContent =
-                    `Mifflin-St Jeor × ${BASE_ACTIVITY_FACTOR} (BMR ${bmr}) · Sport-Extra separat`;
+                    `Mifflin-St Jeor × ${BASE_ACTIVITY_FACTOR} · körperliche Arbeit (BMR ${bmr}) · Sport-Extra separat`;
             }
             if (budgetDisplay) budgetDisplay.textContent = `${budget} kcal`;
             if (budgetHint) {
