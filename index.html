@@ -125,8 +125,7 @@
         .protein-ampel-low { color: #dc2626; }
         .dark .protein-ampel-low { color: #f87171; }
 
-        #strength-days-list,
-        #day-history-list {
+        #strength-days-list {
             min-height: 0;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
@@ -326,45 +325,6 @@
                         <span>ESSEN</span>
                     </div>
                     <div id="meals-today" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm"></div>
-                </div>
-            </div>
-
-            <details class="ui-card rounded-3xl group">
-                <summary class="p-4 cursor-pointer list-none flex items-center justify-between gap-3">
-                    <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-2">
-                        <i class="fa-solid fa-calendar-days"></i>
-                        <span>TAGESHISTORIE</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-down text-slate-400 dark:text-slate-500 group-open:rotate-180 transition-transform shrink-0"></i>
-                </summary>
-                <div class="px-4 pb-4 border-t border-slate-100 dark:border-slate-700 pt-3">
-                    <div id="day-history-list"
-                         class="space-y-4 max-h-[32rem] overflow-y-auto min-h-0"
-                         onwheel="event.stopPropagation()"></div>
-                </div>
-            </details>
-        </div>
-    </div>
-
-    <!-- Day Editor Modal -->
-    <div id="day-editor-modal" onclick="if (event.target.id === 'day-editor-modal') hideDayEditorModal()" class="hidden fixed inset-0 bg-black/60 flex items-end md:items-center justify-center z-[100]">
-        <div onclick="event.stopImmediatePropagation()" class="ui-modal w-full md:w-[480px] md:rounded-3xl rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between mb-4">
-                <div>
-                    <div class="font-bold text-xl" id="day-editor-title">Tag</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" id="day-editor-subtitle"></div>
-                </div>
-                <button onclick="hideDayEditorModal()" class="text-3xl text-slate-300 dark:text-slate-500">&times;</button>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <div class="section-header text-slate-700 dark:text-slate-300 mb-2">Sport</div>
-                    <div id="day-editor-training" class="space-y-1.5"></div>
-                    <button type="button" onclick="addTrainingFromDayEditor()" class="mt-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline">+ Sport hinzufügen</button>
-                </div>
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-700">
-                    <div class="section-header text-slate-700 dark:text-slate-300 mb-2">Kraft</div>
-                    <div id="day-editor-strength" class="grid grid-cols-3 gap-2"></div>
                 </div>
             </div>
         </div>
@@ -731,8 +691,7 @@
         let strengthHistory = [];
 
         let midnightCheckInterval = null;
-        let editingDayDate = null;
-        let dayEditorDate = null;
+
         let expandedTrainingWeek = null;
 
         function getTodayKey() {
@@ -915,7 +874,7 @@
         }
 
         function loadDemoData() {
-            if (!confirm(`Beispieldaten laden? Kraft, Training und Tages-Historie (${DEMO_DAYS} Tage) werden überschrieben.`)) return;
+            if (!confirm(`Beispieldaten laden? Kraft und Training (${DEMO_DAYS} Tage) werden überschrieben.`)) return;
 
             ensureMenuData();
             const maintenance = getMaintenanceKcal();
@@ -958,7 +917,7 @@
             settings.demoDataActive = true;
             saveData();
             updateUI();
-            alert('Beispieldaten geladen. Schau unter Training, Kraft und Tageshistorie.');
+            alert('Beispieldaten geladen. Schau unter Training und Kraft.');
         }
 
         function clearDemoData() {
@@ -966,7 +925,7 @@
                 alert('Keine aktiven Beispieldaten.');
                 return;
             }
-            if (!confirm('Beispieldaten entfernen? Kraft-Historie und archivierte Tage werden geleert.')) return;
+            if (!confirm('Beispieldaten entfernen? Kraft- und Sport-Historie werden geleert.')) return;
 
             dayHistory = [];
             strengthHistory = [];
@@ -1683,7 +1642,6 @@
             document.getElementById('total-protein').textContent = `${getBaseProtein()}g`;
             document.getElementById('daily-protein-target').textContent = BASE_PROTEIN;
             updateDeficitDisplay();
-            renderDayHistoryList();
         }
 
         function getTrainingIcon(type) {
@@ -1758,260 +1716,13 @@
             return t.label || '';
         }
 
-        function getDayEntryRef(dateKey) {
-            if (dateKey === dailyData.date) {
-                return { source: 'today', entry: dailyData };
-            }
-            const index = dayHistory.findIndex(e => e.date === dateKey);
-            if (index < 0) return null;
-            return { source: 'history', index, entry: dayHistory[index] };
-        }
-
-        function recalcHistoryEntryTotals(entry) {
-            let total = entry.baseKcal || 0;
-            (entry.training || []).forEach(t => { total += t.kcalBonus || 0; });
-            entry.totalKcal = Math.round(total);
-        }
-
-        function saveAndRefreshAfterDayEdit(dateKey) {
-            saveData();
-            if (dateKey === dailyData.date) {
-                renderRefuelSection();
-                updateKcalDisplays();
-                updateStrengthUI();
-            }
-            updateTrainingUI();
-            renderDayHistoryList();
-            if (dayEditorDate === dateKey) renderDayEditorContent(dateKey);
-        }
-
-        function getActivityDaySummaries() {
-            const byDate = {};
-
-            dayHistory.forEach(e => {
-                const totals = readStrengthTotals(e);
-                if ((e.training?.length > 0) || hasStrengthTotals(totals)) {
-                    byDate[e.date] = e;
-                }
-            });
-
-            if (dailyData.date && hasDayActivity()) {
-                byDate[dailyData.date] = {
-                    date: dailyData.date,
-                    training: dailyData.training,
-                    ...readStrengthTotals(dailyData),
-                    isToday: true
-                };
-            }
-
-            return Object.keys(byDate).sort().reverse().map(date => byDate[date]);
-        }
-
-        function renderDayHistorySportBlock(entry) {
-            const sessions = entry.training || [];
-            if (!sessions.length) {
-                return '<div class="text-xs text-slate-400 dark:text-slate-500">—</div>';
-            }
-            return sessions.map(t => {
-                const icon = getTrainingIcon(t.type);
-                const detail = formatTrainingSessionDetail(t);
-                return `
-                    <div class="flex items-start gap-2 py-1">
-                        <i class="fa-solid ${icon} text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 shrink-0"></i>
-                        <div class="min-w-0">
-                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-tight">${escapeHtml(t.label)}</div>
-                            ${detail ? `<div class="text-[11px] text-slate-500 dark:text-slate-400">${escapeHtml(detail)}</div>` : ''}
-                            <div class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">+${formatTrainingKcal(t.kcalBonus || 0)} kcal</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderDayHistoryStrengthBlock(entry) {
-            const totals = readStrengthTotals(entry);
-            if (!hasStrengthTotals(totals)) {
-                return '<div class="text-xs text-slate-400 dark:text-slate-500">—</div>';
-            }
-            return STRENGTH_EXERCISES.map(ex => {
-                const val = totals[ex.key] || 0;
-                if (!val) return '';
-                return `
-                    <div class="flex items-center justify-between gap-2 py-0.5">
-                        <span class="text-[11px] text-slate-500 dark:text-slate-400">${ex.short}</span>
-                        <span class="text-xs font-bold tabular-nums ${ex.value}">${val}</span>
-                    </div>
-                `;
-            }).filter(Boolean).join('') || '<div class="text-xs text-slate-400 dark:text-slate-500">—</div>';
-        }
-
-        function renderDayHistoryCard(entry) {
-            const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-            const weekday = dayNames[new Date(entry.date + 'T12:00:00').getDay()];
-            const isToday = entry.date === dailyData.date;
-            const sportKcal = (entry.training || []).reduce((s, t) => s + (t.kcalBonus || 0), 0);
-            const strengthTotal = getStrengthTotal(readStrengthTotals(entry));
-
-            return `
-                <button type="button" onclick="openDayEditor('${entry.date}')"
-                        class="w-full text-left ui-panel rounded-2xl p-3 hover:bg-white dark:hover:bg-slate-800/80 transition-colors">
-                    <div class="flex items-center justify-between gap-2 mb-2.5">
-                        <div>
-                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">${weekday} ${formatDateDE(entry.date)}</span>
-                            ${isToday ? '<span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide text-teal-600 dark:text-teal-400">heute</span>' : ''}
-                        </div>
-                        <span class="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 shrink-0">
-                            <i class="fa-solid fa-pen"></i> Bearbeiten
-                        </span>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div class="rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-700 px-2.5 py-2">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Sport</span>
-                                ${sportKcal > 0 ? `<span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">+${formatTrainingKcal(sportKcal)}</span>` : ''}
-                            </div>
-                            ${renderDayHistorySportBlock(entry)}
-                        </div>
-                        <div class="rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-700 px-2.5 py-2">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Kraft</span>
-                                ${strengthTotal > 0 ? `<span class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 tabular-nums">${strengthTotal} ges.</span>` : ''}
-                            </div>
-                            ${renderDayHistoryStrengthBlock(entry)}
-                        </div>
-                    </div>
-                </button>
-            `;
-        }
-
-        function renderDayHistoryList() {
-            const container = document.getElementById('day-history-list');
-            if (!container) return;
-            const days = getActivityDaySummaries();
-
-            if (!days.length) {
-                container.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-4">Noch keine Tage mit Sport oder Kraft.</div>';
-                return;
-            }
-
-            const byWeek = {};
-            days.forEach(entry => {
-                const weekStart = getWeekStartKey(entry.date);
-                if (!byWeek[weekStart]) byWeek[weekStart] = [];
-                byWeek[weekStart].push(entry);
-            });
-
-            container.innerHTML = Object.keys(byWeek).sort().reverse().map(weekStart => `
-                <div>
-                    <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-2 px-0.5">
-                        ${getRelativeWeekLabel(weekStart)}
-                    </div>
-                    <div class="space-y-2">${byWeek[weekStart].map(renderDayHistoryCard).join('')}</div>
-                </div>
-            `).join('');
-        }
-
-        function openDayEditor(dateKey) {
-            dayEditorDate = dateKey;
-            const ref = getDayEntryRef(dateKey);
-            if (!ref) return;
-
-            const d = new Date(dateKey + 'T12:00:00');
-            const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-            document.getElementById('day-editor-title').textContent = dayNames[d.getDay()];
-            document.getElementById('day-editor-subtitle').textContent =
-                `${formatDateDE(dateKey)}${dateKey === dailyData.date ? ' · heute' : ''}`;
-
-            renderDayEditorContent(dateKey);
-            document.getElementById('day-editor-modal').classList.remove('hidden');
-            document.getElementById('day-editor-modal').classList.add('flex');
-        }
-
-        function hideDayEditorModal() {
-            dayEditorDate = null;
-            document.getElementById('day-editor-modal').classList.remove('flex');
-            document.getElementById('day-editor-modal').classList.add('hidden');
-        }
-
-        function renderDayEditorContent(dateKey) {
-            const ref = getDayEntryRef(dateKey);
-            if (!ref) return;
-
-            const trainingEl = document.getElementById('day-editor-training');
-            const sessions = ref.entry.training || [];
-
-            if (!sessions.length) {
-                trainingEl.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500">Keine Sport-Einheiten.</div>';
-            } else {
-                trainingEl.innerHTML = sessions.map((t, index) => {
-                    const icon = getTrainingIcon(t.type);
-                    const detail = formatTrainingSessionDetail(t);
-                    return `
-                        <div class="flex items-start justify-between gap-2 px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100">
-                                    <i class="fa-solid ${icon} text-[10px] text-slate-500"></i>
-                                    <span>${escapeHtml(t.label)}</span>
-                                </div>
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 pl-[1.1rem]">${escapeHtml(detail)}</div>
-                                <div class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 pl-[1.1rem] tabular-nums">+${formatTrainingKcal(t.kcalBonus || 0)} kcal</div>
-                            </div>
-                            <button type="button" onclick="removeTrainingFromDay('${dateKey}', ${index})" class="text-slate-400 hover:text-red-500 shrink-0 p-1" aria-label="Entfernen"><i class="fa-solid fa-times text-xs"></i></button>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            const strengthEl = document.getElementById('day-editor-strength');
-            strengthEl.innerHTML = STRENGTH_EXERCISES.map(ex => {
-                const val = ref.entry[ex.key] || 0;
-                return `
-                    <div class="rounded-xl border px-2 py-2 text-center ${ex.card}">
-                        <div class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">${ex.short}</div>
-                        <div class="text-xl font-bold tabular-nums my-1 ${ex.value}">${val}</div>
-                        <div class="flex justify-center gap-1">
-                            <button type="button" onclick="adjustDayStrength('${dateKey}', '${ex.key}', -1)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold">−</button>
-                            <button type="button" onclick="adjustDayStrength('${dateKey}', '${ex.key}', 1)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold">+</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function addTrainingFromDayEditor() {
-            if (!dayEditorDate) return;
-            showAddTrainingModal(dayEditorDate);
-        }
-
-        function adjustDayStrength(dateKey, key, delta) {
-            const ref = getDayEntryRef(dateKey);
-            if (!ref) return;
-            ref.entry[key] = Math.max(0, (ref.entry[key] || 0) + delta);
-            if (ref.source === 'history') {
-                recalcHistoryEntryTotals(ref.entry);
-            }
-            saveAndRefreshAfterDayEdit(dateKey);
-        }
-
-        function removeTrainingFromDay(dateKey, index) {
-            const ref = getDayEntryRef(dateKey);
-            if (!ref?.entry.training) return;
-            ref.entry.training.splice(index, 1);
-            if (ref.source === 'history') {
-                recalcHistoryEntryTotals(ref.entry);
-            }
-            saveAndRefreshAfterDayEdit(dateKey);
-        }
-
-        function showAddTrainingModal(forDate = null) {
-            editingDayDate = forDate;
+        function showAddTrainingModal() {
             document.getElementById('add-training-modal').classList.remove('hidden');
             document.getElementById('add-training-modal').classList.add('flex');
             updateTrainingInputFields();
         }
 
         function hideAddTrainingModal() {
-            editingDayDate = null;
             document.getElementById('add-training-modal').classList.remove('flex');
             document.getElementById('add-training-modal').classList.add('hidden');
         }
@@ -2290,21 +2001,21 @@
 
         function addTraining() {
             const inputs = getTrainingInputs();
-            const dateKey = editingDayDate || dailyData.date;
-            const entry = buildTrainingEntry(inputs, dateKey);
-            const ref = getDayEntryRef(dateKey);
-            if (!ref) return;
-
-            if (!ref.entry.training) ref.entry.training = [];
-            ref.entry.training.push(entry);
-            if (ref.source === 'history') recalcHistoryEntryTotals(ref.entry);
-
+            const entry = buildTrainingEntry(inputs, dailyData.date);
+            dailyData.training.push(entry);
             hideAddTrainingModal();
-            saveAndRefreshAfterDayEdit(dateKey);
+            saveData();
+            renderRefuelSection();
+            updateKcalDisplays();
+            updateTrainingUI();
         }
 
         function removeTraining(index) {
-            removeTrainingFromDay(dailyData.date, index);
+            dailyData.training.splice(index, 1);
+            saveData();
+            renderRefuelSection();
+            updateKcalDisplays();
+            updateTrainingUI();
         }
 
         function emptyTrainingWeekTotals() {
