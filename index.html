@@ -521,14 +521,6 @@
                                 <span id="settings-maintenance-display" class="text-lg font-bold text-teal-700 dark:text-teal-400">—</span>
                             </div>
                             <p id="settings-maintenance-hint" class="text-xs text-slate-400 dark:text-slate-500 mt-1"></p>
-                            <label class="flex items-center gap-2 mt-2 cursor-pointer">
-                                <input type="checkbox" id="settings-maintenance-manual" class="rounded accent-teal-600"
-                                       onchange="toggleMaintenanceManual()">
-                                <span class="text-xs text-slate-500 dark:text-slate-400">Manuell überschreiben</span>
-                            </label>
-                            <input type="number" id="settings-maintenance-kcal" min="1200" max="6000" step="10"
-                                   oninput="updateMaintenanceDisplay()"
-                                   class="ui-input hidden w-full border rounded-2xl px-3 py-2 mt-2 text-base">
                         </div>
                     </div>
 
@@ -1163,7 +1155,6 @@
                 if (settings.heightCm == null) settings.heightCm = DEFAULT_HEIGHT_CM;
                 if (settings.age == null) settings.age = DEFAULT_AGE;
                 if (settings.sex == null) settings.sex = 'm';
-                ensureMaintenanceDefault();
                 if ((settings.menuPlansVersion || 1) < 6) {
                     ensureSingleMenuPlan();
                     settings.menuPlansVersion = 6;
@@ -1212,8 +1203,6 @@
             settings.heightCm = DEFAULT_HEIGHT_CM;
             settings.age = DEFAULT_AGE;
             settings.sex = 'm';
-            settings.maintenanceManual = true;
-            settings.maintenanceKcal = getDefaultMaintenanceKcal();
             delete settings.mealPool;
             delete settings.mealPlans;
             delete settings.meals;
@@ -1250,11 +1239,7 @@
             if (settings.weeklyLossKg > 0) return;
             const legacyBudget = settings.dailyBudget?.arbeit;
             if (legacyBudget > 0) {
-                const maint = (settings.maintenanceManual && settings.maintenanceKcal > 0)
-                    ? settings.maintenanceKcal
-                    : (settings.maintenanceKcal > 0
-                        ? settings.maintenanceKcal
-                        : LEGACY_DAILY_BUDGET_ARBEIT + LEGACY_TARGET_DEFICIT);
+                const maint = calculateMaintenanceKcal();
                 const derived = ((maint - legacyBudget) * 7) / KCAL_PER_KG_FAT;
                 settings.weeklyLossKg = Math.round(Math.max(0.1, Math.min(1.5, derived)) * 20) / 20;
             } else {
@@ -1280,11 +1265,6 @@
 
         function getPreviewMaintenanceKcal() {
             const profile = readProfileInputs();
-            const manual = document.getElementById('settings-maintenance-manual')?.checked;
-            if (manual) {
-                const v = parseInt(document.getElementById('settings-maintenance-kcal')?.value, 10);
-                return v > 0 ? v : Math.round(calculateBMRFor(profile.kg, profile.cm, profile.age) * getActivityFactor());
-            }
             return Math.round(calculateBMRFor(profile.kg, profile.cm, profile.age) * getActivityFactor());
         }
 
@@ -1326,9 +1306,6 @@
 
         function getMaintenanceKcal() {
             ensureMenuData();
-            if (settings.maintenanceManual && settings.maintenanceKcal > 0) {
-                return settings.maintenanceKcal;
-            }
             return calculateMaintenanceKcal();
         }
 
@@ -1360,19 +1337,15 @@
             const profile = readProfileInputs();
             const bmr = Math.round(calculateBMRFor(profile.kg, profile.cm, profile.age));
             const factor = getActivityFactor();
-            const manual = document.getElementById('settings-maintenance-manual')?.checked;
-            const tdee = manual
-                ? (parseInt(document.getElementById('settings-maintenance-kcal')?.value, 10) || Math.round(bmr * factor))
-                : Math.round(bmr * factor);
+            const tdee = Math.round(bmr * factor);
             const weeklyLoss = readWeeklyLossInput();
             const deficit = getDailyDeficitTarget(weeklyLoss);
             const budget = Math.max(800, tdee - deficit);
 
             display.textContent = `${tdee} kcal/Tag`;
             if (hint) {
-                hint.textContent = manual
-                    ? 'Manuell gesetzt · Sport-Extra wird separat gegessen'
-                    : `Auto (Mifflin-St Jeor × ${BASE_ACTIVITY_FACTOR}) · Sport-Extra separat`;
+                hint.textContent =
+                    `Mifflin-St Jeor × ${BASE_ACTIVITY_FACTOR} (BMR ${bmr}) · Sport-Extra separat`;
             }
             if (budgetDisplay) budgetDisplay.textContent = `${budget} kcal`;
             if (budgetHint) {
@@ -1381,33 +1354,10 @@
             }
         }
 
-        function toggleMaintenanceManual() {
-            const manual = document.getElementById('settings-maintenance-manual').checked;
-            const input = document.getElementById('settings-maintenance-kcal');
-            input.classList.toggle('hidden', !manual);
-            if (manual && !input.value) input.value = calculateMaintenanceKcal();
-            updateMaintenanceDisplay();
-        }
-
         function getBodyWeightKg() {
             ensureMenuData();
             const w = settings.bodyWeightKg;
             return w > 0 ? w : DEFAULT_BODY_WEIGHT_KG;
-        }
-
-        function getDefaultMaintenanceKcal() {
-            return Math.round(calculateMaintenanceKcal());
-        }
-
-        function ensureMaintenanceDefault() {
-            if (settings.maintenanceManual == null) {
-                settings.maintenanceManual = true;
-            }
-            if (!settings.maintenanceKcal || settings.maintenanceKcal <= 0) {
-                settings.maintenanceKcal = settings.maintenanceManual
-                    ? getDefaultMaintenanceKcal()
-                    : calculateMaintenanceKcal();
-            }
         }
 
         function getMenuDeficit() {
@@ -3064,10 +3014,6 @@
             document.getElementById('settings-body-weight').value = getBodyWeightKg();
             document.getElementById('settings-height-cm').value = getHeightCm();
             document.getElementById('settings-age').value = getAge();
-            document.getElementById('settings-maintenance-manual').checked = !!settings.maintenanceManual;
-            document.getElementById('settings-maintenance-kcal').value =
-                settings.maintenanceKcal || calculateMaintenanceKcal();
-            document.getElementById('settings-maintenance-kcal').classList.toggle('hidden', !settings.maintenanceManual);
             updateMaintenanceDisplay();
             document.getElementById('settings-pushup-buttons').value =
                 formatButtonValues(settings.pushupButtons || DEFAULT_SETTINGS.pushupButtons);
@@ -3143,11 +3089,8 @@
             settings.heightCm = heightCm > 0 ? heightCm : DEFAULT_HEIGHT_CM;
             const age = parseInt(document.getElementById('settings-age').value, 10);
             settings.age = age > 0 ? age : DEFAULT_AGE;
-            settings.maintenanceManual = document.getElementById('settings-maintenance-manual').checked;
-            if (settings.maintenanceManual) {
-                const maintenance = parseInt(document.getElementById('settings-maintenance-kcal').value, 10);
-                settings.maintenanceKcal = maintenance > 0 ? maintenance : getDefaultMaintenanceKcal();
-            }
+            delete settings.maintenanceManual;
+            delete settings.maintenanceKcal;
             if (menuBuilderDraft) {
                 settings.ingredients = JSON.parse(JSON.stringify(menuBuilderDraft.ingredients));
                 settings.menuPlan = JSON.parse(JSON.stringify(menuBuilderDraft.menuPlan));
