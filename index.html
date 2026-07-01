@@ -1276,29 +1276,39 @@
             }
         }
 
+        function formatWeeklyKg(kg) {
+            return (Math.round(kg * 100) / 100).toFixed(2).replace('.', ',');
+        }
+
+        function dailyDeficitToWeeklyKg(dailyKcalDeficit) {
+            return (dailyKcalDeficit * 7) / KCAL_PER_KG_FAT;
+        }
+
         function updateDeficitDisplay() {
             const maintenance = getMaintenanceKcal();
             const menuKcal = getBaseKcal();
             const budget = getDailyBudget();
             const targetDeficit = getDailyDeficitTarget();
+            const targetKg = getWeeklyLossKg();
             const menuDeficit = Math.round(maintenance - menuKcal);
+            const weeklyKg = dailyDeficitToWeeklyKg(menuDeficit);
             const el = document.getElementById('deficit-display');
             if (!el) return;
 
             const sportKcal = dailyData.training.reduce((s, t) => s + (t.kcalBonus || 0), 0);
             el.title =
-                `Erhaltung ${maintenance} kcal · Menü ${menuKcal} kcal · Budget ${budget} kcal ` +
-                `(Ziel −${targetDeficit} kcal/Tag) · Sport heute +${sportKcal} kcal extra`;
+                `Menü-Defizit −${menuDeficit} kcal/Tag · Erhaltung ${maintenance} · Menü ${menuKcal} · Budget ${budget} ` +
+                `(Ziel ≈ ${formatWeeklyKg(targetKg)} kg/Woche) · Sport heute +${sportKcal} kcal extra`;
 
-            if (menuKcal > budget) {
-                el.textContent = `(+${menuKcal - budget} über Budget · Ziel −${targetDeficit})`;
+            if (menuDeficit < 0) {
+                el.textContent = `≈ +${formatWeeklyKg(Math.abs(weeklyKg))} kg/Woche`;
                 el.className = 'text-red-200';
-            } else if (menuDeficit >= targetDeficit) {
-                el.textContent = `(−${menuDeficit} Defizit · Ziel −${targetDeficit})`;
-                el.className = 'text-white/55';
+            } else if (menuKcal > budget || weeklyKg < targetKg - 0.02) {
+                el.textContent = `≈ ${formatWeeklyKg(weeklyKg)} kg/Woche`;
+                el.className = 'text-red-200';
             } else {
-                el.textContent = `(−${menuDeficit} · Ziel −${targetDeficit})`;
-                el.className = 'text-red-200';
+                el.textContent = `≈ ${formatWeeklyKg(weeklyKg)} kg/Woche`;
+                el.className = 'text-white/55';
             }
         }
 
