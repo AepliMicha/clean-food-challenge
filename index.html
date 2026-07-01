@@ -1120,7 +1120,10 @@
             if (settings.weeklyLossKg > 0) return;
             const legacyBudget = settings.dailyBudget?.arbeit || settings.dailyBudget?.frei;
             if (legacyBudget > 0) {
-                const maint = calculateMaintenanceKcal();
+                const kg = settings.bodyWeightKg > 0 ? settings.bodyWeightKg : DEFAULT_BODY_WEIGHT_KG;
+                const cm = settings.heightCm > 0 ? settings.heightCm : DEFAULT_HEIGHT_CM;
+                const age = settings.age > 0 ? settings.age : DEFAULT_AGE;
+                const maint = calculateTdeeFor(kg, cm, age);
                 const derived = ((maint - legacyBudget) * 7) / KCAL_PER_KG_FAT;
                 settings.weeklyLossKg = Math.round(Math.max(0.1, Math.min(1.5, derived)) * 20) / 20;
             } else {
@@ -1133,9 +1136,23 @@
             return Math.round((weekly * KCAL_PER_KG_FAT) / 7);
         }
 
+        function calculateTdeeFor(kg, cm, age) {
+            return Math.round(calculateBMRFor(kg, cm, age) * getActivityFactor());
+        }
+
+        function calculateBudgetFor(kg, cm, age, weeklyLossKg) {
+            const deficit = getDailyDeficitTarget(weeklyLossKg);
+            return Math.max(800, calculateTdeeFor(kg, cm, age) - deficit);
+        }
+
         function getDailyBudget() {
             ensureMenuData();
-            return Math.max(800, Math.round(getMaintenanceKcal() - getDailyDeficitTarget()));
+            return calculateBudgetFor(
+                getBodyWeightKg(),
+                getHeightCm(),
+                getAge(),
+                getWeeklyLossKg()
+            );
         }
 
         function readWeeklyLossInput() {
@@ -1144,15 +1161,14 @@
             return v > 0 ? v : getWeeklyLossKg();
         }
 
-        function getPreviewMaintenanceKcal() {
-            const profile = readProfileInputs();
-            return Math.round(calculateBMRFor(profile.kg, profile.cm, profile.age) * getActivityFactor());
-        }
-
         function getPreviewDailyBudget() {
-            const weeklyLoss = readWeeklyLossInput();
-            const deficit = getDailyDeficitTarget(weeklyLoss);
-            return Math.max(800, Math.round(getPreviewMaintenanceKcal() - deficit));
+            const profile = readProfileInputs();
+            return calculateBudgetFor(
+                profile.kg,
+                profile.cm,
+                profile.age,
+                readWeeklyLossInput()
+            );
         }
 
         function getHeightCm() {
@@ -1171,23 +1187,9 @@
             return BASE_ACTIVITY_FACTOR;
         }
 
-        function calculateBMR() {
-            const kg = getBodyWeightKg();
-            const cm = getHeightCm();
-            const age = getAge();
-            if (settings.sex === 'f') {
-                return 10 * kg + 6.25 * cm - 5 * age - 161;
-            }
-            return 10 * kg + 6.25 * cm - 5 * age + 5;
-        }
-
-        function calculateMaintenanceKcal() {
-            return Math.round(calculateBMR() * getActivityFactor());
-        }
-
         function getMaintenanceKcal() {
             ensureMenuData();
-            return calculateMaintenanceKcal();
+            return calculateTdeeFor(getBodyWeightKg(), getHeightCm(), getAge());
         }
 
         function readProfileInputs() {
@@ -1217,21 +1219,20 @@
 
             const profile = readProfileInputs();
             const bmr = Math.round(calculateBMRFor(profile.kg, profile.cm, profile.age));
-            const factor = getActivityFactor();
-            const tdee = Math.round(bmr * factor);
+            const tdee = calculateTdeeFor(profile.kg, profile.cm, profile.age);
             const weeklyLoss = readWeeklyLossInput();
             const deficit = getDailyDeficitTarget(weeklyLoss);
-            const budget = Math.max(800, tdee - deficit);
+            const budget = calculateBudgetFor(profile.kg, profile.cm, profile.age, weeklyLoss);
 
             display.textContent = `${tdee} kcal/Tag`;
             if (hint) {
                 hint.textContent =
-                    `Mifflin-St Jeor × ${BASE_ACTIVITY_FACTOR} · körperliche Arbeit (BMR ${bmr}) · Sport-Extra separat`;
+                    `Mifflin-St Jeor (BMR ${bmr}) × ${BASE_ACTIVITY_FACTOR} körperliche Arbeit · Sport-Verbrauch wird extra dazugegeben`;
             }
             if (budgetDisplay) budgetDisplay.textContent = `${budget} kcal`;
             if (budgetHint) {
                 budgetHint.textContent =
-                    `Erhaltung − ${deficit} kcal/Tag (≈ ${weeklyLoss.toFixed(2).replace('.', ',')} kg/Woche)`;
+                    `Erhaltung ${tdee} − ${deficit} kcal/Tag = Menü max. ${budget} kcal (≈ ${weeklyLoss.toFixed(2).replace('.', ',')} kg/Woche)`;
             }
         }
 
@@ -1241,26 +1242,29 @@
             return w > 0 ? w : DEFAULT_BODY_WEIGHT_KG;
         }
 
-        function getMenuDeficit() {
-            return getMaintenanceKcal() - getBaseKcal();
-        }
-
         function updateDeficitDisplay() {
             const maintenance = getMaintenanceKcal();
             const menuKcal = getBaseKcal();
-            const deficit = Math.round(maintenance - menuKcal);
+            const budget = getDailyBudget();
+            const targetDeficit = getDailyDeficitTarget();
+            const menuDeficit = Math.round(maintenance - menuKcal);
             const el = document.getElementById('deficit-display');
             if (!el) return;
-            el.title = `Erhaltung ${maintenance} kcal − Menü ${menuKcal} kcal (Sport-Extra separat)`;
-            if (deficit > 0) {
-                el.textContent = `(−${deficit} Defizit)`;
-                el.className = 'text-white/55';
-            } else if (deficit < 0) {
-                el.textContent = `(+${Math.abs(deficit)} Überschuss)`;
+
+            const sportKcal = dailyData.training.reduce((s, t) => s + (t.kcalBonus || 0), 0);
+            el.title =
+                `Erhaltung ${maintenance} kcal · Menü ${menuKcal} kcal · Budget ${budget} kcal ` +
+                `(Ziel −${targetDeficit} kcal/Tag) · Sport heute +${sportKcal} kcal extra`;
+
+            if (menuKcal > budget) {
+                el.textContent = `(+${menuKcal - budget} über Budget · Ziel −${targetDeficit})`;
                 el.className = 'text-red-200';
-            } else {
-                el.textContent = '(Erhaltung)';
+            } else if (menuDeficit >= targetDeficit) {
+                el.textContent = `(−${menuDeficit} Defizit · Ziel −${targetDeficit})`;
                 el.className = 'text-white/55';
+            } else {
+                el.textContent = `(−${menuDeficit} · Ziel −${targetDeficit})`;
+                el.className = 'text-red-200';
             }
         }
 
@@ -1636,9 +1640,14 @@
 
             updateStrengthUI();
 
-            let baseKcal = getBaseKcal();
-            dailyData.training.forEach(t => baseKcal += t.kcalBonus || 0);
-            document.getElementById('total-kcal').textContent = Math.round(baseKcal);
+            const menuKcal = getBaseKcal();
+            let sportKcal = 0;
+            dailyData.training.forEach(t => { sportKcal += t.kcalBonus || 0; });
+            const totalKcalEl = document.getElementById('total-kcal');
+            totalKcalEl.textContent = Math.round(menuKcal + sportKcal);
+            totalKcalEl.title = sportKcal > 0
+                ? `Menü ${menuKcal} kcal + Sport ${Math.round(sportKcal)} kcal`
+                : `Menü ${menuKcal} kcal`;
             document.getElementById('total-protein').textContent = `${getBaseProtein()}g`;
             document.getElementById('daily-protein-target').textContent = BASE_PROTEIN;
             updateDeficitDisplay();
@@ -1900,9 +1909,14 @@
         }
 
         function updateKcalDisplays() {
-            let baseKcal = getBaseKcal();
-            dailyData.training.forEach(t => { baseKcal += t.kcalBonus || 0; });
-            document.getElementById('total-kcal').textContent = Math.round(baseKcal);
+            const menuKcal = getBaseKcal();
+            let sportKcal = 0;
+            dailyData.training.forEach(t => { sportKcal += t.kcalBonus || 0; });
+            const totalKcalEl = document.getElementById('total-kcal');
+            totalKcalEl.textContent = Math.round(menuKcal + sportKcal);
+            totalKcalEl.title = sportKcal > 0
+                ? `Menü ${menuKcal} kcal + Sport ${Math.round(sportKcal)} kcal`
+                : `Menü ${menuKcal} kcal`;
             document.getElementById('total-protein').textContent = `${getBaseProtein()}g`;
             updateDeficitDisplay();
             renderTodayMeals();
