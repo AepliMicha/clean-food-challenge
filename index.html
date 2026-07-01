@@ -28,7 +28,7 @@
         }
 
         body {
-            font-family: 'Inter', system_ui, sans-serif;
+            font-family: 'Inter', system-ui, sans-serif;
             background: #f1f5f9;
             color: #1e293b;
             transition: background-color 0.2s, color 0.2s;
@@ -50,9 +50,6 @@
             border-color: #334155;
             box-shadow: none;
         }
-
-        .ui-card-teal { border-color: #ccfbf1; }
-        .dark .ui-card-teal { border-color: #134e4a; }
 
         .ui-panel {
             background: rgba(248, 250, 252, 0.85);
@@ -255,12 +252,12 @@
 
                 <div class="flex flex-wrap items-center gap-3 sm:gap-4 flex-1 min-w-0">
                     <div class="flex items-baseline gap-1.5 shrink-0">
-                        <span id="total-kcal" class="text-2xl sm:text-3xl font-bold tabular-nums leading-none">2030</span>
+                        <span id="total-kcal" class="text-2xl sm:text-3xl font-bold tabular-nums leading-none">—</span>
                         <span class="text-xs text-white/60 font-medium">kcal</span>
                     </div>
                     <div class="flex items-baseline gap-1.5 shrink-0">
-                        <span id="total-protein" class="text-2xl sm:text-3xl font-bold accent-gold tabular-nums leading-none">150g</span>
-                        <span class="text-xs text-white/60 font-medium hidden xs:inline">Protein</span>
+                        <span id="total-protein" class="text-2xl sm:text-3xl font-bold accent-gold tabular-nums leading-none">—</span>
+                        <span class="text-xs text-white/60 font-medium hidden sm:inline">Protein</span>
                     </div>
                     <div class="text-xs text-white/60 min-w-0 w-full sm:w-auto">
                         mind. <span id="daily-protein-target">150</span>g · <span id="deficit-display" class="text-white/55"></span>
@@ -643,22 +640,10 @@
             'border-teal-200 dark:border-teal-800 dark:bg-teal-950/30',
             'border-purple-200 dark:border-purple-800 dark:bg-purple-950/30'
         ];
-        const MEAL_KCAL_COLORS = [
-            'text-teal-600 dark:text-teal-400',
-            'text-teal-600 dark:text-teal-400',
-            'text-teal-600 dark:text-teal-400',
-            'text-teal-600 dark:text-teal-400'
-        ];
-        const MEAL_INGREDIENT_COLORS = [
-            'text-slate-500 dark:text-slate-400',
-            'text-slate-500 dark:text-slate-400',
-            'text-slate-500 dark:text-slate-400',
-            'text-slate-500 dark:text-slate-400'
-        ];
+        const MEAL_KCAL_COLOR = 'text-teal-600 dark:text-teal-400';
+        const MEAL_INGREDIENT_COLOR = 'text-slate-500 dark:text-slate-400';
         const KCAL_PER_KG_FAT = 7700;
         const DEFAULT_WEEKLY_LOSS_KG = 0.5;
-        const LEGACY_DAILY_BUDGET_ARBEIT = 2030;
-        const LEGACY_TARGET_DEFICIT = 550;
         const DEFAULT_BODY_WEIGHT_KG = 67;
         const DEFAULT_HEIGHT_CM = 173;
         const DEFAULT_AGE = 48;
@@ -849,24 +834,12 @@
             document.documentElement.classList.toggle('dark', !!enabled);
         }
 
-        function updateDarkModeIcon() {
-            const icon = document.getElementById('dark-mode-icon');
-            if (!icon) return;
-            icon.className = document.documentElement.classList.contains('dark')
-                ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-        }
-
         function setDarkMode(enabled) {
             settings.darkMode = !!enabled;
             applyDarkMode(settings.darkMode);
-            updateDarkModeIcon();
             const cb = document.getElementById('settings-dark-mode');
             if (cb) cb.checked = settings.darkMode;
             saveData();
-        }
-
-        function toggleDarkMode() {
-            setDarkMode(!settings.darkMode);
         }
 
         function formatDateKey(d) {
@@ -1025,8 +998,7 @@
                     pushups: strength.pushups,
                     pullups: strength.pullups,
                     burpees: strength.burpees,
-                    completedAt: isoAtNoon(date),
-                    autoClosed: false
+                    completedAt: isoAtNoon(date)
                 });
 
             });
@@ -1147,6 +1119,46 @@
             delete settings.menuPlans;
         }
 
+        function syncMissingDefaultIngredients() {
+            DEFAULT_INGREDIENTS.forEach(def => {
+                if (!settings.ingredients.some(ing => ing.id === def.id)) {
+                    settings.ingredients.push(JSON.parse(JSON.stringify(def)));
+                }
+            });
+        }
+
+        function runMenuDataMigration(fromVersion) {
+            const defaultById = Object.fromEntries(DEFAULT_INGREDIENTS.map(i => [i.id, i]));
+            const knownIds = new Set(DEFAULT_INGREDIENTS.map(i => i.id));
+
+            if (fromVersion < 6) {
+                settings.ingredients = settings.ingredients.filter(ing => knownIds.has(ing.id));
+                DEFAULT_INGREDIENTS.forEach(def => {
+                    if (!settings.ingredients.some(ing => ing.id === def.id)) {
+                        settings.ingredients.push(JSON.parse(JSON.stringify(def)));
+                    }
+                });
+                settings.ingredients.forEach(ing => {
+                    const def = defaultById[ing.id];
+                    if (def) {
+                        ing.label = def.label;
+                        ing.kcal = def.kcal;
+                        ing.protein = def.protein;
+                    }
+                });
+                remapMealSlotName(settings.menuPlan, 'Snack', 'Znüni');
+                remapMenuIngredientIds(settings.menuPlan, {
+                    reis75: 'reis100',
+                    ei3: 'ei1',
+                    feta30: 'feta125',
+                    peperoni100: 'peperoni',
+                    quark200: 'quark250',
+                    heidel30: 'heidel50'
+                });
+                pruneMenuPlan(settings.menuPlan, knownIds);
+            }
+        }
+
         function ensureMenuData() {
             if (settings.ingredients?.length && (settings.menuPlan || settings.menuPlans)) {
                 ensureWeeklyLossGoal();
@@ -1155,44 +1167,16 @@
                 if (settings.heightCm == null) settings.heightCm = DEFAULT_HEIGHT_CM;
                 if (settings.age == null) settings.age = DEFAULT_AGE;
                 if (settings.sex == null) settings.sex = 'm';
-                if ((settings.menuPlansVersion || 1) < 6) {
-                    ensureSingleMenuPlan();
-                    settings.menuPlansVersion = 6;
-                }
-                if ((settings.menuPlansVersion || 1) < MENU_PLANS_VERSION) {
-                    settings.ingredients = JSON.parse(JSON.stringify(DEFAULT_INGREDIENTS));
-                    settings.menuPlan = JSON.parse(JSON.stringify(DEFAULT_MENU_PLAN));
-                    delete settings.menuPlans;
+
+                const version = settings.menuPlansVersion || 1;
+                if (version < MENU_PLANS_VERSION) {
+                    runMenuDataMigration(version);
                     settings.menuPlansVersion = MENU_PLANS_VERSION;
-                } else if ((settings.menuPlansVersion || 1) >= MENU_PLANS_VERSION) {
-                    const defaultById = Object.fromEntries(DEFAULT_INGREDIENTS.map(i => [i.id, i]));
-                    const knownIds = new Set(DEFAULT_INGREDIENTS.map(i => i.id));
-                    settings.ingredients = settings.ingredients.filter(ing => knownIds.has(ing.id));
-                    DEFAULT_INGREDIENTS.forEach(def => {
-                        if (!settings.ingredients.some(ing => ing.id === def.id)) {
-                            settings.ingredients.push(JSON.parse(JSON.stringify(def)));
-                        }
-                    });
-                    settings.ingredients.forEach(ing => {
-                        const def = defaultById[ing.id];
-                        if (def) {
-                            ing.label = def.label;
-                            ing.kcal = def.kcal;
-                            ing.protein = def.protein;
-                        }
-                    });
-                    settings.ingredients = sortIngredients(settings.ingredients);
-                    remapMealSlotName(settings.menuPlan, 'Snack', 'Znüni');
-                    remapMenuIngredientIds(settings.menuPlan, {
-                        reis75: 'reis100',
-                        ei3: 'ei1',
-                        feta30: 'feta125',
-                        peperoni100: 'peperoni',
-                        quark200: 'quark250',
-                        heidel30: 'heidel50'
-                    });
-                    pruneMenuPlan(settings.menuPlan, knownIds);
                 }
+                syncMissingDefaultIngredients();
+                const validIds = new Set(settings.ingredients.map(i => i.id));
+                pruneMenuPlan(settings.menuPlan, validIds);
+                settings.ingredients = sortIngredients(settings.ingredients);
                 return;
             }
             settings.ingredients = JSON.parse(JSON.stringify(DEFAULT_INGREDIENTS));
@@ -1237,7 +1221,7 @@
 
         function ensureWeeklyLossGoal() {
             if (settings.weeklyLossKg > 0) return;
-            const legacyBudget = settings.dailyBudget?.arbeit;
+            const legacyBudget = settings.dailyBudget?.arbeit || settings.dailyBudget?.frei;
             if (legacyBudget > 0) {
                 const maint = calculateMaintenanceKcal();
                 const derived = ((maint - legacyBudget) * 7) / KCAL_PER_KG_FAT;
@@ -1384,10 +1368,7 @@
         }
 
         function getBuilderBudget() {
-            const modal = document.getElementById('settings-modal');
-            if (modal && !modal.classList.contains('hidden')) {
-                return getPreviewDailyBudget();
-            }
+            if (isSettingsOpen()) return getPreviewDailyBudget();
             return getDailyBudget();
         }
 
@@ -1420,10 +1401,6 @@
             return sumMenuProtein(settings.menuPlan, settings.ingredients);
         }
 
-        function getRemainingKcal() {
-            return getDailyBudget() - sumMenuKcal();
-        }
-
         function escapeHtml(str) {
             return String(str)
                 .replace(/&/g, '&amp;')
@@ -1452,9 +1429,9 @@
                     <div class="meal-row flex justify-between items-center py-2 px-3 rounded-2xl">
                         <div>
                             <span class="font-medium text-slate-800 dark:text-slate-100">${slot}</span><br>
-                            <span class="text-xs ${MEAL_INGREDIENT_COLORS[si]}">${escapeHtml(ingredientText)}</span>
+                            <span class="text-xs ${MEAL_INGREDIENT_COLOR}">${escapeHtml(ingredientText)}</span>
                         </div>
-                        <div class="text-right font-bold ${MEAL_KCAL_COLORS[si]} shrink-0 ml-2">
+                        <div class="text-right font-bold ${MEAL_KCAL_COLOR} shrink-0 ml-2">
                             <div>${slotKcal} kcal</div>
                             <div class="text-xs font-semibold accent-gold">${slotProtein}g Protein</div>
                         </div>
@@ -1686,7 +1663,7 @@
             return dailyData.training.length > 0 || hasStrengthTotals(dailyData);
         }
 
-        function archiveCurrentDay(autoClosed = false, dateStr = dailyData.date) {
+        function archiveCurrentDay(dateStr = dailyData.date) {
             if (!dateStr) return;
 
             const baseKcal = getBaseKcal();
@@ -1703,8 +1680,7 @@
                 totalKcal: Math.round(totalKcal),
                 training: [...dailyData.training],
                 ...readStrengthTotals(dailyData),
-                completedAt: new Date().toISOString(),
-                autoClosed
+                completedAt: new Date().toISOString()
             };
 
             if (existing >= 0) dayHistory[existing] = entry;
@@ -1726,7 +1702,7 @@
             while (dailyData.date < today) {
                 const oldDate = dailyData.date;
                 if (hasDayActivity()) {
-                    archiveCurrentDay(true, oldDate);
+                    archiveCurrentDay(oldDate);
                 }
                 dailyData = {
                     date: nextDateKey(oldDate),
@@ -1814,7 +1790,8 @@
             `;
         }
 
-        function buildTrainingEntry(inputs) {
+        function buildTrainingEntry(inputs, dateKey = null) {
+            const stamp = dateKey ? isoAtNoon(dateKey) : new Date().toISOString();
             return {
                 type: inputs.type,
                 label: buildTrainingLabel(inputs),
@@ -1822,7 +1799,7 @@
                 km: inputs.km || 0,
                 hm: inputs.hm || 0,
                 duration: inputs.duration || 0,
-                date: new Date().toISOString()
+                date: stamp
             };
         }
 
@@ -2304,8 +2281,8 @@
 
         function addTraining() {
             const inputs = getTrainingInputs();
-            const entry = buildTrainingEntry(inputs);
             const dateKey = editingDayDate || dailyData.date;
+            const entry = buildTrainingEntry(inputs, dateKey);
             const ref = getDayEntryRef(dateKey);
             if (!ref) return;
 
@@ -2821,6 +2798,22 @@
             return keys;
         }
 
+        function getCurrentWeekDayKeys() {
+            const weekStart = getWeekStartKey(getTodayKey());
+            const keys = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(weekStart + 'T12:00:00');
+                d.setDate(d.getDate() + i);
+                keys.push(formatDateKey(d));
+            }
+            return keys;
+        }
+
+        function isSettingsOpen() {
+            const modal = document.getElementById('settings-modal');
+            return modal && !modal.classList.contains('hidden');
+        }
+
         function computeWeightMovingAvg(entries, window = 4) {
             return entries.map((e, i) => {
                 const slice = entries.slice(Math.max(0, i - window + 1), i + 1);
@@ -2850,6 +2843,12 @@
             renderWeightSection();
             renderWeeklyOverview();
             updateDeficitDisplay();
+            if (isSettingsOpen()) {
+                const bwInput = document.getElementById('settings-body-weight');
+                if (bwInput) bwInput.value = rounded;
+                updateMaintenanceDisplay();
+                renderMenuBuilder();
+            }
         }
 
         function renderWeightSection() {
@@ -2919,7 +2918,7 @@
 
         function renderWeeklyOverview() {
             const container = document.getElementById('weekly-overview');
-            const weekKeys = getLastNDayKeys(7);
+            const weekKeys = getCurrentWeekDayKeys();
             const weekSet = new Set(weekKeys);
 
             let completedDays = 0;
@@ -2973,12 +2972,16 @@
                 chip('Kraft', strengthDays),
                 chip('Ø Defizit', avgDeficit != null ? `−${avgDeficit}` : '—'),
                 chip('Gewicht', weightStat),
-                chip('Protein', `${BASE_PROTEIN}g`)
+                chip('Protein', `${getBaseProtein()}g`)
             ].join('');
         }
 
         function exportData() {
             const payload = localStorage.getItem('ernaehrung_v3');
+            if (!payload) {
+                alert('Keine Daten zum Exportieren.');
+                return;
+            }
             const blob = new Blob([payload], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -3065,7 +3068,6 @@
         function saveSettings() {
             settings.darkMode = document.getElementById('settings-dark-mode').checked;
             applyDarkMode(settings.darkMode);
-            updateDarkModeIcon();
             settings.pushupButtons = parseButtonValues(
                 document.getElementById('settings-pushup-buttons').value,
                 DEFAULT_SETTINGS.pushupButtons
@@ -3123,7 +3125,6 @@
             const rolledOver = checkDayRollover();
             if (rolledOver) saveData();
             applyDarkMode(settings.darkMode);
-            updateDarkModeIcon();
             updateUI();
             startMidnightCheck();
             document.addEventListener('visibilitychange', () => {
