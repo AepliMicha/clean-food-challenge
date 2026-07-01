@@ -1262,14 +1262,13 @@
             return Math.floor((today - start) / 86400000) + 1;
         }
 
-        function getStreakMonths(startDateKey = STREAK_START) {
-            const start = new Date(startDateKey + 'T12:00:00');
-            const today = new Date(getTodayKey() + 'T12:00:00');
-            if (today < start) return 0;
-            let months = (today.getFullYear() - start.getFullYear()) * 12
-                + (today.getMonth() - start.getMonth());
-            if (today.getDate() < start.getDate()) months--;
-            return Math.max(0, months);
+        function getStreakMonths(days) {
+            const avgDaysPerMonth = 365.25 / 12;
+            return Math.round((days / avgDaysPerMonth) * 10) / 10;
+        }
+
+        function formatStreakMonths(days) {
+            return getStreakMonths(days).toFixed(1).replace('.', ',');
         }
 
         function updateStreakCounter() {
@@ -1280,11 +1279,7 @@
                 el.textContent = '';
                 return;
             }
-            const months = getStreakMonths();
-            const monthsPart = months > 0
-                ? ` (${months} ${months === 1 ? 'Monat' : 'Monate'})`
-                : '';
-            el.textContent = `· ${days} ${days === 1 ? 'Tag' : 'Tage'}${monthsPart}`;
+            el.textContent = `· ${days} ${days === 1 ? 'Tag' : 'Tage'} (${formatStreakMonths(days)} Monate)`;
             el.title = `seit ${formatDateDE(STREAK_START)}`;
         }
 
