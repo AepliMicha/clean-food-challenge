@@ -240,7 +240,10 @@
                     </div>
                     <div class="min-w-0">
                         <div id="current-day-name" class="font-display text-xl sm:text-2xl tracking-tight leading-tight"></div>
-                        <div id="current-day-date" class="text-sm text-white/70 font-medium"></div>
+                        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                            <div id="current-day-date" class="text-sm text-white/70 font-medium"></div>
+                            <span id="streak-counter" class="text-xs text-amber-200/90 font-semibold tabular-nums" title="seit 7.12.2025"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -574,6 +577,7 @@
         const DEFAULT_HEIGHT_CM = 173;
         const DEFAULT_AGE = 48;
         const BASE_ACTIVITY_FACTOR = 1.725;
+        const STREAK_START = '2025-12-07';
 
         const DEFAULT_INGREDIENTS = [
             { id: 'apfel', label: 'Apfel', kcal: 78, protein: 0 },
@@ -1251,6 +1255,25 @@
             return w > 0 ? w : DEFAULT_BODY_WEIGHT_KG;
         }
 
+        function getStreakDays(startDateKey = STREAK_START) {
+            const start = new Date(startDateKey + 'T12:00:00');
+            const today = new Date(getTodayKey() + 'T12:00:00');
+            if (today < start) return 0;
+            return Math.floor((today - start) / 86400000) + 1;
+        }
+
+        function updateStreakCounter() {
+            const el = document.getElementById('streak-counter');
+            if (!el) return;
+            const days = getStreakDays();
+            if (days <= 0) {
+                el.textContent = '';
+                return;
+            }
+            el.textContent = `· ${days} ${days === 1 ? 'Tag' : 'Tage'}`;
+            el.title = `seit ${formatDateDE(STREAK_START)}`;
+        }
+
         function updateHeaderKcalDisplay() {
             const menuKcal = Math.round(getBaseKcal());
             const sportKcal = Math.round(
@@ -1677,7 +1700,8 @@
             const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
             document.getElementById('current-day-name').textContent = dayNames[new Date().getDay()];
             document.getElementById('current-day-date').textContent = formatDateDE(getTodayKey());
-            
+            updateStreakCounter();
+
             renderTodayMeals();
             renderRefuelSection();
             updateTrainingUI();
