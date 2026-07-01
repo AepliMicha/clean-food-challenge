@@ -125,23 +125,12 @@
         .protein-ampel-low { color: #dc2626; }
         .dark .protein-ampel-low { color: #f87171; }
 
-        #weight-history-list,
-        #strength-days-list {
+        #strength-days-list,
+        #day-history-list {
             min-height: 0;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
             touch-action: pan-y;
-        }
-
-        #weight-input {
-            -moz-appearance: textfield;
-            width: 4.25rem;
-        }
-
-        #weight-input::-webkit-inner-spin-button,
-        #weight-input::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
         }
 
         .app-container {
@@ -336,43 +325,11 @@
                         <i class="fa-solid fa-utensils"></i>
                         <span>ESSEN</span>
                     </div>
-                    <div id="meals-today" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-sm"></div>
+                    <div id="meals-today" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm"></div>
                 </div>
             </div>
 
-            <details class="ui-card rounded-3xl group">
-                <summary class="p-4 cursor-pointer list-none flex items-center justify-between gap-3">
-                    <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-2">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <span>FORTSCHRITT</span>
-                    </div>
-                    <div class="flex items-center gap-3 shrink-0">
-                        <div class="text-right">
-                            <div id="weight-current" class="text-2xl font-bold text-slate-800 dark:text-slate-100 tabular-nums">—</div>
-                            <div id="weight-delta" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"></div>
-                        </div>
-                        <i class="fa-solid fa-chevron-down text-slate-400 dark:text-slate-500 group-open:rotate-180 transition-transform"></i>
-                    </div>
-                </summary>
-                <div class="px-4 pb-4 border-t border-slate-100 dark:border-slate-700">
-                    <div class="flex items-center justify-between gap-3 pt-3 mb-3">
-                        <div class="shrink-0">
-                            <div id="weight-weigh-label" class="text-[10px] text-slate-400 dark:text-slate-500 mb-1 font-medium leading-tight">Freitag morgens wiegen</div>
-                            <div class="inline-flex items-center gap-1.5">
-                                <input type="number" id="weight-input" min="40" max="150" step="0.1" placeholder="kg"
-                                       class="ui-input border rounded-2xl px-2 py-1.5 text-sm font-bold tabular-nums text-center">
-                                <button onclick="saveWeightEntry()" class="px-3 py-1.5 bg-teal-700 text-white rounded-2xl text-xs font-bold shrink-0">Speichern</button>
-                            </div>
-                        </div>
-                        <div id="weekly-overview" class="flex flex-wrap gap-1.5 justify-end min-w-0"></div>
-                    </div>
-                    <div id="weight-history-list"
-                         class="space-y-0.5 max-h-28 overflow-y-auto min-h-0 pt-2 border-t border-slate-100 dark:border-slate-700"
-                         onwheel="event.stopPropagation()"></div>
-                </div>
-            </details>
-
-            <details class="ui-card rounded-3xl group">
+            <details class="ui-card rounded-3xl group" open>
                 <summary class="p-4 cursor-pointer list-none flex items-center justify-between gap-3">
                     <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-2">
                         <i class="fa-solid fa-calendar-days"></i>
@@ -382,7 +339,7 @@
                 </summary>
                 <div class="px-4 pb-4 border-t border-slate-100 dark:border-slate-700 pt-3">
                     <div id="day-history-list"
-                         class="space-y-1 max-h-64 overflow-y-auto min-h-0"
+                         class="space-y-4 max-h-[32rem] overflow-y-auto min-h-0"
                          onwheel="event.stopPropagation()"></div>
                 </div>
             </details>
@@ -599,7 +556,7 @@
                         </button>
                         <input type="file" id="import-file-input" accept=".json,application/json" class="hidden" onchange="importDataFromFile(event)">
                     </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Sichert alle Daten (Menüs, Historie, Gewicht) als JSON-Datei.</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Sichert alle Daten (Menüs, Historie, Training) als JSON-Datei.</p>
                     <div class="flex flex-col sm:flex-row gap-3 mt-3 pt-3 border-t border-slate-200 dark:border-slate-600">
                         <button type="button" onclick="loadDemoData()"
                                 class="flex-1 py-3 bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800 rounded-2xl text-sm font-bold flex items-center justify-center gap-2">
@@ -692,7 +649,7 @@
             burpeeButtons: [5, 10, 15]
         };
 
-        const WEIGHT_HISTORY_ENTRIES = 12;
+
 
         const STRENGTH_EXERCISES = [
             {
@@ -772,7 +729,7 @@
         let dailyData = { date: null, training: [], pushups: 0, pullups: 0, burpees: 0 };
         let dayHistory = [];
         let strengthHistory = [];
-        let weightHistory = [];
+
         let midnightCheckInterval = null;
         let editingDayDate = null;
         let dayEditorDate = null;
@@ -852,17 +809,6 @@
             return formatDateKey(d);
         }
 
-        function getPastFridayKeys(count) {
-            const keys = [];
-            const d = new Date(getTodayKey() + 'T12:00:00');
-            while (d.getDay() !== 5) d.setDate(d.getDate() - 1);
-            for (let i = 0; i < count; i++) {
-                keys.unshift(formatDateKey(d));
-                d.setDate(d.getDate() - 7);
-            }
-            return keys;
-        }
-
         function isoAtNoon(dateKey) {
             return new Date(dateKey + 'T12:00:00').toISOString();
         }
@@ -882,7 +828,6 @@
         }
 
         const DEMO_DAYS = 28;
-        const DEMO_WEIGHT_WEEKS = 12;
         const DEMO_STRENGTH_PATTERN = [
             { pushups: 15, pullups: 3, burpees: 5 },
             { pushups: 20, pullups: 4, burpees: 0 },
@@ -970,14 +915,10 @@
         }
 
         function loadDemoData() {
-            if (!confirm(`Beispieldaten laden? Gewicht, Kraft, Training und Tages-Historie (${DEMO_DAYS} Tage) werden überschrieben.`)) return;
+            if (!confirm(`Beispieldaten laden? Kraft, Training und Tages-Historie (${DEMO_DAYS} Tage) werden überschrieben.`)) return;
 
             ensureMenuData();
             const maintenance = getMaintenanceKcal();
-
-            const fridays = getPastFridayKeys(DEMO_WEIGHT_WEEKS);
-            const weights = [68.4, 68.2, 68.0, 67.9, 67.7, 67.6, 67.4, 67.2, 67.0, 66.9, 66.8, 66.6];
-            weightHistory = fridays.map((date, i) => ({ date, kg: weights[i] ?? 66.6 }));
 
             const demoDays = getDemoHistoryDayKeys();
             dayHistory = [];
@@ -1017,7 +958,7 @@
             settings.demoDataActive = true;
             saveData();
             updateUI();
-            alert('Beispieldaten geladen. Schau unter Training, Kraft und Fortschritt.');
+            alert('Beispieldaten geladen. Schau unter Training, Kraft und Tageshistorie.');
         }
 
         function clearDemoData() {
@@ -1025,9 +966,8 @@
                 alert('Keine aktiven Beispieldaten.');
                 return;
             }
-            if (!confirm('Beispieldaten entfernen? Gewicht, Kraft-Historie und archivierte Tage werden geleert.')) return;
+            if (!confirm('Beispieldaten entfernen? Kraft-Historie und archivierte Tage werden geleert.')) return;
 
-            weightHistory = [];
             dayHistory = [];
             strengthHistory = [];
             dailyData = {
@@ -1054,7 +994,6 @@
             ensureMenuData();
             dayHistory = parsed.dayHistory || [];
             strengthHistory = parsed.strengthHistory || [];
-            weightHistory = parsed.weightHistory || [];
 
             dailyData = {
                 date: parsed.dailyData?.date || getTodayKey(),
@@ -1096,8 +1035,7 @@
                 settings,
                 dailyData,
                 dayHistory,
-                strengthHistory,
-                weightHistory
+                strengthHistory
             }));
         }
 
@@ -1414,24 +1352,34 @@
             return sumMenuKcal(settings.menuPlan, settings.ingredients);
         }
 
+        function sortIngredientLabels(items) {
+            return [...items].sort((a, b) =>
+                a.label.localeCompare(b.label, 'de', { numeric: true, sensitivity: 'base' })
+            );
+        }
+
         function renderTodayMeals() {
             ensureMenuData();
             const container = document.getElementById('meals-today');
             if (!container) return;
             const plan = settings.menuPlan || {};
-            container.innerHTML = MEAL_SLOTS.map((slot, si) => {
+            container.innerHTML = MEAL_SLOTS.map(slot => {
                 const ids = plan[slot] || [];
-                const items = ids.map(id => getIngredient(id, settings.ingredients)).filter(Boolean);
-                const ingredientText = items.map(i => i.label).join(' · ') || '—';
+                const items = sortIngredientLabels(
+                    ids.map(id => getIngredient(id, settings.ingredients)).filter(Boolean)
+                );
                 const slotKcal = items.reduce((sum, i) => sum + (i.kcal || 0), 0);
                 const slotProtein = items.reduce((sum, i) => sum + (i.protein || 0), 0);
+                const ingredientList = items.length
+                    ? items.map(i => `<li class="${MEAL_INGREDIENT_COLOR} leading-snug">${escapeHtml(i.label)}</li>`).join('')
+                    : '<li class="text-slate-400 dark:text-slate-500 leading-snug">—</li>';
                 return `
-                    <div class="meal-row flex justify-between items-center py-2 px-3 rounded-2xl">
-                        <div>
-                            <span class="font-medium text-slate-800 dark:text-slate-100">${slot}</span><br>
-                            <span class="text-xs ${MEAL_INGREDIENT_COLOR}">${escapeHtml(ingredientText)}</span>
+                    <div class="meal-row flex justify-between items-start py-2.5 px-3 rounded-2xl min-h-0">
+                        <div class="min-w-0 flex-1 pr-2">
+                            <span class="font-medium text-slate-800 dark:text-slate-100">${slot}</span>
+                            <ul class="mt-1.5 space-y-0.5 list-none pl-0 text-xs">${ingredientList}</ul>
                         </div>
-                        <div class="text-right font-bold ${MEAL_KCAL_COLOR} shrink-0 ml-2">
+                        <div class="text-right font-bold ${MEAL_KCAL_COLOR} shrink-0">
                             <div>${slotKcal} kcal</div>
                             <div class="text-xs font-semibold accent-gold">${slotProtein}g Protein</div>
                         </div>
@@ -1735,8 +1683,6 @@
             document.getElementById('total-protein').textContent = `${getBaseProtein()}g`;
             document.getElementById('daily-protein-target').textContent = BASE_PROTEIN;
             updateDeficitDisplay();
-            renderWeightSection();
-            renderWeeklyOverview();
             renderDayHistoryList();
         }
 
@@ -1836,7 +1782,6 @@
             }
             updateTrainingUI();
             renderDayHistoryList();
-            renderWeeklyOverview();
             if (dayEditorDate === dateKey) renderDayEditorContent(dateKey);
         }
 
@@ -1862,17 +1807,81 @@
             return Object.keys(byDate).sort().reverse().map(date => byDate[date]);
         }
 
-        function summarizeDayEntry(entry) {
-            const parts = [];
-            if (entry.training?.length) {
-                const kcal = entry.training.reduce((s, t) => s + (t.kcalBonus || 0), 0);
-                parts.push(`${entry.training.length}× Sport · ${formatTrainingKcal(kcal)} kcal`);
+        function renderDayHistorySportBlock(entry) {
+            const sessions = entry.training || [];
+            if (!sessions.length) {
+                return '<div class="text-xs text-slate-400 dark:text-slate-500">—</div>';
             }
+            return sessions.map(t => {
+                const icon = getTrainingIcon(t.type);
+                const detail = formatTrainingSessionDetail(t);
+                return `
+                    <div class="flex items-start gap-2 py-1">
+                        <i class="fa-solid ${icon} text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 shrink-0"></i>
+                        <div class="min-w-0">
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-tight">${escapeHtml(t.label)}</div>
+                            ${detail ? `<div class="text-[11px] text-slate-500 dark:text-slate-400">${escapeHtml(detail)}</div>` : ''}
+                            <div class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">+${formatTrainingKcal(t.kcalBonus || 0)} kcal</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderDayHistoryStrengthBlock(entry) {
             const totals = readStrengthTotals(entry);
-            if (hasStrengthTotals(totals)) {
-                parts.push(`Kraft ${getStrengthTotal(totals)}`);
+            if (!hasStrengthTotals(totals)) {
+                return '<div class="text-xs text-slate-400 dark:text-slate-500">—</div>';
             }
-            return parts.join(' · ');
+            return STRENGTH_EXERCISES.map(ex => {
+                const val = totals[ex.key] || 0;
+                if (!val) return '';
+                return `
+                    <div class="flex items-center justify-between gap-2 py-0.5">
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400">${ex.short}</span>
+                        <span class="text-xs font-bold tabular-nums ${ex.value}">${val}</span>
+                    </div>
+                `;
+            }).filter(Boolean).join('') || '<div class="text-xs text-slate-400 dark:text-slate-500">—</div>';
+        }
+
+        function renderDayHistoryCard(entry) {
+            const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+            const weekday = dayNames[new Date(entry.date + 'T12:00:00').getDay()];
+            const isToday = entry.date === dailyData.date;
+            const sportKcal = (entry.training || []).reduce((s, t) => s + (t.kcalBonus || 0), 0);
+            const strengthTotal = getStrengthTotal(readStrengthTotals(entry));
+
+            return `
+                <button type="button" onclick="openDayEditor('${entry.date}')"
+                        class="w-full text-left ui-panel rounded-2xl p-3 hover:bg-white dark:hover:bg-slate-800/80 transition-colors">
+                    <div class="flex items-center justify-between gap-2 mb-2.5">
+                        <div>
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">${weekday} ${formatDateDE(entry.date)}</span>
+                            ${isToday ? '<span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide text-teal-600 dark:text-teal-400">heute</span>' : ''}
+                        </div>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 shrink-0">
+                            <i class="fa-solid fa-pen"></i> Bearbeiten
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-700 px-2.5 py-2">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Sport</span>
+                                ${sportKcal > 0 ? `<span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">+${formatTrainingKcal(sportKcal)}</span>` : ''}
+                            </div>
+                            ${renderDayHistorySportBlock(entry)}
+                        </div>
+                        <div class="rounded-xl bg-white/70 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-700 px-2.5 py-2">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Kraft</span>
+                                ${strengthTotal > 0 ? `<span class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 tabular-nums">${strengthTotal} ges.</span>` : ''}
+                            </div>
+                            ${renderDayHistoryStrengthBlock(entry)}
+                        </div>
+                    </div>
+                </button>
+            `;
         }
 
         function renderDayHistoryList() {
@@ -1881,25 +1890,25 @@
             const days = getActivityDaySummaries();
 
             if (!days.length) {
-                container.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-3">Noch keine archivierten Tage.</div>';
+                container.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-4">Noch keine Tage mit Sport oder Kraft.</div>';
                 return;
             }
 
-            const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-            container.innerHTML = days.map(entry => {
-                const weekday = dayNames[new Date(entry.date + 'T12:00:00').getDay()];
-                const isToday = entry.date === dailyData.date;
-                return `
-                    <button type="button" onclick="openDayEditor('${entry.date}')"
-                            class="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                        <div class="flex items-baseline justify-between gap-2">
-                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">${weekday} ${formatDateDE(entry.date)}${isToday ? ' · heute' : ''}</span>
-                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 shrink-0"></i>
-                        </div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">${escapeHtml(summarizeDayEntry(entry))}</div>
-                    </button>
-                `;
-            }).join('');
+            const byWeek = {};
+            days.forEach(entry => {
+                const weekStart = getWeekStartKey(entry.date);
+                if (!byWeek[weekStart]) byWeek[weekStart] = [];
+                byWeek[weekStart].push(entry);
+            });
+
+            container.innerHTML = Object.keys(byWeek).sort().reverse().map(weekStart => `
+                <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-2 px-0.5">
+                        ${getRelativeWeekLabel(weekStart)}
+                    </div>
+                    <div class="space-y-2">${byWeek[weekStart].map(renderDayHistoryCard).join('')}</div>
+                </div>
+            `).join('');
         }
 
         function openDayEditor(dateKey) {
@@ -2786,182 +2795,9 @@
             container.innerHTML = renderActivityHistoryHeader() + renderStrengthHistoryTable(displayWeeks);
         }
 
-        function getCurrentWeekDayKeys() {
-            const weekStart = getWeekStartKey(getTodayKey());
-            const keys = [];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date(weekStart + 'T12:00:00');
-                d.setDate(d.getDate() + i);
-                keys.push(formatDateKey(d));
-            }
-            return keys;
-        }
-
         function isSettingsOpen() {
             const modal = document.getElementById('settings-modal');
             return modal && !modal.classList.contains('hidden');
-        }
-
-        function computeWeightMovingAvg(entries, window = 4) {
-            return entries.map((e, i) => {
-                const slice = entries.slice(Math.max(0, i - window + 1), i + 1);
-                const avg = slice.reduce((s, x) => s + x.kg, 0) / slice.length;
-                return { date: e.date, kg: e.kg, avg: Math.round(avg * 10) / 10 };
-            });
-        }
-
-        function saveWeightEntry() {
-            const input = document.getElementById('weight-input');
-            const kg = parseFloat(input.value);
-            if (!kg || kg < 40 || kg > 150) {
-                alert('Bitte gültiges Gewicht eingeben (40–150 kg).');
-                return;
-            }
-            const date = getTodayKey();
-            const rounded = Math.round(kg * 10) / 10;
-            const existing = weightHistory.findIndex(e => e.date === date);
-            const entry = { date, kg: rounded };
-            if (existing >= 0) weightHistory[existing] = entry;
-            else weightHistory.unshift(entry);
-            weightHistory.sort((a, b) => b.date.localeCompare(a.date));
-            if (weightHistory.length > 52) weightHistory = weightHistory.slice(0, 52);
-            settings.bodyWeightKg = rounded;
-            input.value = '';
-            saveData();
-            renderWeightSection();
-            renderWeeklyOverview();
-            updateDeficitDisplay();
-            if (isSettingsOpen()) {
-                const bwInput = document.getElementById('settings-body-weight');
-                if (bwInput) bwInput.value = rounded;
-                updateMaintenanceDisplay();
-                renderMenuBuilder();
-            }
-        }
-
-        function renderWeightSection() {
-            const weighLabel = document.getElementById('weight-weigh-label');
-            const isFriday = new Date().getDay() === 5;
-            if (weighLabel) {
-                weighLabel.textContent = isFriday ? 'Heute Freitag — wiegen!' : 'Freitag morgens wiegen';
-                weighLabel.classList.toggle('text-teal-600', isFriday);
-                weighLabel.classList.toggle('dark:text-teal-400', isFriday);
-                weighLabel.classList.toggle('font-semibold', isFriday);
-                weighLabel.classList.toggle('text-slate-400', !isFriday);
-                weighLabel.classList.toggle('dark:text-slate-500', !isFriday);
-            }
-
-            const sorted = [...weightHistory].sort((a, b) => b.date.localeCompare(a.date));
-            const latest = sorted[0];
-            const currentEl = document.getElementById('weight-current');
-            const deltaEl = document.getElementById('weight-delta');
-            const inputEl = document.getElementById('weight-input');
-
-            if (latest) {
-                currentEl.textContent = `${latest.kg} kg`;
-                const prev = sorted[1];
-                let deltaText = '';
-                if (prev) {
-                    const diff = Math.round((latest.kg - prev.kg) * 10) / 10;
-                    const sign = diff > 0 ? '+' : '';
-                    deltaText = `${sign}${diff} kg seit ${formatDateDE(prev.date)}`;
-                } else {
-                    deltaText = `seit ${formatDateDE(latest.date)}`;
-                }
-                const entriesAsc = [...weightHistory].sort((a, b) => a.date.localeCompare(b.date));
-                const latestMa = computeWeightMovingAvg(entriesAsc).pop()?.avg;
-                if (latestMa != null && entriesAsc.length >= 2) {
-                    deltaText += ` · Ø4W: ${latestMa} kg`;
-                }
-                deltaEl.textContent = deltaText;
-            } else {
-                currentEl.textContent = '—';
-                deltaEl.textContent = 'Noch kein Eintrag';
-            }
-
-            if (!inputEl.value && latest) inputEl.placeholder = `${latest.kg}`;
-            else if (!inputEl.value) inputEl.placeholder = `${getBodyWeightKg()}`;
-
-            const listEl = document.getElementById('weight-history-list');
-            if (!sorted.length) {
-                listEl.innerHTML = '<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-1">Noch keine Einträge</div>';
-                return;
-            }
-            listEl.innerHTML = sorted.slice(0, WEIGHT_HISTORY_ENTRIES).map((e, i) => {
-                const prev = sorted[i + 1];
-                let deltaHtml = '<span class="text-slate-300 dark:text-slate-600">—</span>';
-                if (prev) {
-                    const diff = Math.round((e.kg - prev.kg) * 10) / 10;
-                    const sign = diff > 0 ? '+' : '';
-                    const deltaClass = diff < 0 ? 'text-teal-600 dark:text-teal-400' : (diff > 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-400');
-                    deltaHtml = `<span class="tabular-nums ${deltaClass}">${sign}${diff}</span>`;
-                }
-                return `<div class="grid grid-cols-[5.5rem_3rem_2.5rem] gap-x-2 items-baseline text-xs leading-snug">
-                    <span class="text-slate-500 dark:text-slate-400 tabular-nums">${formatDateDE(e.date)}</span>
-                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums">${e.kg}</span>
-                    ${deltaHtml}
-                </div>`;
-            }).join('');
-        }
-
-        function renderWeeklyOverview() {
-            const container = document.getElementById('weekly-overview');
-            const weekKeys = getCurrentWeekDayKeys();
-            const weekSet = new Set(weekKeys);
-
-            let completedDays = 0;
-            let trainingDays = 0;
-            const deficits = [];
-
-            weekKeys.forEach(key => {
-                const archived = dayHistory.find(e => e.date === key);
-                if (archived) {
-                    const hadActivity = (archived.training?.length > 0) || hasStrengthTotals(readStrengthTotals(archived));
-                    if (hadActivity) completedDays++;
-                    if (archived.training?.length > 0) trainingDays++;
-                    deficits.push(archived.menuDeficit != null
-                        ? archived.menuDeficit
-                        : getMaintenanceKcal() - (archived.baseKcal || 0));
-                } else if (key === getTodayKey()) {
-                    if (hasDayActivity()) completedDays++;
-                    if (dailyData.training.length > 0) trainingDays++;
-                    deficits.push(Math.round(getMenuDeficit()));
-                }
-            });
-
-            const strengthDays = getStrengthDays().filter(d => weekSet.has(d.date)).length;
-
-            const weekWeights = weightHistory
-                .filter(e => weekSet.has(e.date))
-                .sort((a, b) => a.date.localeCompare(b.date));
-            let weightStat = '—';
-            if (weekWeights.length >= 2) {
-                const diff = Math.round((weekWeights[weekWeights.length - 1].kg - weekWeights[0].kg) * 10) / 10;
-                const sign = diff > 0 ? '+' : '';
-                weightStat = `${sign}${diff} kg`;
-            } else if (weekWeights.length === 1) {
-                weightStat = `${weekWeights[0].kg} kg`;
-            }
-
-            const avgDeficit = deficits.length
-                ? Math.round(deficits.reduce((s, d) => s + d, 0) / deficits.length)
-                : null;
-
-            const chip = (label, value) => `
-                <span class="inline-flex items-center gap-1.5 ui-panel rounded-xl px-2.5 py-1.5 text-xs">
-                    <span class="text-slate-500 dark:text-slate-400">${label}</span>
-                    <span class="font-bold text-slate-800 dark:text-slate-100 tabular-nums">${value}</span>
-                </span>
-            `;
-
-            container.innerHTML = [
-                chip('Tage', `${completedDays}/7`),
-                chip('Sport', trainingDays),
-                chip('Kraft', strengthDays),
-                chip('Ø Defizit', avgDeficit != null ? `−${avgDeficit}` : '—'),
-                chip('Gewicht', weightStat),
-                chip('Protein', `${getBaseProtein()}g`)
-            ].join('');
         }
 
         function exportData() {
@@ -3105,7 +2941,7 @@
         function init() {
             const demoHint = document.getElementById('demo-data-hint');
             if (demoHint) {
-                demoHint.textContent = `Testdaten für ${DEMO_DAYS} Tage Gewicht, Kraft & Training — relativ zu heute.`;
+                demoHint.textContent = `Testdaten für ${DEMO_DAYS} Tage Kraft & Training — relativ zu heute.`;
             }
 
             loadData();
