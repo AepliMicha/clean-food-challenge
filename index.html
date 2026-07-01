@@ -256,12 +256,8 @@
                             <span id="header-sport-label" class="text-xs text-white/50 font-medium leading-tight">kcal<br>Sport</span>
                         </div>
                     </div>
-                    <div class="flex items-baseline gap-1.5 shrink-0">
-                        <span id="total-protein" class="text-2xl sm:text-3xl font-bold accent-gold tabular-nums leading-none">—</span>
-                        <span class="text-xs text-white/60 font-medium hidden sm:inline leading-tight">Protein</span>
-                    </div>
                     <div class="text-xs text-white/60 min-w-0 w-full sm:w-auto">
-                        mind. <span id="daily-protein-target">150</span>g · <span id="deficit-display" class="text-white/55"></span>
+                        <span id="deficit-display" class="text-white/55"></span>
                     </div>
                 </div>
 
@@ -1679,8 +1675,6 @@
             updateStrengthUI();
 
             updateHeaderKcalDisplay();
-            document.getElementById('total-protein').textContent = `${getBaseProtein()}g`;
-            document.getElementById('daily-protein-target').textContent = BASE_PROTEIN;
             updateDeficitDisplay();
         }
 
@@ -1941,7 +1935,6 @@
 
         function updateKcalDisplays() {
             updateHeaderKcalDisplay();
-            document.getElementById('total-protein').textContent = `${getBaseProtein()}g`;
             updateDeficitDisplay();
             renderTodayMeals();
         }
