@@ -241,9 +241,6 @@
                     <div class="min-w-0">
                         <div id="current-day-name" class="font-display text-xl sm:text-2xl tracking-tight leading-tight"></div>
                         <div id="current-day-date" class="text-sm text-white/70 font-medium"></div>
-                        <div id="streak-counter"
-                             class="inline-flex items-center mt-1.5 px-2.5 py-1 rounded-xl bg-amber-300/20 border border-amber-200/35 text-sm sm:text-base font-bold text-amber-100 tabular-nums tracking-tight shadow-sm"
-                             title="seit 7.12.2025"></div>
                     </div>
                 </div>
 
@@ -264,10 +261,15 @@
                     </div>
                 </div>
 
-                <button onclick="showSettings()" class="ml-auto shrink-0 px-3 py-2 bg-white/15 hover:bg-white/25 rounded-2xl text-sm font-medium flex items-center gap-x-2" title="Einstellungen">
-                    <i class="fa-solid fa-cog"></i>
-                    <span class="hidden sm:inline">Einstellungen</span>
-                </button>
+                <div class="flex items-center gap-2 ml-auto shrink-0">
+                    <div id="streak-counter"
+                         class="inline-flex items-center px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-amber-300/20 border border-amber-200/35 text-xs sm:text-sm font-bold text-amber-100 tabular-nums tracking-tight shadow-sm whitespace-nowrap"
+                         title="seit 7.12.2025"></div>
+                    <button onclick="showSettings()" class="px-3 py-2 bg-white/15 hover:bg-white/25 rounded-2xl text-sm font-medium flex items-center gap-x-2" title="Einstellungen">
+                        <i class="fa-solid fa-cog"></i>
+                        <span class="hidden sm:inline">Einstellungen</span>
+                    </button>
+                </div>
             </div>
         </div>
 
