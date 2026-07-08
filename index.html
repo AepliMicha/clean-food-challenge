@@ -228,7 +228,7 @@
                         <span class="text-xs text-white/60 font-medium leading-tight">kcal<br>Menü</span>
                     </div>
                     <div class="text-xs text-white/60 min-w-0 w-full sm:w-auto">
-                        <span id="deficit-display" class="text-white/55"></span>
+                        <span id="budget-display" class="text-white/55"></span>
                     </div>
                 </div>
 
@@ -330,45 +330,12 @@
                 <div class="ui-panel rounded-3xl p-5 sm:p-6 space-y-4">
                     <div class="settings-section-title text-teal-700 dark:text-teal-400">MENÜ ZUSAMMENSTELLEN</div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div class="sm:col-span-2">
-                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Abnahme-Ziel (kg/Woche)</label>
-                            <input type="number" id="settings-weekly-loss-kg" min="0.1" max="1.5" step="0.05"
-                                   oninput="updateMaintenanceDisplay(); renderMenuBuilder()"
-                                   class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
-                        </div>
-                        <div class="sm:col-span-2 ui-panel rounded-2xl px-4 py-3">
-                            <div class="flex justify-between items-baseline gap-2">
-                                <span class="text-sm text-slate-600 dark:text-slate-400">Menü-Budget</span>
-                                <span id="settings-budget-display" class="text-lg font-bold text-teal-700 dark:text-teal-400 tabular-nums">—</span>
-                            </div>
-                            <p id="settings-budget-hint" class="text-xs text-slate-400 dark:text-slate-500 mt-1"></p>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Gewicht (kg)</label>
-                            <input type="number" id="settings-body-weight" min="40" max="150" step="0.1"
-                                   oninput="updateMaintenanceDisplay()"
-                                   class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
-                        </div>
-                        <div class="sm:col-span-1">
-                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Größe (cm)</label>
-                            <input type="number" id="settings-height-cm" min="140" max="220" step="1"
-                                   oninput="updateMaintenanceDisplay()"
-                                   class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
-                        </div>
-                        <div class="sm:col-span-1">
-                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Alter</label>
-                            <input type="number" id="settings-age" min="16" max="99" step="1"
-                                   oninput="updateMaintenanceDisplay()"
-                                   class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
-                        </div>
-                        <div class="col-span-2 sm:col-span-4 ui-panel rounded-2xl px-4 py-3">
-                            <div class="flex justify-between items-baseline gap-2">
-                                <span class="text-sm text-slate-600 dark:text-slate-400">Erhaltungsbedarf</span>
-                                <span id="settings-maintenance-display" class="text-lg font-bold text-teal-700 dark:text-teal-400">—</span>
-                            </div>
-                            <p id="settings-maintenance-hint" class="text-xs text-slate-400 dark:text-slate-500 mt-1"></p>
-                        </div>
+                    <div class="max-w-sm">
+                        <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Menü-Budget (kcal/Tag)</label>
+                        <input type="number" id="settings-daily-budget" min="800" max="5000" step="50"
+                               oninput="renderMenuBuilder()"
+                               class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1.5">Von Garmin übernehmen — Essensziel ohne Extras vom Training.</p>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-[minmax(220px,280px)_1fr] gap-4 lg:gap-5 items-start">
@@ -492,12 +459,7 @@
         ];
         const MEAL_KCAL_COLOR = 'text-teal-600 dark:text-teal-400';
         const MEAL_INGREDIENT_COLOR = 'text-slate-500 dark:text-slate-400';
-        const KCAL_PER_KG_FAT = 7700;
-        const DEFAULT_WEEKLY_LOSS_KG = 0.5;
-        const DEFAULT_BODY_WEIGHT_KG = 67;
-        const DEFAULT_HEIGHT_CM = 173;
-        const DEFAULT_AGE = 48;
-        const BASE_ACTIVITY_FACTOR = 1.725;
+        const DEFAULT_DAILY_BUDGET_KCAL = 1350;
         const STREAK_START = '2025-12-07';
 
         const DEFAULT_INGREDIENTS = [
@@ -882,12 +844,8 @@
 
         function ensureMenuData() {
             if (settings.ingredients?.length && (settings.menuPlan || settings.menuPlans)) {
-                ensureWeeklyLossGoal();
                 ensureSingleMenuPlan();
-                if (settings.bodyWeightKg == null) settings.bodyWeightKg = DEFAULT_BODY_WEIGHT_KG;
-                if (settings.heightCm == null) settings.heightCm = DEFAULT_HEIGHT_CM;
-                if (settings.age == null) settings.age = DEFAULT_AGE;
-                if (settings.sex == null) settings.sex = 'm';
+                migrateDailyBudget();
 
                 const version = settings.menuPlansVersion || 1;
                 if (version < MENU_PLANS_VERSION) {
@@ -903,11 +861,7 @@
             settings.ingredients = JSON.parse(JSON.stringify(DEFAULT_INGREDIENTS));
             settings.menuPlan = JSON.parse(JSON.stringify(DEFAULT_MENU_PLAN));
             settings.menuPlansVersion = MENU_PLANS_VERSION;
-            settings.weeklyLossKg = DEFAULT_WEEKLY_LOSS_KG;
-            settings.bodyWeightKg = DEFAULT_BODY_WEIGHT_KG;
-            settings.heightCm = DEFAULT_HEIGHT_CM;
-            settings.age = DEFAULT_AGE;
-            settings.sex = 'm';
+            settings.dailyBudgetKcal = DEFAULT_DAILY_BUDGET_KCAL;
             delete settings.mealPool;
             delete settings.mealPlans;
             delete settings.meals;
@@ -934,136 +888,41 @@
             return (list || []).find(i => i.id === id) || null;
         }
 
-        function getWeeklyLossKg() {
-            ensureMenuData();
-            const v = settings.weeklyLossKg;
-            return v > 0 ? v : DEFAULT_WEEKLY_LOSS_KG;
-        }
+        function migrateDailyBudget() {
+            if (settings.dailyBudgetKcal > 0) return;
 
-        function ensureWeeklyLossGoal() {
-            if (settings.weeklyLossKg > 0) return;
             const legacyBudget = settings.dailyBudget?.arbeit || settings.dailyBudget?.frei;
             if (legacyBudget > 0) {
-                const kg = settings.bodyWeightKg > 0 ? settings.bodyWeightKg : DEFAULT_BODY_WEIGHT_KG;
-                const cm = settings.heightCm > 0 ? settings.heightCm : DEFAULT_HEIGHT_CM;
-                const age = settings.age > 0 ? settings.age : DEFAULT_AGE;
-                const maint = calculateTdeeFor(kg, cm, age);
-                const derived = ((maint - legacyBudget) * 7) / KCAL_PER_KG_FAT;
-                settings.weeklyLossKg = Math.round(Math.max(0.1, Math.min(1.5, derived)) * 20) / 20;
-            } else {
-                settings.weeklyLossKg = DEFAULT_WEEKLY_LOSS_KG;
+                settings.dailyBudgetKcal = Math.round(legacyBudget);
+                return;
             }
-        }
 
-        function getDailyDeficitTarget(weeklyLossKg = null) {
-            const weekly = weeklyLossKg > 0 ? weeklyLossKg : getWeeklyLossKg();
-            return Math.round((weekly * KCAL_PER_KG_FAT) / 7);
-        }
+            const kg = settings.bodyWeightKg;
+            const cm = settings.heightCm;
+            const age = settings.age;
+            if (kg > 0 && cm > 0 && age > 0) {
+                const weekly = settings.weeklyLossKg > 0 ? settings.weeklyLossKg : 0.5;
+                const deficit = Math.round((weekly * 7700) / 7);
+                const bmr = settings.sex === 'f'
+                    ? 10 * kg + 6.25 * cm - 5 * age - 161
+                    : 10 * kg + 6.25 * cm - 5 * age + 5;
+                settings.dailyBudgetKcal = Math.max(800, Math.round(bmr * 1.725) - deficit);
+                return;
+            }
 
-        function calculateTdeeFor(kg, cm, age) {
-            return Math.round(calculateBMRFor(kg, cm, age) * getActivityFactor());
-        }
-
-        function calculateBudgetFor(kg, cm, age, weeklyLossKg) {
-            const deficit = getDailyDeficitTarget(weeklyLossKg);
-            return Math.max(800, calculateTdeeFor(kg, cm, age) - deficit);
+            settings.dailyBudgetKcal = DEFAULT_DAILY_BUDGET_KCAL;
         }
 
         function getDailyBudget() {
             ensureMenuData();
-            return calculateBudgetFor(
-                getBodyWeightKg(),
-                getHeightCm(),
-                getAge(),
-                getWeeklyLossKg()
-            );
-        }
-
-        function readWeeklyLossInput() {
-            const el = document.getElementById('settings-weekly-loss-kg');
-            const v = parseFloat(el?.value);
-            return v > 0 ? v : getWeeklyLossKg();
+            const v = settings.dailyBudgetKcal;
+            return v > 0 ? Math.round(v) : DEFAULT_DAILY_BUDGET_KCAL;
         }
 
         function getPreviewDailyBudget() {
-            const profile = readProfileInputs();
-            return calculateBudgetFor(
-                profile.kg,
-                profile.cm,
-                profile.age,
-                readWeeklyLossInput()
-            );
-        }
-
-        function getHeightCm() {
-            ensureMenuData();
-            const h = settings.heightCm;
-            return h > 0 ? h : DEFAULT_HEIGHT_CM;
-        }
-
-        function getAge() {
-            ensureMenuData();
-            const a = settings.age;
-            return a > 0 ? a : DEFAULT_AGE;
-        }
-
-        function getActivityFactor() {
-            return BASE_ACTIVITY_FACTOR;
-        }
-
-        function getMaintenanceKcal() {
-            ensureMenuData();
-            return calculateTdeeFor(getBodyWeightKg(), getHeightCm(), getAge());
-        }
-
-        function readProfileInputs() {
-            const w = parseFloat(document.getElementById('settings-body-weight')?.value);
-            const h = parseInt(document.getElementById('settings-height-cm')?.value, 10);
-            const a = parseInt(document.getElementById('settings-age')?.value, 10);
-            return {
-                kg: w > 0 ? w : getBodyWeightKg(),
-                cm: h > 0 ? h : getHeightCm(),
-                age: a > 0 ? a : getAge()
-            };
-        }
-
-        function calculateBMRFor(kg, cm, age) {
-            if (settings.sex === 'f') {
-                return 10 * kg + 6.25 * cm - 5 * age - 161;
-            }
-            return 10 * kg + 6.25 * cm - 5 * age + 5;
-        }
-
-        function updateMaintenanceDisplay() {
-            const display = document.getElementById('settings-maintenance-display');
-            const hint = document.getElementById('settings-maintenance-hint');
-            const budgetDisplay = document.getElementById('settings-budget-display');
-            const budgetHint = document.getElementById('settings-budget-hint');
-            if (!display) return;
-
-            const profile = readProfileInputs();
-            const bmr = Math.round(calculateBMRFor(profile.kg, profile.cm, profile.age));
-            const tdee = calculateTdeeFor(profile.kg, profile.cm, profile.age);
-            const weeklyLoss = readWeeklyLossInput();
-            const deficit = getDailyDeficitTarget(weeklyLoss);
-            const budget = calculateBudgetFor(profile.kg, profile.cm, profile.age, weeklyLoss);
-
-            display.textContent = `${tdee} kcal/Tag`;
-            if (hint) {
-                hint.textContent =
-                    `Mifflin-St Jeor (BMR ${bmr}) × ${BASE_ACTIVITY_FACTOR} körperliche Arbeit`;
-            }
-            if (budgetDisplay) budgetDisplay.textContent = `${budget} kcal`;
-            if (budgetHint) {
-                budgetHint.textContent =
-                    `Erhaltung ${tdee} − ${deficit} kcal/Tag = Menü max. ${budget} kcal (≈ ${weeklyLoss.toFixed(2).replace('.', ',')} kg/Woche)`;
-            }
-        }
-
-        function getBodyWeightKg() {
-            ensureMenuData();
-            const w = settings.bodyWeightKg;
-            return w > 0 ? w : DEFAULT_BODY_WEIGHT_KG;
+            const el = document.getElementById('settings-daily-budget');
+            const v = parseInt(el?.value, 10);
+            return v > 0 ? v : getDailyBudget();
         }
 
         function getStreakDays(startDateKey = STREAK_START) {
@@ -1102,37 +961,24 @@
             menuEl.title = `Menü ${menuKcal} kcal · Budget ${budget} kcal`;
         }
 
-        function formatWeeklyKg(kg) {
-            return (Math.round(kg * 100) / 100).toFixed(2).replace('.', ',');
-        }
-
-        function dailyDeficitToWeeklyKg(dailyKcalDeficit) {
-            return (dailyKcalDeficit * 7) / KCAL_PER_KG_FAT;
-        }
-
-        function updateDeficitDisplay() {
-            const maintenance = getMaintenanceKcal();
-            const menuKcal = getBaseKcal();
+        function updateBudgetDisplay() {
+            const menuKcal = Math.round(getBaseKcal());
             const budget = getDailyBudget();
-            const targetKg = getWeeklyLossKg();
-            const menuDeficit = Math.round(maintenance - menuKcal);
-            const weeklyKg = dailyDeficitToWeeklyKg(menuDeficit);
-            const el = document.getElementById('deficit-display');
+            const remaining = budget - menuKcal;
+            const el = document.getElementById('budget-display');
             if (!el) return;
 
-            el.title =
-                `Menü-Defizit −${menuDeficit} kcal/Tag · Erhaltung ${maintenance} · Menü ${menuKcal} · Budget ${budget} ` +
-                `(Ziel ≈ ${formatWeeklyKg(targetKg)} kg/Woche)`;
+            el.title = `Menü ${menuKcal} kcal · Budget ${budget} kcal/Tag`;
 
-            if (menuDeficit < 0) {
-                el.textContent = `≈ +${formatWeeklyKg(Math.abs(weeklyKg))} kg/Woche`;
+            if (remaining < 0) {
+                el.textContent = `${Math.abs(remaining)} kcal drüber`;
                 el.className = 'text-red-200';
-            } else if (menuKcal > budget || weeklyKg < targetKg - 0.02) {
-                el.textContent = `≈ ${formatWeeklyKg(weeklyKg)} kg/Woche`;
-                el.className = 'text-red-200';
-            } else {
-                el.textContent = `≈ ${formatWeeklyKg(weeklyKg)} kg/Woche`;
+            } else if (remaining === 0) {
+                el.textContent = 'Budget voll';
                 el.className = 'text-white/55';
+            } else {
+                el.textContent = `${remaining} kcal frei`;
+                el.className = remaining < 100 ? 'text-amber-100' : 'text-white/55';
             }
         }
 
@@ -1492,7 +1338,7 @@
             updateStrengthUI();
 
             updateHeaderKcalDisplay();
-            updateDeficitDisplay();
+            updateBudgetDisplay();
         }
 
         function renderStrengthHistoryHeader() {
@@ -1755,11 +1601,7 @@
         function showSettings() {
             ensureMenuData();
             document.getElementById('settings-dark-mode').checked = !!settings.darkMode;
-            document.getElementById('settings-weekly-loss-kg').value = getWeeklyLossKg();
-            document.getElementById('settings-body-weight').value = getBodyWeightKg();
-            document.getElementById('settings-height-cm').value = getHeightCm();
-            document.getElementById('settings-age').value = getAge();
-            updateMaintenanceDisplay();
+            document.getElementById('settings-daily-budget').value = getDailyBudget();
             document.getElementById('settings-pushup-buttons').value =
                 formatButtonValues(settings.pushupButtons || DEFAULT_SETTINGS.pushupButtons);
             document.getElementById('settings-pullup-buttons').value =
@@ -1822,17 +1664,14 @@
                 document.getElementById('settings-burpee-buttons').value,
                 DEFAULT_SETTINGS.burpeeButtons
             );
-            const weeklyLoss = parseFloat(document.getElementById('settings-weekly-loss-kg').value);
-            settings.weeklyLossKg = weeklyLoss > 0
-                ? Math.round(Math.min(1.5, weeklyLoss) * 100) / 100
-                : DEFAULT_WEEKLY_LOSS_KG;
+            const budget = parseInt(document.getElementById('settings-daily-budget').value, 10);
+            settings.dailyBudgetKcal = budget > 0 ? budget : DEFAULT_DAILY_BUDGET_KCAL;
+            delete settings.weeklyLossKg;
+            delete settings.bodyWeightKg;
+            delete settings.heightCm;
+            delete settings.age;
+            delete settings.sex;
             delete settings.dailyBudget;
-            const bodyWeight = parseFloat(document.getElementById('settings-body-weight').value);
-            settings.bodyWeightKg = bodyWeight > 0 ? Math.round(bodyWeight * 10) / 10 : DEFAULT_BODY_WEIGHT_KG;
-            const heightCm = parseInt(document.getElementById('settings-height-cm').value, 10);
-            settings.heightCm = heightCm > 0 ? heightCm : DEFAULT_HEIGHT_CM;
-            const age = parseInt(document.getElementById('settings-age').value, 10);
-            settings.age = age > 0 ? age : DEFAULT_AGE;
             delete settings.maintenanceManual;
             delete settings.maintenanceKcal;
             if (menuBuilderDraft) {
