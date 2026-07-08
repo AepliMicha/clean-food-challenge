@@ -132,7 +132,7 @@
             touch-action: pan-y;
         }
 
-        .activity-history-weeks {
+        .strength-history-weeks {
             flex-shrink: 0;
             height: 15.5rem;
             overflow-y: auto;
@@ -182,18 +182,18 @@
         }
 
         @media (min-width: 1024px) {
-            .activity-card-subgrid {
+            .strength-card-layout {
                 display: grid;
                 grid-template-rows: auto auto minmax(0, 1fr);
                 min-height: 0;
             }
 
-            .activity-history-weeks {
+            .strength-history-weeks {
                 height: auto;
                 max-height: none;
             }
 
-            .activity-records.is-empty {
+            .strength-records.is-empty {
                 border-top-width: 0;
                 padding-top: 0;
             }
@@ -247,39 +247,39 @@
         <div class="content-wrapper px-4 sm:px-6 pt-4 pb-6 space-y-4 w-full">
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                    <div id="strength-card" class="ui-card rounded-3xl p-4 lg:col-span-12 min-w-0 activity-card-subgrid flex flex-col lg:grid">
-                        <div id="strength-card-tap" onclick="showStrengthModal()"
-                             class="activity-today cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] min-h-0">
-                            <div class="flex items-center justify-between mb-3 px-0.5 gap-2">
-                                <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-1.5 min-w-0">
-                                    <i class="fa-solid fa-dumbbell"></i>
-                                    <span>KRAFT</span>
-                                </div>
-                                <div class="text-right shrink-0">
-                                    <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 leading-tight">Diese Woche</div>
-                                    <div id="strength-week-total" class="text-xl font-extrabold tabular-nums text-slate-800 dark:text-slate-50 leading-none mt-0.5">0</div>
-                                </div>
+                <div id="strength-card" class="ui-card rounded-3xl p-4 lg:col-span-12 min-w-0 strength-card-layout flex flex-col lg:grid">
+                    <div id="strength-card-tap" onclick="showStrengthModal()"
+                         class="cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] min-h-0">
+                        <div class="flex items-center justify-between mb-3 px-0.5 gap-2">
+                            <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-1.5 min-w-0">
+                                <i class="fa-solid fa-dumbbell"></i>
+                                <span>KRAFT</span>
                             </div>
-                            <div class="grid grid-cols-3 gap-2 text-center">
-                                <div>
-                                    <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">KLIMMZÜGE</div>
-                                    <div class="text-2xl font-bold tabular-nums text-sky-600 dark:text-sky-400" id="pullups-today">0</div>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">LIEGESTÜTZ</div>
-                                    <div class="text-2xl font-bold tabular-nums text-yellow-600 dark:text-yellow-400" id="pushups-today">0</div>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">BURPEES</div>
-                                    <div class="text-2xl font-bold tabular-nums text-rose-600 dark:text-rose-400" id="burpees-today">0</div>
-                                </div>
+                            <div class="text-right shrink-0">
+                                <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 leading-tight">Diese Woche</div>
+                                <div id="strength-week-total" class="text-xl font-extrabold tabular-nums text-slate-800 dark:text-slate-50 leading-none mt-0.5">0</div>
                             </div>
                         </div>
-                        <div id="strength-progress" class="activity-records is-empty pt-2 border-t border-slate-100 dark:border-slate-700 min-h-0"></div>
-                        <div id="strength-days-list"
-                             class="activity-history activity-history-weeks mt-2 pt-2 border-t border-slate-100 dark:border-slate-700"
-                             onwheel="event.stopPropagation()"></div>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">KLIMMZÜGE</div>
+                                <div class="text-2xl font-bold tabular-nums text-sky-600 dark:text-sky-400" id="pullups-today">0</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">LIEGESTÜTZ</div>
+                                <div class="text-2xl font-bold tabular-nums text-yellow-600 dark:text-yellow-400" id="pushups-today">0</div>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">BURPEES</div>
+                                <div class="text-2xl font-bold tabular-nums text-rose-600 dark:text-rose-400" id="burpees-today">0</div>
+                            </div>
+                        </div>
                     </div>
+                    <div id="strength-progress" class="strength-records is-empty pt-2 border-t border-slate-100 dark:border-slate-700 min-h-0"></div>
+                    <div id="strength-days-list"
+                         class="strength-history-weeks mt-2 pt-2 border-t border-slate-100 dark:border-slate-700"
+                         onwheel="event.stopPropagation()"></div>
+                </div>
 
                 <div class="ui-card rounded-3xl p-4 lg:col-span-12 min-w-0">
                     <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
@@ -543,13 +543,10 @@
             burpeeButtons: [5, 10, 15]
         };
 
-
-
         const STRENGTH_EXERCISES = [
             {
                 key: 'pullups', label: 'Klimmzüge', short: 'Klimm.',
                 icon: 'fa-arrow-up',
-                chip: 'bg-sky-50 text-sky-800 dark:bg-sky-950/50 dark:text-sky-200',
                 card: 'border-sky-200/80 bg-sky-50/70 dark:border-sky-800/40 dark:bg-sky-950/30',
                 value: 'text-sky-700 dark:text-sky-300',
                 buttonsKey: 'pullupButtons',
@@ -559,7 +556,6 @@
             {
                 key: 'pushups', label: 'Liegestütz', short: 'Lieg.',
                 icon: 'fa-dumbbell',
-                chip: 'bg-yellow-50 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-200',
                 card: 'border-yellow-200/80 bg-yellow-50/70 dark:border-yellow-800/40 dark:bg-yellow-950/30',
                 value: 'text-yellow-700 dark:text-yellow-300',
                 buttonsKey: 'pushupButtons',
@@ -569,7 +565,6 @@
             {
                 key: 'burpees', label: 'Burpees', short: 'Burp.',
                 icon: 'fa-fire',
-                chip: 'bg-rose-50 text-rose-800 dark:bg-rose-950/50 dark:text-rose-200',
                 card: 'border-rose-200/80 bg-rose-50/70 dark:border-rose-800/40 dark:bg-rose-950/30',
                 value: 'text-rose-700 dark:text-rose-300',
                 buttonsKey: 'burpeeButtons',
@@ -587,7 +582,6 @@
         let dragIngState = { id: null, sourceSlot: null, sourceIndex: null };
         let dailyData = { date: null, pushups: 0, pullups: 0, burpees: 0 };
         let dayHistory = [];
-        let strengthHistory = [];
 
         let midnightCheckInterval = null;
 
@@ -675,14 +669,6 @@
             return formatDateKey(d);
         }
 
-        function dateKeyFromEntry(entry) {
-            if (typeof entry.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
-                return entry.date;
-            }
-            const d = new Date(entry.date);
-            return formatDateKey(d);
-        }
-
         const DEMO_DAYS = 28;
         const DEMO_STRENGTH_PATTERN = [
             { pushups: 15, pullups: 3, burpees: 5 },
@@ -716,28 +702,15 @@
             if (!confirm(`Beispieldaten laden? Kraft-Historie (${DEMO_DAYS} Tage) wird überschrieben.`)) return;
 
             ensureMenuData();
-            const maintenance = getMaintenanceKcal();
-
             const demoDays = getDemoHistoryDayKeys();
             dayHistory = [];
-            strengthHistory = [];
 
             demoDays.forEach((date, i) => {
-                const baseKcal = sumMenuKcal(settings.menuPlan, settings.ingredients);
-                const strength = getDemoStrengthForDay(i);
-
                 dayHistory.push({
                     date,
-                    baseKcal,
-                    maintenanceKcal: maintenance,
-                    menuDeficit: maintenance - baseKcal,
-                    totalKcal: baseKcal,
-                    pushups: strength.pushups,
-                    pullups: strength.pullups,
-                    burpees: strength.burpees,
+                    ...getDemoStrengthForDay(i),
                     completedAt: isoAtNoon(date)
                 });
-
             });
 
             dailyData = {
@@ -761,7 +734,6 @@
             if (!confirm('Beispieldaten entfernen? Kraft-Historie wird geleert.')) return;
 
             dayHistory = [];
-            strengthHistory = [];
             dailyData = {
                 date: getTodayKey(),
                 pushups: 0,
@@ -784,14 +756,13 @@
             settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
             ensureMenuData();
             dayHistory = parsed.dayHistory || [];
-            strengthHistory = parsed.strengthHistory || [];
-
             dailyData = {
                 date: parsed.dailyData?.date || getTodayKey(),
                 pushups: parsed.dailyData?.pushups || 0,
                 pullups: parsed.dailyData?.pullups || 0,
                 burpees: parsed.dailyData?.burpees || 0
             };
+            migrateLegacyStrengthHistory(parsed.strengthHistory);
         }
 
         function emptyStrengthTotals() {
@@ -810,21 +781,44 @@
             return STRENGTH_EXERCISES.some(ex => totals[ex.key] > 0);
         }
 
-        function pruneStrengthHistory() {
-            const covered = new Set(
-                dayHistory.filter(e => hasStrengthTotals(readStrengthTotals(e))).map(e => e.date)
+        function legacyEntryDate(entry) {
+            if (typeof entry.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
+                return entry.date;
+            }
+            return formatDateKey(new Date(entry.date));
+        }
+
+        function migrateLegacyStrengthHistory(legacy = []) {
+            if (!legacy.length) return;
+
+            const byDate = Object.fromEntries(
+                dayHistory.filter(e => e.date).map(e => [e.date, e])
             );
-            if (dailyData.date) covered.add(dailyData.date);
-            strengthHistory = strengthHistory.filter(e => !covered.has(dateKeyFromEntry(e)));
+
+            legacy.forEach(entry => {
+                const date = legacyEntryDate(entry);
+                if (date === dailyData.date) return;
+
+                const totals = readStrengthTotals(entry);
+                if (!hasStrengthTotals(totals)) return;
+
+                if (byDate[date]) {
+                    STRENGTH_EXERCISES.forEach(ex => {
+                        byDate[date][ex.key] = Math.max(byDate[date][ex.key] || 0, totals[ex.key]);
+                    });
+                } else {
+                    const merged = { date, ...totals, completedAt: isoAtNoon(date) };
+                    dayHistory.unshift(merged);
+                    byDate[date] = merged;
+                }
+            });
         }
 
         function saveData() {
-            pruneStrengthHistory();
             localStorage.setItem('ernaehrung_v3', JSON.stringify({
                 settings,
                 dailyData,
-                dayHistory,
-                strengthHistory
+                dayHistory
             }));
         }
 
@@ -1120,7 +1114,6 @@
             const maintenance = getMaintenanceKcal();
             const menuKcal = getBaseKcal();
             const budget = getDailyBudget();
-            const targetDeficit = getDailyDeficitTarget();
             const targetKg = getWeeklyLossKg();
             const menuDeficit = Math.round(maintenance - menuKcal);
             const weeklyKg = dailyDeficitToWeeklyKg(menuDeficit);
@@ -1445,23 +1438,12 @@
             renderMenuBuilder();
         }
 
-        function hasDayActivity() {
-            return hasStrengthTotals(dailyData);
-        }
-
         function archiveCurrentDay(dateStr = dailyData.date) {
             if (!dateStr) return;
-
-            const baseKcal = getBaseKcal();
-            const maintenanceKcal = getMaintenanceKcal();
 
             const existing = dayHistory.findIndex(e => e.date === dateStr);
             const entry = {
                 date: dateStr,
-                baseKcal,
-                maintenanceKcal,
-                menuDeficit: Math.round(maintenanceKcal - baseKcal),
-                totalKcal: Math.round(baseKcal),
                 ...readStrengthTotals(dailyData),
                 completedAt: new Date().toISOString()
             };
@@ -1484,7 +1466,7 @@
 
             while (dailyData.date < today) {
                 const oldDate = dailyData.date;
-                if (hasDayActivity()) {
+                if (hasStrengthTotals(dailyData)) {
                     archiveCurrentDay(oldDate);
                 }
                 dailyData = {
@@ -1513,7 +1495,7 @@
             updateDeficitDisplay();
         }
 
-        function renderActivityHistoryHeader() {
+        function renderStrengthHistoryHeader() {
             return `<div class="section-header mb-2 px-0.5 flex items-center gap-x-1.5 text-slate-700 dark:text-slate-300">
                 <i class="fa-solid fa-calendar-week"></i>
                 <span>Wochenhistorie</span>
@@ -1568,25 +1550,11 @@
 
         function getStrengthDays() {
             const byDay = {};
-            const archivedDates = new Set(
-                dayHistory
-                    .filter(e => hasStrengthTotals(readStrengthTotals(e)))
-                    .map(e => e.date)
-            );
 
             dayHistory.forEach(e => {
                 const totals = readStrengthTotals(e);
                 if (!hasStrengthTotals(totals)) return;
                 byDay[e.date] = totals;
-            });
-
-            strengthHistory.forEach(e => {
-                const key = dateKeyFromEntry(e);
-                if (archivedDates.has(key) || key === dailyData.date) return;
-                if (!byDay[key]) byDay[key] = emptyStrengthTotals();
-                STRENGTH_EXERCISES.forEach(ex => {
-                    byDay[key][ex.key] += e[ex.key] || 0;
-                });
             });
 
             if (dailyData.date && hasStrengthTotals(dailyData)) {
@@ -1738,11 +1706,11 @@
             const displayWeeks = getStrengthWeeks();
 
             if (displayWeeks.length === 0) {
-                container.innerHTML = `${renderActivityHistoryHeader()}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
+                container.innerHTML = `${renderStrengthHistoryHeader()}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
                 return;
             }
 
-            container.innerHTML = renderActivityHistoryHeader() + renderStrengthHistoryTable(displayWeeks);
+            container.innerHTML = renderStrengthHistoryHeader() + renderStrengthHistoryTable(displayWeeks);
         }
 
         function isSettingsOpen() {
