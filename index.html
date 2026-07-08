@@ -125,7 +125,6 @@
         .protein-ampel-low { color: #dc2626; }
         .dark .protein-ampel-low { color: #f87171; }
 
-        #training-weeks-list,
         #strength-days-list {
             min-height: 0;
             overscroll-behavior: contain;
@@ -182,34 +181,11 @@
             display: none;
         }
 
-        .activity-pair-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
         @media (min-width: 1024px) {
-            .activity-pair-grid {
-                display: grid;
-                grid-template-columns: repeat(12, minmax(0, 1fr));
-                grid-template-rows: auto auto minmax(0, 1fr);
-                gap: 1rem;
-                align-items: stretch;
-            }
-
             .activity-card-subgrid {
                 display: grid;
-                grid-row: span 3 / span 3;
-                grid-template-rows: subgrid;
+                grid-template-rows: auto auto minmax(0, 1fr);
                 min-height: 0;
-            }
-
-            .activity-card-training {
-                grid-column: span 7 / span 7;
-            }
-
-            .activity-card-strength {
-                grid-column: span 5 / span 5;
             }
 
             .activity-history-weeks {
@@ -247,16 +223,9 @@
                 <div class="w-px h-10 sm:h-12 bg-white/30 shrink-0 self-center" aria-hidden="true"></div>
 
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 flex-1 min-w-0">
-                    <div class="flex items-baseline gap-2 sm:gap-3 shrink-0">
-                        <div class="flex items-baseline gap-1.5">
-                            <span id="header-menu-kcal" class="text-2xl sm:text-3xl font-bold tabular-nums leading-none">—</span>
-                            <span class="text-xs text-white/60 font-medium leading-tight">kcal<br>Menü</span>
-                        </div>
-                        <span class="text-white/35 text-lg font-medium leading-none pb-0.5">+</span>
-                        <div class="flex items-baseline gap-1.5">
-                            <span id="header-sport-kcal" class="text-xl sm:text-2xl font-bold tabular-nums leading-none text-white/40">0</span>
-                            <span id="header-sport-label" class="text-xs text-white/50 font-medium leading-tight">kcal<br>Sport</span>
-                        </div>
+                    <div class="flex items-baseline gap-1.5 shrink-0">
+                        <span id="header-menu-kcal" class="text-2xl sm:text-3xl font-bold tabular-nums leading-none">—</span>
+                        <span class="text-xs text-white/60 font-medium leading-tight">kcal<br>Menü</span>
                     </div>
                     <div class="text-xs text-white/60 min-w-0 w-full sm:w-auto">
                         <span id="deficit-display" class="text-white/55"></span>
@@ -278,29 +247,7 @@
         <div class="content-wrapper px-4 sm:px-6 pt-4 pb-6 space-y-4 w-full">
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                <div class="activity-pair-grid lg:col-span-12">
-                    <div class="ui-card rounded-3xl p-3 lg:p-4 min-w-0 activity-card-subgrid activity-card-training flex flex-col lg:grid">
-                        <div id="sport-card-tap" onclick="showAddTrainingModal()"
-                             class="activity-today cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] min-h-0">
-                            <div class="flex items-center justify-between mb-3 px-0.5 gap-2">
-                                <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-1.5 min-w-0">
-                                    <i class="fa-solid fa-person-running"></i>
-                                    <span>SPORT</span>
-                                </div>
-                                <div class="text-right shrink-0">
-                                    <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 leading-tight">Diese Woche</div>
-                                    <div id="training-week-total" class="text-xl font-extrabold tabular-nums text-slate-800 dark:text-slate-50 leading-none mt-0.5">0</div>
-                                </div>
-                            </div>
-                            <div id="refuel-section" class="min-h-0"></div>
-                        </div>
-                        <div id="training-progress" class="activity-records is-empty pt-2 border-t border-slate-100 dark:border-slate-700 min-h-0"></div>
-                        <div id="training-weeks-list"
-                             class="activity-history activity-history-weeks mt-2 pt-2 border-t border-slate-100 dark:border-slate-700"
-                             onwheel="event.stopPropagation()"></div>
-                    </div>
-
-                    <div id="strength-card" class="ui-card rounded-3xl p-4 min-w-0 activity-card-subgrid activity-card-strength flex flex-col lg:grid">
+                    <div id="strength-card" class="ui-card rounded-3xl p-4 lg:col-span-12 min-w-0 activity-card-subgrid flex flex-col lg:grid">
                         <div id="strength-card-tap" onclick="showStrengthModal()"
                              class="activity-today cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] min-h-0">
                             <div class="flex items-center justify-between mb-3 px-0.5 gap-2">
@@ -333,7 +280,6 @@
                              class="activity-history activity-history-weeks mt-2 pt-2 border-t border-slate-100 dark:border-slate-700"
                              onwheel="event.stopPropagation()"></div>
                     </div>
-                </div>
 
                 <div class="ui-card rounded-3xl p-4 lg:col-span-12 min-w-0">
                     <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
@@ -342,35 +288,6 @@
                     </div>
                     <div id="meals-today" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm"></div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Training Modal -->
-    <div id="add-training-modal" onclick="if (event.target.id === 'add-training-modal') hideAddTrainingModal()" class="hidden fixed inset-0 bg-black/60 flex items-end md:items-center justify-center z-[100]">
-        <div onclick="event.stopImmediatePropagation()" class="ui-modal w-full md:w-[440px] md:rounded-3xl rounded-t-3xl p-6">
-            <div class="flex justify-between mb-4">
-                <div class="font-bold text-xl">Training hinzufügen</div>
-                <button onclick="hideAddTrainingModal()" class="text-3xl text-slate-300 dark:text-slate-500">&times;</button>
-            </div>
-            <div class="space-y-4">
-                <select id="training-type-select" class="ui-input w-full border rounded-2xl px-4 py-3 text-sm" onchange="updateTrainingInputFields()">
-                    <option value="climbing">Klettern / Bouldern</option>
-                    <option value="gravel">Gravel Tour</option>
-                    <option value="trail">Trailrunning</option>
-                    <option value="skitour">Skitour</option>
-                    <option value="swim">Schwimmen (Kraul)</option>
-                </select>
-                <div id="training-input-fields"></div>
-                <div id="training-kcal-preview" class="hidden mt-2 px-4 py-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-800 rounded-2xl text-center">
-                    <div class="text-xs text-emerald-600 dark:text-emerald-400">Geschätzte Extra-kcal</div>
-                    <div id="training-kcal-preview-value" class="text-2xl font-bold text-emerald-700 dark:text-emerald-400">+0</div>
-                    <div id="training-kcal-preview-hint" class="hidden text-xs text-emerald-600/80 dark:text-emerald-400/80 mt-1"></div>
-                </div>
-            </div>
-            <div class="mt-6 flex gap-3">
-                <button onclick="hideAddTrainingModal()" class="flex-1 py-3 border border-slate-300 dark:border-slate-600 rounded-2xl font-bold">Abbrechen</button>
-                <button onclick="addTraining()" class="flex-1 py-3 bg-teal-700 text-white rounded-2xl font-bold">Hinzufügen</button>
             </div>
         </div>
     </div>
@@ -532,7 +449,7 @@
                         </button>
                         <input type="file" id="import-file-input" accept=".json,application/json" class="hidden" onchange="importDataFromFile(event)">
                     </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Sichert alle Daten (Menüs, Historie, Training) als JSON-Datei.</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Sichert alle Daten (Menüs, Historie, Kraft) als JSON-Datei.</p>
                     <div class="flex flex-col sm:flex-row gap-3 mt-3 pt-3 border-t border-slate-200 dark:border-slate-600">
                         <button type="button" onclick="loadDemoData()"
                                 class="flex-1 py-3 bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800 rounded-2xl text-sm font-bold flex items-center justify-center gap-2">
@@ -663,53 +580,16 @@
 
         const STRENGTH_HISTORY_GRID = 'grid-cols-[5.5rem_repeat(3,minmax(1.65rem,1fr))_2.25rem]';
 
-        const TRAINING_TYPES = [
-            {
-                key: 'gravel', short: 'Grav.',
-                icon: 'fa-bicycle',
-                value: 'text-emerald-600 dark:text-emerald-400',
-                card: 'border-emerald-200/80 bg-emerald-50/70 dark:border-emerald-800/40 dark:bg-emerald-950/30'
-            },
-            {
-                key: 'trail', short: 'Trail',
-                icon: 'fa-person-running',
-                value: 'text-orange-600 dark:text-orange-400',
-                card: 'border-orange-200/80 bg-orange-50/70 dark:border-orange-800/40 dark:bg-orange-950/30'
-            },
-            {
-                key: 'skitour', short: 'Ski',
-                icon: 'fa-person-skiing',
-                value: 'text-sky-600 dark:text-sky-400',
-                card: 'border-sky-200/80 bg-sky-50/70 dark:border-sky-800/40 dark:bg-sky-950/30'
-            },
-            {
-                key: 'climbing', short: 'Klet.',
-                icon: 'fa-mountain',
-                value: 'text-violet-600 dark:text-violet-400',
-                card: 'border-violet-200/80 bg-violet-50/70 dark:border-violet-800/40 dark:bg-violet-950/30'
-            },
-            {
-                key: 'swim', short: 'Schw.',
-                icon: 'fa-person-swimming',
-                value: 'text-cyan-600 dark:text-cyan-400',
-                card: 'border-cyan-200/80 bg-cyan-50/70 dark:border-cyan-800/40 dark:bg-cyan-950/30'
-            }
-        ];
-
-        const TRAINING_HISTORY_GRID = 'grid-cols-[5rem_repeat(5,minmax(1.65rem,1fr))_2.25rem]';
-
         let settings = { ...DEFAULT_SETTINGS };
         let activeMealSlot = 'Frühstück';
         let menuBuilderDraft = null;
         let ingredientEditorDraft = null;
         let dragIngState = { id: null, sourceSlot: null, sourceIndex: null };
-        let dailyData = { date: null, training: [], pushups: 0, pullups: 0, burpees: 0 };
+        let dailyData = { date: null, pushups: 0, pullups: 0, burpees: 0 };
         let dayHistory = [];
         let strengthHistory = [];
 
         let midnightCheckInterval = null;
-
-        let expandedTrainingWeek = null;
 
         function getTodayKey() {
             const d = new Date();
@@ -814,23 +694,6 @@
             { pushups: 35, pullups: 8, burpees: 8 }
         ];
 
-        const DEMO_TRAINING_CYCLE = [
-            [],
-            [{ type: 'gravel', km: 45, hm: 400, duration: 2.25 }],
-            [],
-            [{ type: 'trail', km: 14, hm: 700 }],
-            [{ type: 'gravel', km: 70, hm: 0, duration: 3 }],
-            [{ type: 'climbing', duration: 2 }],
-            [{ type: 'skitour', km: 4, hm: 750, duration: 1.5 }],
-            [],
-            [{ type: 'swim', km: 1.5 }],
-            [{ type: 'gravel', km: 55, hm: 550, duration: 3 }],
-            [{ type: 'trail', km: 18, hm: 900 }],
-            [],
-            [{ type: 'skitour', km: 6, hm: 900, duration: 3 }],
-            [{ type: 'gravel', km: 35, hm: 200, duration: 1.5 }]
-        ];
-
         function getDemoHistoryDayKeys() {
             const keys = [];
             for (let daysAgo = DEMO_DAYS; daysAgo >= 1; daysAgo--) {
@@ -849,49 +712,8 @@
             };
         }
 
-        function normalizeTrainingEntry(t) {
-            return {
-                ...t,
-                km: t.km || 0,
-                hm: t.hm || 0,
-                duration: t.duration || 0
-            };
-        }
-
-        function normalizeAllTraining() {
-            dailyData.training = (dailyData.training || []).map(normalizeTrainingEntry);
-            dayHistory.forEach(e => {
-                if (e.training?.length) e.training = e.training.map(normalizeTrainingEntry);
-            });
-        }
-
-        function buildDemoTrainingEntries(specs, dateKey) {
-            return specs.map(spec => {
-                const inputs = {
-                    type: spec.type,
-                    km: spec.km || 0,
-                    hm: spec.hm || 0,
-                    duration: spec.duration || 0
-                };
-                return {
-                    type: spec.type,
-                    label: buildTrainingLabel(inputs),
-                    kcalBonus: calculateTrainingKcal(inputs),
-                    km: inputs.km,
-                    hm: inputs.hm,
-                    duration: inputs.duration,
-                    date: isoAtNoon(dateKey)
-                };
-            });
-        }
-
-        function getDemoTrainingForDay(dayIndex, dateKey) {
-            const specs = DEMO_TRAINING_CYCLE[dayIndex % DEMO_TRAINING_CYCLE.length];
-            return buildDemoTrainingEntries(specs, dateKey);
-        }
-
         function loadDemoData() {
-            if (!confirm(`Beispieldaten laden? Kraft und Training (${DEMO_DAYS} Tage) werden überschrieben.`)) return;
+            if (!confirm(`Beispieldaten laden? Kraft-Historie (${DEMO_DAYS} Tage) wird überschrieben.`)) return;
 
             ensureMenuData();
             const maintenance = getMaintenanceKcal();
@@ -903,15 +725,13 @@
             demoDays.forEach((date, i) => {
                 const baseKcal = sumMenuKcal(settings.menuPlan, settings.ingredients);
                 const strength = getDemoStrengthForDay(i);
-                const training = getDemoTrainingForDay(i, date);
 
                 dayHistory.push({
                     date,
                     baseKcal,
                     maintenanceKcal: maintenance,
                     menuDeficit: maintenance - baseKcal,
-                    totalKcal: baseKcal + training.reduce((s, t) => s + (t.kcalBonus || 0), 0),
-                    training,
+                    totalKcal: baseKcal,
                     pushups: strength.pushups,
                     pullups: strength.pullups,
                     burpees: strength.burpees,
@@ -922,10 +742,6 @@
 
             dailyData = {
                 date: getTodayKey(),
-                training: buildDemoTrainingEntries(
-                    [{ type: 'gravel', km: 40, hm: 300, duration: 2 }],
-                    getTodayKey()
-                ),
                 pushups: 15,
                 pullups: 4,
                 burpees: 0
@@ -934,7 +750,7 @@
             settings.demoDataActive = true;
             saveData();
             updateUI();
-            alert('Beispieldaten geladen. Schau unter Training und Kraft.');
+            alert('Beispieldaten geladen. Schau unter Kraft.');
         }
 
         function clearDemoData() {
@@ -942,13 +758,12 @@
                 alert('Keine aktiven Beispieldaten.');
                 return;
             }
-            if (!confirm('Beispieldaten entfernen? Kraft- und Sport-Historie werden geleert.')) return;
+            if (!confirm('Beispieldaten entfernen? Kraft-Historie wird geleert.')) return;
 
             dayHistory = [];
             strengthHistory = [];
             dailyData = {
                 date: getTodayKey(),
-                training: [],
                 pushups: 0,
                 pullups: 0,
                 burpees: 0
@@ -973,12 +788,10 @@
 
             dailyData = {
                 date: parsed.dailyData?.date || getTodayKey(),
-                training: parsed.dailyData?.training || [],
                 pushups: parsed.dailyData?.pushups || 0,
                 pullups: parsed.dailyData?.pullups || 0,
                 burpees: parsed.dailyData?.burpees || 0
             };
-            normalizeAllTraining();
         }
 
         function emptyStrengthTotals() {
@@ -1244,7 +1057,7 @@
             display.textContent = `${tdee} kcal/Tag`;
             if (hint) {
                 hint.textContent =
-                    `Mifflin-St Jeor (BMR ${bmr}) × ${BASE_ACTIVITY_FACTOR} körperliche Arbeit · Sport-Verbrauch wird extra dazugegeben`;
+                    `Mifflin-St Jeor (BMR ${bmr}) × ${BASE_ACTIVITY_FACTOR} körperliche Arbeit`;
             }
             if (budgetDisplay) budgetDisplay.textContent = `${budget} kcal`;
             if (budgetHint) {
@@ -1289,27 +1102,10 @@
 
         function updateHeaderKcalDisplay() {
             const menuKcal = Math.round(getBaseKcal());
-            const sportKcal = Math.round(
-                dailyData.training.reduce((s, t) => s + (t.kcalBonus || 0), 0)
-            );
             const budget = getDailyBudget();
-
             const menuEl = document.getElementById('header-menu-kcal');
             menuEl.textContent = menuKcal;
             menuEl.title = `Menü ${menuKcal} kcal · Budget ${budget} kcal`;
-
-            const sportEl = document.getElementById('header-sport-kcal');
-            const sportLabel = document.getElementById('header-sport-label');
-            sportEl.textContent = sportKcal;
-            if (sportKcal > 0) {
-                sportEl.className = 'text-xl sm:text-2xl font-bold tabular-nums leading-none text-emerald-200';
-                sportLabel.className = 'text-xs text-emerald-200/80 font-medium leading-tight';
-                sportEl.title = `Sport extra heute +${sportKcal} kcal`;
-            } else {
-                sportEl.className = 'text-xl sm:text-2xl font-bold tabular-nums leading-none text-white/40';
-                sportLabel.className = 'text-xs text-white/50 font-medium leading-tight';
-                sportEl.title = 'Kein Sport heute — kein Extra';
-            }
         }
 
         function formatWeeklyKg(kg) {
@@ -1331,10 +1127,9 @@
             const el = document.getElementById('deficit-display');
             if (!el) return;
 
-            const sportKcal = dailyData.training.reduce((s, t) => s + (t.kcalBonus || 0), 0);
             el.title =
                 `Menü-Defizit −${menuDeficit} kcal/Tag · Erhaltung ${maintenance} · Menü ${menuKcal} · Budget ${budget} ` +
-                `(Ziel ≈ ${formatWeeklyKg(targetKg)} kg/Woche) · Sport heute +${sportKcal} kcal extra`;
+                `(Ziel ≈ ${formatWeeklyKg(targetKg)} kg/Woche)`;
 
             if (menuDeficit < 0) {
                 el.textContent = `≈ +${formatWeeklyKg(Math.abs(weeklyKg))} kg/Woche`;
@@ -1651,7 +1446,7 @@
         }
 
         function hasDayActivity() {
-            return dailyData.training.length > 0 || hasStrengthTotals(dailyData);
+            return hasStrengthTotals(dailyData);
         }
 
         function archiveCurrentDay(dateStr = dailyData.date) {
@@ -1659,8 +1454,6 @@
 
             const baseKcal = getBaseKcal();
             const maintenanceKcal = getMaintenanceKcal();
-            let totalKcal = baseKcal;
-            dailyData.training.forEach(t => { totalKcal += t.kcalBonus || 0; });
 
             const existing = dayHistory.findIndex(e => e.date === dateStr);
             const entry = {
@@ -1668,8 +1461,7 @@
                 baseKcal,
                 maintenanceKcal,
                 menuDeficit: Math.round(maintenanceKcal - baseKcal),
-                totalKcal: Math.round(totalKcal),
-                training: [...dailyData.training],
+                totalKcal: Math.round(baseKcal),
                 ...readStrengthTotals(dailyData),
                 completedAt: new Date().toISOString()
             };
@@ -1697,7 +1489,6 @@
                 }
                 dailyData = {
                     date: nextDateKey(oldDate),
-                    training: [],
                     pushups: 0,
                     pullups: 0,
                     burpees: 0
@@ -1716,442 +1507,10 @@
             updateStreakCounter();
 
             renderTodayMeals();
-            renderRefuelSection();
-            updateTrainingUI();
-
             updateStrengthUI();
 
             updateHeaderKcalDisplay();
             updateDeficitDisplay();
-        }
-
-        function getTrainingIcon(type) {
-            const icons = {
-                climbing: 'fa-mountain',
-                gravel: 'fa-bicycle',
-                trail: 'fa-person-running',
-                skitour: 'fa-person-skiing',
-                swim: 'fa-person-swimming'
-            };
-            return icons[type] || 'fa-dumbbell';
-        }
-
-        function renderRefuelSection() {
-            const container = document.getElementById('refuel-section');
-            if (dailyData.training.length === 0) {
-                container.innerHTML = `<div class="text-xs text-slate-400 py-4 text-center leading-relaxed">Noch keine Einheit heute.</div>`;
-                return;
-            }
-
-            let extraKcal = 0;
-            const sportCards = dailyData.training.map((t, index) => {
-                extraKcal += t.kcalBonus || 0;
-                const icon = getTrainingIcon(t.type);
-                const label = escapeHtml(t.label);
-                const kcal = t.kcalBonus || 0;
-                return `
-                    <div class="relative px-2 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 rounded-lg border border-emerald-100 dark:border-emerald-800 min-w-0" title="${label}" onclick="event.stopPropagation()">
-                        <button type="button" onclick="event.stopPropagation(); removeTraining(${index})" class="absolute top-1 right-1 text-emerald-400 hover:text-red-500 leading-none p-0.5" aria-label="Entfernen"><i class="fa-solid fa-times text-[9px]"></i></button>
-                        <div class="flex items-center gap-1 pr-3 min-w-0">
-                            <i class="fa-solid ${icon} text-emerald-600 dark:text-emerald-400 w-3 text-center shrink-0 text-[9px]"></i>
-                            <span class="truncate text-[10px] font-medium text-emerald-800 dark:text-emerald-200 leading-tight">${label}</span>
-                        </div>
-                        <div class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 pl-4 tabular-nums leading-none">+${formatTrainingKcal(kcal)}</div>
-                    </div>
-                `;
-            }).join('');
-
-            const showTotal = dailyData.training.length > 1;
-            container.innerHTML = `
-                <div class="grid grid-cols-2 gap-1.5">
-                    ${sportCards}
-                </div>
-                ${showTotal ? `
-                    <div class="mt-1.5 pt-1.5 border-t border-slate-200 dark:border-slate-600 flex items-baseline justify-between px-0.5" onclick="event.stopPropagation()">
-                        <span class="text-[10px] text-slate-500 dark:text-slate-400">Gesamt</span>
-                        <span class="text-base font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">+${formatTrainingKcal(Math.round(extraKcal))}</span>
-                    </div>
-                ` : ''}
-            `;
-        }
-
-        function buildTrainingEntry(inputs, dateKey = null) {
-            const stamp = dateKey ? isoAtNoon(dateKey) : new Date().toISOString();
-            return {
-                type: inputs.type,
-                label: buildTrainingLabel(inputs),
-                kcalBonus: calculateTrainingKcal(inputs),
-                km: inputs.km || 0,
-                hm: inputs.hm || 0,
-                duration: inputs.duration || 0,
-                date: stamp
-            };
-        }
-
-        function formatTrainingSessionDetail(t) {
-            const parts = [];
-            if (t.km > 0) parts.push(`${t.km} km`);
-            if (t.hm > 0) parts.push(`${t.hm} hm`);
-            if (t.duration > 0) parts.push(`${Number(t.duration).toFixed(1).replace('.', ',')} h`);
-            if (parts.length) return parts.join(' · ');
-            return t.label || '';
-        }
-
-        function showAddTrainingModal() {
-            document.getElementById('add-training-modal').classList.remove('hidden');
-            document.getElementById('add-training-modal').classList.add('flex');
-            updateTrainingInputFields();
-        }
-
-        function hideAddTrainingModal() {
-            document.getElementById('add-training-modal').classList.remove('flex');
-            document.getElementById('add-training-modal').classList.add('hidden');
-        }
-
-        function getTrainingInputs() {
-            const type = document.getElementById('training-type-select').value;
-            const durationEl = document.getElementById('train-duration');
-            const kmEl = document.getElementById('train-km');
-            const hmEl = document.getElementById('train-hm');
-
-            return {
-                type,
-                duration: durationEl ? parseFloat(durationEl.value) : 0,
-                km: kmEl ? parseFloat(kmEl.value) : 0,
-                hm: hmEl ? parseInt(hmEl.value, 10) : 0
-            };
-        }
-
-        function estimateGravelHours(km, hm) {
-            const rideH = km / 22;
-            const climbH = hm / 500;
-            return Math.max(0.75, Math.min(8, rideH + climbH));
-        }
-
-        function getGravelHours(km, hm, duration = 0) {
-            if (duration > 0) return duration;
-            return estimateGravelHours(km, hm);
-        }
-
-        function getGravelMet(km, hours, hm) {
-            const speed = km / Math.max(hours, 0.5);
-            let met = 5.5;
-            if (speed >= 28) met = 10;
-            else if (speed >= 24) met = 9;
-            else if (speed >= 20) met = 8;
-            else if (speed >= 16) met = 7;
-            else if (speed >= 12) met = 6;
-            const climbRate = hm / Math.max(hours, 0.5);
-            if (climbRate >= 400) met += 1.5;
-            else if (climbRate >= 250) met += 1;
-            else if (climbRate >= 100) met += 0.5;
-            return Math.min(met, 11.5);
-        }
-
-        function calculateGravelKcal(kg, km, hm, duration = 0) {
-            const hours = getGravelHours(km, hm, duration);
-            const met = getGravelMet(km, hours, hm);
-            const activity = met * kg * hours;
-            const floor = kg * (km * 0.28 + hm * 0.002);
-            return Math.round(Math.max(activity, floor));
-        }
-
-        function syncGravelDurationEstimate() {
-            const kmEl = document.getElementById('train-km');
-            const hmEl = document.getElementById('train-hm');
-            const durEl = document.getElementById('train-duration');
-            const durVal = document.getElementById('duration-val');
-            if (!kmEl || !hmEl || !durEl) return;
-
-            const est = estimateGravelHours(parseFloat(kmEl.value) || 0, parseInt(hmEl.value, 10) || 0);
-            durEl.value = est;
-            if (durVal) durVal.textContent = `${est.toFixed(1).replace('.', ',')} h`;
-        }
-
-        function estimateSkitourHours(km, hm) {
-            const climbH = hm / 400;
-            const moveH = 0.5 + km / 10;
-            return Math.max(1.5, Math.min(5.5, climbH + moveH));
-        }
-
-        function getSkitourHours(km, hm, duration = 0) {
-            if (duration > 0) return duration;
-            return estimateSkitourHours(km, hm);
-        }
-
-        function getSkitourMet(hm, hours) {
-            const climbRate = hm / Math.max(hours, 0.75);
-            if (climbRate >= 480) return 9.5;
-            if (climbRate >= 380) return 8.5;
-            if (climbRate >= 280) return 7.5;
-            if (climbRate >= 180) return 6.5;
-            return 5.5;
-        }
-
-        function calculateSkitourKcal(kg, km, hm, duration = 0) {
-            const hours = getSkitourHours(km, hm, duration);
-            const met = getSkitourMet(hm, hours);
-            const activity = met * kg * hours;
-            const floor = kg * (hm * 0.008 + km * 0.12);
-            return Math.round(Math.max(activity, floor));
-        }
-
-        function syncSkitourDurationEstimate() {
-            const kmEl = document.getElementById('train-km');
-            const hmEl = document.getElementById('train-hm');
-            const durEl = document.getElementById('train-duration');
-            const durVal = document.getElementById('duration-val');
-            if (!kmEl || !hmEl || !durEl) return;
-
-            const est = estimateSkitourHours(parseFloat(kmEl.value) || 0, parseInt(hmEl.value, 10) || 0);
-            durEl.value = est;
-            if (durVal) durVal.textContent = `${est.toFixed(1).replace('.', ',')} h`;
-        }
-
-        function calculateTrainingKcal(inputs) {
-            const kg = getBodyWeightKg();
-            if (inputs.type === 'climbing') {
-                return Math.round(kg * (inputs.duration || 2) * 5.5);
-            }
-            if (inputs.type === 'gravel') {
-                return calculateGravelKcal(kg, inputs.km || 0, inputs.hm || 0, inputs.duration || 0);
-            }
-            if (inputs.type === 'trail') {
-                return Math.round(kg * ((inputs.km || 0) * 1.05 + (inputs.hm || 0) * 0.003));
-            }
-            if (inputs.type === 'skitour') {
-                return calculateSkitourKcal(kg, inputs.km || 0, inputs.hm || 0, inputs.duration || 0);
-            }
-            if (inputs.type === 'swim') {
-                return Math.round(kg * (inputs.km || 0) * 4.3);
-            }
-            return 0;
-        }
-
-        function buildTrainingLabel(inputs) {
-            if (inputs.type === 'climbing') {
-                return `Klettern ${inputs.duration}h`;
-            }
-            if (inputs.type === 'gravel') {
-                const hours = getGravelHours(inputs.km || 0, inputs.hm || 0, inputs.duration || 0);
-                return `Gravel ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''} · ${hours.toFixed(1).replace('.', ',')}h`;
-            }
-            if (inputs.type === 'trail') {
-                return `Trailrun ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''}`;
-            }
-            if (inputs.type === 'skitour') {
-                const hours = getSkitourHours(inputs.km || 0, inputs.hm || 0, inputs.duration || 0);
-                return `Skitour ${inputs.km}km${inputs.hm > 0 ? ' / ' + inputs.hm + 'hm' : ''} · ${hours.toFixed(1).replace('.', ',')}h`;
-            }
-            if (inputs.type === 'swim') {
-                return `Kraul ${inputs.km}km`;
-            }
-            return '';
-        }
-
-        function updateTrainingKcalPreview() {
-            const preview = document.getElementById('training-kcal-preview');
-            const valueEl = document.getElementById('training-kcal-preview-value');
-            const hintEl = document.getElementById('training-kcal-preview-hint');
-            const inputs = getTrainingInputs();
-            const kcal = calculateTrainingKcal(inputs);
-
-            valueEl.textContent = `+${kcal}`;
-            if (inputs.type === 'gravel' || inputs.type === 'skitour') {
-                const km = inputs.km || 0;
-                const hm = inputs.hm || 0;
-                const est = inputs.type === 'gravel' ? estimateGravelHours(km, hm) : estimateSkitourHours(km, hm);
-                const hours = inputs.type === 'gravel'
-                    ? getGravelHours(km, hm, inputs.duration || 0)
-                    : getSkitourHours(km, hm, inputs.duration || 0);
-                const met = inputs.type === 'gravel'
-                    ? getGravelMet(km, hours, hm)
-                    : getSkitourMet(hm, hours);
-                const manual = inputs.duration > 0 && Math.abs(inputs.duration - est) > 0.2;
-                let hint = `${hours.toFixed(1).replace('.', ',')} h${manual ? '' : ' (geschätzt)'} · MET ${met}`;
-                if (inputs.type === 'skitour' && hm > 0 && hours < est - 0.4) {
-                    hint += ' · Dauer eher Gesamtzeit inkl. Abfahrt/Pause';
-                }
-                hintEl.textContent = hint;
-                hintEl.classList.remove('hidden');
-            } else if (hintEl) {
-                hintEl.classList.add('hidden');
-            }
-            preview.classList.remove('hidden');
-        }
-
-        function updateKcalDisplays() {
-            updateHeaderKcalDisplay();
-            updateDeficitDisplay();
-            renderTodayMeals();
-        }
-
-        function updateTrainingInputFields() {
-            const type = document.getElementById('training-type-select').value;
-            const container = document.getElementById('training-input-fields');
-            const onSlide = 'updateTrainingKcalPreview()';
-            container.innerHTML = '';
-
-            if (type === 'climbing') {
-                container.innerHTML = `
-                    <div>
-                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Dauer (Stunden)</label>
-                        <input type="range" id="train-duration" min="0.5" max="5" step="0.5" value="2" class="w-full mt-1" oninput="document.getElementById('duration-val').textContent = this.value + 'h'; ${onSlide}">
-                        <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>0.5h</div><div id="duration-val">2h</div><div>5h</div></div>
-                        <div class="text-xs text-slate-400 dark:text-slate-500 mt-2">ca. 5,5 kcal/kg/h</div>
-                    </div>
-                `;
-            } else if (type === 'gravel') {
-                const gravelOnSlide = 'syncGravelDurationEstimate(); updateTrainingKcalPreview()';
-                const defaultHours = estimateGravelHours(50, 500);
-                container.innerHTML = `
-                    <div class="space-y-3">
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km)</label>
-                            <input type="range" id="train-km" min="10" max="120" step="5" value="50" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + ' km'; ${gravelOnSlide}">
-                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>10 km</div><div id="km-val">50 km</div><div>120 km</div></div>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Höhenmeter (ca.)</label>
-                            <input type="range" id="train-hm" min="0" max="2000" step="50" value="500" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${gravelOnSlide}">
-                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>0</div><div id="hm-val">500 hm</div><div>2000</div></div>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Dauer (Stunden, bei Bedarf anpassen)</label>
-                            <input type="range" id="train-duration" min="0.75" max="8" step="0.25" value="${defaultHours}" class="w-full mt-1" oninput="document.getElementById('duration-val').textContent = parseFloat(this.value).toFixed(1).replace('.', ',') + ' h'; ${onSlide}">
-                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>45 min</div><div id="duration-val">${defaultHours.toFixed(1).replace('.', ',')} h</div><div>8 h</div></div>
-                        </div>
-                        <div class="text-xs text-slate-400 dark:text-slate-500">MET nach Tempo (km/h) + hm · Dauer = Gesamtzeit</div>
-                    </div>
-                `;
-            } else if (type === 'swim') {
-                container.innerHTML = `
-                    <div>
-                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km)</label>
-                        <input type="range" id="train-km" min="0.5" max="6" step="0.1" value="2" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = parseFloat(this.value).toFixed(1) + ' km'; ${onSlide}">
-                        <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>0,5 km</div><div id="km-val">2.0 km</div><div>6 km</div></div>
-                        <div class="text-xs text-slate-400 dark:text-slate-500 mt-2">ca. 4,3 kcal/kg/km (Kraul)</div>
-                    </div>
-                `;
-            } else if (type === 'trail') {
-                container.innerHTML = `
-                    <div class="space-y-3">
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km)</label>
-                            <input type="range" id="train-km" min="5" max="35" step="1" value="22" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + 'km'; ${onSlide}">
-                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>5km</div><div id="km-val">22km</div><div>35km</div></div>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Höhenmeter (ca.)</label>
-                            <input type="range" id="train-hm" min="0" max="1200" step="50" value="800" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${onSlide}">
-                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>0</div><div id="hm-val">800 hm</div><div>1200</div></div>
-                        </div>
-                        <div class="text-xs text-slate-400 dark:text-slate-500">ca. 1,05 kcal/kg/km + 0,003 kcal/kg/hm</div>
-                    </div>
-                `;
-            } else if (type === 'skitour') {
-                const skitourOnSlide = 'syncSkitourDurationEstimate(); updateTrainingKcalPreview()';
-                const defaultHours = estimateSkitourHours(5, 750);
-                container.innerHTML = `
-                    <div class="space-y-3">
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Distanz (km, Karte)</label>
-                            <input type="range" id="train-km" min="2" max="25" step="1" value="5" class="w-full mt-1" oninput="document.getElementById('km-val').textContent = this.value + ' km'; ${skitourOnSlide}">
-                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>2 km</div><div id="km-val">5 km</div><div>25 km</div></div>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Höhenmeter (ca.)</label>
-                            <input type="range" id="train-hm" min="200" max="2500" step="50" value="750" class="w-full mt-1" oninput="document.getElementById('hm-val').textContent = this.value + ' hm'; ${skitourOnSlide}">
-                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>200</div><div id="hm-val">750 hm</div><div>2500</div></div>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Dauer (Stunden, bei Bedarf anpassen)</label>
-                            <input type="range" id="train-duration" min="1" max="8" step="0.25" value="${defaultHours}" class="w-full mt-1" oninput="document.getElementById('duration-val').textContent = parseFloat(this.value).toFixed(1).replace('.', ',') + ' h'; ${onSlide}">
-                            <div class="flex justify-between text-xs text-slate-500 mt-0.5"><div>1 h</div><div id="duration-val">${defaultHours.toFixed(1).replace('.', ',')} h</div><div>8 h</div></div>
-                        </div>
-                        <div class="text-xs text-slate-400 dark:text-slate-500">MET steigt bei steiler/schneller Tour · Dauer = Gesamtzeit Ort zu Ort</div>
-                    </div>
-                `;
-            }
-
-            updateTrainingKcalPreview();
-        }
-
-        function addTraining() {
-            const inputs = getTrainingInputs();
-            const entry = buildTrainingEntry(inputs, dailyData.date);
-            dailyData.training.push(entry);
-            hideAddTrainingModal();
-            saveData();
-            renderRefuelSection();
-            updateKcalDisplays();
-            updateTrainingUI();
-        }
-
-        function removeTraining(index) {
-            dailyData.training.splice(index, 1);
-            saveData();
-            renderRefuelSection();
-            updateKcalDisplays();
-            updateTrainingUI();
-        }
-
-        function emptyTrainingWeekTotals() {
-            return Object.fromEntries(TRAINING_TYPES.map(t => [t.key, 0]));
-        }
-
-        function getTrainingDays() {
-            const byDay = {};
-
-            dayHistory.forEach(e => {
-                if (!e.training?.length) return;
-                byDay[e.date] = [...e.training];
-            });
-
-            if (dailyData.date && dailyData.training.length > 0) {
-                byDay[dailyData.date] = [...dailyData.training];
-            }
-
-            return Object.keys(byDay).sort().reverse().map(date => ({
-                date,
-                sessions: byDay[date]
-            }));
-        }
-
-        function getTrainingWeeks() {
-            const byWeek = {};
-
-            getTrainingDays().forEach(d => {
-                const weekStart = getWeekStartKey(d.date);
-                if (!byWeek[weekStart]) {
-                    byWeek[weekStart] = {
-                        weekStart,
-                        weekEnd: getWeekEndKey(weekStart),
-                        totalKcal: 0,
-                        ...emptyTrainingWeekTotals()
-                    };
-                }
-                d.sessions.forEach(t => {
-                    const kcal = t.kcalBonus || 0;
-                    if (TRAINING_TYPES.some(type => type.key === t.type)) {
-                        byWeek[weekStart][t.type] += kcal;
-                    }
-                    byWeek[weekStart].totalKcal += kcal;
-                });
-            });
-
-            return Object.keys(byWeek).sort().reverse().map(weekStart => byWeek[weekStart]);
-        }
-
-        function formatTrainingKcal(value) {
-            if (!value) return '·';
-            return Math.round(value).toLocaleString('de-CH');
-        }
-
-        function formatTrainingKcalTooltip(value, label = '') {
-            if (!value) return '';
-            const spelled = `${Math.round(value).toLocaleString('de-CH')} kcal Extra`;
-            return label ? `${label}: ${spelled}` : spelled;
         }
 
         function renderActivityHistoryHeader() {
@@ -2159,204 +1518,6 @@
                 <i class="fa-solid fa-calendar-week"></i>
                 <span>Wochenhistorie</span>
             </div>`;
-        }
-
-        function getTrainingDaysInWeek(weekStart) {
-            const weekEnd = getWeekEndKey(weekStart);
-            return getTrainingDays().filter(d => d.date >= weekStart && d.date <= weekEnd);
-        }
-
-        function toggleTrainingWeekDetail(weekStart) {
-            expandedTrainingWeek = expandedTrainingWeek === weekStart ? null : weekStart;
-            updateTrainingWeeksDisplay();
-        }
-
-        function renderTrainingWeekSessionsDetail(weekStart) {
-            const days = getTrainingDaysInWeek(weekStart);
-            const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-            return days.map(d => {
-                const weekday = dayNames[new Date(d.date + 'T12:00:00').getDay()];
-                const sessions = d.sessions.map(t => {
-                    const icon = getTrainingIcon(t.type);
-                    const detail = formatTrainingSessionDetail(t);
-                    return `
-                        <div class="flex items-start justify-between gap-2 py-0.5 pl-3">
-                            <div class="min-w-0 flex items-start gap-1.5">
-                                <i class="fa-solid ${icon} text-[8px] text-slate-400 mt-0.5 shrink-0"></i>
-                                <span class="text-[10px] text-slate-600 dark:text-slate-300 leading-tight">${escapeHtml(detail)}</span>
-                            </div>
-                            <span class="text-[10px] font-bold tabular-nums text-emerald-600 dark:text-emerald-400 shrink-0">+${formatTrainingKcal(t.kcalBonus || 0)}</span>
-                        </div>
-                    `;
-                }).join('');
-                return `
-                    <div class="py-1">
-                        <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400">${weekday} ${formatDateDE(d.date)}</div>
-                        ${sessions}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderTrainingHistoryTable(displayWeeks) {
-            const header = `
-                <div class="grid ${TRAINING_HISTORY_GRID} gap-x-1 items-end pb-1.5 mb-0.5 border-b border-slate-200/80 dark:border-slate-600/80">
-                    <span class="text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Woche</span>
-                    ${TRAINING_TYPES.map(type => `
-                        <span class="text-[9px] text-slate-400 dark:text-slate-500 text-center leading-tight flex flex-col items-center gap-0.5">
-                            <i class="fa-solid ${type.icon} text-[8px] opacity-60"></i>
-                            <span>${type.short}</span>
-                        </span>
-                    `).join('')}
-                    <span class="text-[9px] text-slate-500 dark:text-slate-400 text-center leading-tight font-bold">Σ</span>
-                </div>
-            `;
-            const thisWeekStart = getWeekStartKey(getTodayKey());
-            const rows = displayWeeks.map((w, i) => {
-                const total = w.totalKcal || 0;
-                const isCurrent = w.weekStart === thisWeekStart;
-                const isExpanded = expandedTrainingWeek === w.weekStart;
-                const rowBg = isCurrent
-                    ? 'bg-slate-100/90 dark:bg-slate-800/60 ring-1 ring-slate-200/80 dark:ring-slate-600/50'
-                    : (i % 2 === 0 ? 'bg-slate-50/60 dark:bg-slate-800/30' : '');
-                return `
-                <div class="rounded-lg ${rowBg}">
-                    <div class="grid ${TRAINING_HISTORY_GRID} gap-x-1 items-center py-1 px-1">
-                        <button type="button" onclick="toggleTrainingWeekDetail('${w.weekStart}')"
-                                class="text-left text-[10px] leading-tight font-medium whitespace-nowrap flex items-center gap-0.5 ${isCurrent ? 'text-slate-800 dark:text-slate-100 font-bold' : 'text-slate-600 dark:text-slate-300'}"
-                                title="${formatDateDE(w.weekStart)} – ${formatDateDE(w.weekEnd)}">
-                            <i class="fa-solid fa-chevron-right text-[7px] text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}"></i>
-                            <span>${getRelativeWeekLabel(w.weekStart)}</span>
-                        </button>
-                        ${TRAINING_TYPES.map(type => {
-                            const v = w[type.key] || 0;
-                            return `<span class="text-center tabular-nums text-xs leading-tight ${v > 0 ? `font-bold ${type.value}` : 'text-slate-300 dark:text-slate-600'}" title="${v > 0 ? formatTrainingKcalTooltip(v, type.short) : ''}">${formatTrainingKcal(v)}</span>`;
-                        }).join('')}
-                        <span class="text-center tabular-nums text-xs font-bold leading-tight ${total > 0 ? 'text-slate-700 dark:text-slate-200' : 'text-slate-300 dark:text-slate-600'}" title="${total > 0 ? formatTrainingKcalTooltip(total, 'Gesamt') : ''}">${formatTrainingKcal(total)}</span>
-                    </div>
-                    ${isExpanded ? `
-                        <div class="px-2 pb-2 pt-0.5 border-t border-slate-200/60 dark:border-slate-600/40 ml-1 mr-1 mb-0.5">
-                            ${renderTrainingWeekSessionsDetail(w.weekStart)}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-            }).join('');
-            return header + rows;
-        }
-
-        function getTrainingCurrentWeekTotal() {
-            const thisWeekStart = getWeekStartKey(getTodayKey());
-            const week = getTrainingWeeks().find(w => w.weekStart === thisWeekStart);
-            return week ? week.totalKcal : 0;
-        }
-
-        function getTrainingDayBreakdowns() {
-            return getTrainingDays().map(d => {
-                const totals = { ...emptyTrainingWeekTotals(), totalKcal: 0 };
-                d.sessions.forEach(t => {
-                    const kcal = t.kcalBonus || 0;
-                    if (TRAINING_TYPES.some(type => type.key === t.type)) {
-                        totals[t.type] += kcal;
-                    }
-                    totals.totalKcal += kcal;
-                });
-                return { date: d.date, ...totals };
-            });
-        }
-
-        function getTrainingRecords() {
-            const records = emptyTrainingWeekTotals();
-            getTrainingDayBreakdowns().forEach(d => {
-                TRAINING_TYPES.forEach(type => {
-                    records[type.key] = Math.max(records[type.key], d[type.key] || 0);
-                });
-            });
-            return records;
-        }
-
-        function hasTrainingRecords(records) {
-            return TRAINING_TYPES.some(type => records[type.key] > 0);
-        }
-
-        function getTrainingBestWeekTotal() {
-            let best = 0;
-            getTrainingWeeks().forEach(w => {
-                best = Math.max(best, w.totalKcal || 0);
-            });
-            return best;
-        }
-
-        function renderTrainingProgress() {
-            const container = document.getElementById('training-progress');
-            if (!container) return;
-            const records = getTrainingRecords();
-            const bestWeekTotal = getTrainingBestWeekTotal();
-
-            if (!hasTrainingRecords(records)) {
-                container.classList.add('is-empty');
-                container.innerHTML = '';
-                return;
-            }
-            container.classList.remove('is-empty');
-
-            const recordCards = TRAINING_TYPES
-                .filter(type => records[type.key] > 0)
-                .map(type => `
-                    <div class="rounded-xl border px-2.5 py-2.5 text-center min-w-0 ${type.card}" title="${formatTrainingKcalTooltip(records[type.key], `Bester Tag · ${type.short}`)}">
-                        <i class="fa-solid ${type.icon} text-sm opacity-60 mb-1.5 ${type.value}"></i>
-                        <div class="text-2xl font-bold tabular-nums leading-none ${type.value}">${formatTrainingKcal(records[type.key])}</div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-tight">${type.short} · kcal</div>
-                    </div>
-                `).join('');
-
-            const totalCard = bestWeekTotal > 0 ? `
-                <div class="rounded-xl border border-emerald-200/80 bg-emerald-50/70 dark:border-emerald-800/40 dark:bg-emerald-950/30 px-2.5 py-2.5 text-center min-w-0" title="${formatTrainingKcalTooltip(bestWeekTotal, 'Beste Woche')}">
-                    <i class="fa-solid fa-trophy text-sm opacity-60 mb-1.5 text-emerald-600 dark:text-emerald-400"></i>
-                    <div class="text-2xl font-extrabold tabular-nums leading-none text-emerald-700 dark:text-emerald-300">${formatTrainingKcal(bestWeekTotal)}</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-tight">Woche · kcal</div>
-                </div>
-            ` : '';
-
-            const cardCount = TRAINING_TYPES.filter(type => records[type.key] > 0).length + (bestWeekTotal > 0 ? 1 : 0);
-            const gridCols = cardCount >= 5 ? 'grid-cols-3 sm:grid-cols-6' : cardCount >= 4 ? 'grid-cols-4' : cardCount === 3 ? 'grid-cols-3' : 'grid-cols-2';
-
-            container.innerHTML = `
-                <div class="ui-panel rounded-2xl p-2.5 records-panel-inner">
-                    <div class="flex items-center gap-1.5 mb-2">
-                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-lg bg-amber-100 dark:bg-amber-950/50">
-                            <i class="fa-solid fa-trophy text-[10px] text-amber-600 dark:text-amber-400"></i>
-                        </span>
-                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Rekorde · bester Tag</span>
-                    </div>
-                    <div class="grid ${gridCols} gap-1.5">${recordCards}${totalCard}</div>
-                </div>
-            `;
-        }
-
-        function updateTrainingWeekSummary() {
-            const el = document.getElementById('training-week-total');
-            if (!el) return;
-            el.textContent = getTrainingCurrentWeekTotal();
-        }
-
-        function updateTrainingWeeksDisplay() {
-            const container = document.getElementById('training-weeks-list');
-            if (!container) return;
-            const displayWeeks = getTrainingWeeks();
-
-            if (displayWeeks.length === 0) {
-                container.innerHTML = `${renderActivityHistoryHeader()}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
-                return;
-            }
-
-            container.innerHTML = renderActivityHistoryHeader() + renderTrainingHistoryTable(displayWeeks);
-        }
-
-        function updateTrainingUI() {
-            updateTrainingWeekSummary();
-            renderTrainingProgress();
-            updateTrainingWeeksDisplay();
         }
 
         function parseButtonValues(str, fallback) {
@@ -2730,7 +1891,7 @@
         function init() {
             const demoHint = document.getElementById('demo-data-hint');
             if (demoHint) {
-                demoHint.textContent = `Testdaten für ${DEMO_DAYS} Tage Kraft & Training — relativ zu heute.`;
+                demoHint.textContent = `Testdaten für ${DEMO_DAYS} Tage Kraft — relativ zu heute.`;
             }
 
             loadData();
