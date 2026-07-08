@@ -246,8 +246,8 @@
 
         <div class="content-wrapper px-4 sm:px-6 pt-4 pb-6 space-y-4 w-full">
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                <div id="strength-card" class="ui-card rounded-3xl p-4 lg:col-span-12 min-w-0 strength-card-layout flex flex-col lg:grid">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:items-stretch">
+                <div id="strength-card" class="ui-card rounded-3xl p-4 min-w-0 h-full strength-card-layout flex flex-col lg:grid">
                     <div id="strength-card-tap" onclick="showStrengthModal()"
                          class="cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] min-h-0">
                         <div class="flex items-center justify-between mb-3 px-0.5 gap-2">
@@ -281,12 +281,12 @@
                          onwheel="event.stopPropagation()"></div>
                 </div>
 
-                <div class="ui-card rounded-3xl p-4 lg:col-span-12 min-w-0">
+                <div class="ui-card rounded-3xl p-4 min-w-0 h-full flex flex-col">
                     <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
                         <i class="fa-solid fa-utensils"></i>
                         <span>ESSEN</span>
                     </div>
-                    <div id="meals-today" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm"></div>
+                    <div id="meals-today" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm flex-1"></div>
                 </div>
             </div>
         </div>
