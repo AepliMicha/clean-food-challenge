@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
-        
+
         html, body {
             height: 100%;
             margin: 0;
@@ -74,7 +74,7 @@
 
         .dark .section-header { color: #94a3b8; }
         .dark .settings-section-title { color: #94a3b8; }
-        
+
         .content-wrapper {
             flex: 1;
         }
@@ -113,19 +113,6 @@
         .dark .protein-ampel-warn { color: #f5e88a; }
         .protein-ampel-low { color: #dc2626; }
         .dark .protein-ampel-low { color: #f87171; }
-
-        #strength-days-list {
-            min-height: 0;
-            overscroll-behavior: contain;
-            -webkit-overflow-scrolling: touch;
-            touch-action: pan-y;
-        }
-
-        .strength-history-weeks {
-            flex-shrink: 0;
-            height: 15.5rem;
-            overflow-y: auto;
-        }
 
         .app-container {
             width: 100%;
@@ -169,39 +156,17 @@
         details > summary::-webkit-details-marker {
             display: none;
         }
-
-        @media (min-width: 1024px) {
-            .strength-card-layout {
-                display: grid;
-                grid-template-rows: auto auto minmax(0, 1fr);
-                min-height: 0;
-            }
-
-            .strength-history-weeks {
-                height: auto;
-                max-height: none;
-            }
-
-            .strength-records.is-empty {
-                border-top-width: 0;
-                padding-top: 0;
-            }
-
-            .records-panel-inner {
-                min-height: 8.75rem;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="app-container">
-        
+
         <!-- Header -->
         <div class="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 text-white px-4 sm:px-6 py-3">
             <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
                 <div class="flex items-center gap-3 min-w-0 shrink-0">
                     <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0">
-                        <i class="fa-solid fa-trophy text-xl"></i>
+                        <i class="fa-solid fa-utensils text-xl"></i>
                     </div>
                     <div class="min-w-0">
                         <div id="current-day-name" class="font-display text-xl sm:text-2xl tracking-tight leading-tight"></div>
@@ -210,9 +175,6 @@
                 </div>
 
                 <div class="flex items-center gap-2 ml-auto shrink-0">
-                    <div id="streak-counter"
-                         class="inline-flex items-center px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-amber-300/20 border border-amber-200/35 text-xs sm:text-sm font-bold text-amber-100 tabular-nums tracking-tight shadow-sm whitespace-nowrap"
-                         title="seit 7.12.2025"></div>
                     <button onclick="showSettings()" class="px-3 py-2 bg-white/15 hover:bg-white/25 rounded-2xl text-sm font-medium flex items-center gap-x-2" title="Einstellungen">
                         <i class="fa-solid fa-cog"></i>
                         <span class="hidden sm:inline">Einstellungen</span>
@@ -222,74 +184,12 @@
         </div>
 
         <div class="content-wrapper px-4 sm:px-6 pt-4 pb-6 space-y-4 w-full">
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:items-stretch">
-                <div id="strength-card" class="ui-card rounded-3xl p-4 min-w-0 h-full strength-card-layout flex flex-col lg:grid">
-                    <div id="strength-card-tap" onclick="showStrengthModal()"
-                         class="cursor-pointer hover:opacity-95 transition-all active:scale-[0.99] min-h-0">
-                        <div class="flex items-center justify-between mb-3 px-0.5 gap-2">
-                            <div class="section-header text-slate-700 dark:text-slate-300 flex items-center gap-x-1.5 min-w-0">
-                                <i class="fa-solid fa-dumbbell"></i>
-                                <span>KRAFT</span>
-                            </div>
-                            <div class="text-right shrink-0">
-                                <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 leading-tight">Diese Woche</div>
-                                <div id="strength-week-total" class="text-xl font-extrabold tabular-nums text-slate-800 dark:text-slate-50 leading-none mt-0.5">0</div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 text-center">
-                            <div>
-                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">KLIMMZÜGE</div>
-                                <div class="text-2xl font-bold tabular-nums text-sky-600 dark:text-sky-400" id="pullups-today">0</div>
-                            </div>
-                            <div>
-                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">LIEGESTÜTZ</div>
-                                <div class="text-2xl font-bold tabular-nums text-yellow-600 dark:text-yellow-400" id="pushups-today">0</div>
-                            </div>
-                            <div>
-                                <div class="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">BURPEES</div>
-                                <div class="text-2xl font-bold tabular-nums text-rose-600 dark:text-rose-400" id="burpees-today">0</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="strength-progress" class="strength-records is-empty pt-2 border-t border-slate-100 dark:border-slate-700 min-h-0"></div>
-                    <div id="strength-days-list"
-                         class="strength-history-weeks mt-2 pt-2 border-t border-slate-100 dark:border-slate-700"
-                         onwheel="event.stopPropagation()"></div>
+            <div class="ui-card rounded-3xl p-4 min-w-0">
+                <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
+                    <i class="fa-solid fa-utensils"></i>
+                    <span>ESSEN</span>
                 </div>
-
-                <div class="ui-card rounded-3xl p-4 min-w-0 h-full flex flex-col">
-                    <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
-                        <i class="fa-solid fa-utensils"></i>
-                        <span>ESSEN</span>
-                    </div>
-                    <div id="meals-today" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm flex-1"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Strength Modal -->
-    <div id="strength-modal" onclick="if (event.target.id === 'strength-modal') hideStrengthModal()" class="hidden fixed inset-0 bg-black/60 flex items-end md:items-center justify-center z-[100]">
-        <div onclick="event.stopImmediatePropagation()" class="ui-modal w-full md:w-[400px] md:rounded-3xl rounded-t-3xl p-6">
-            <div class="flex justify-between mb-4">
-                <div class="font-bold text-xl">Kraft-Training eintragen</div>
-                <button onclick="hideStrengthModal()" class="text-3xl text-slate-300 dark:text-slate-500">&times;</button>
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">KLIMMZÜGE</label>
-                    <div id="strength-pullup-buttons" class="flex flex-wrap gap-2"></div>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">LIEGESTÜTZ</label>
-                    <div id="strength-pushup-buttons" class="flex flex-wrap gap-2"></div>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">BURPEES</label>
-                    <div id="strength-burpee-buttons" class="flex flex-wrap gap-2"></div>
-                </div>
+                <div id="meals-today" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm"></div>
             </div>
         </div>
     </div>
@@ -303,7 +203,6 @@
             </div>
 
             <div class="flex-1 overflow-y-auto px-5 sm:px-7 py-5 space-y-5">
-                <!-- Menü-Builder: Zutaten links, Mahlzeiten rechts -->
                 <div class="ui-panel rounded-3xl p-5 sm:p-6 space-y-4">
                     <div class="settings-section-title text-teal-700 dark:text-teal-400">MENÜ ZUSAMMENSTELLEN</div>
 
@@ -338,7 +237,6 @@
                     </div>
                 </div>
 
-                <!-- Unten: selten gebraucht -->
                 <details class="ui-panel rounded-3xl group">
                     <summary class="px-5 py-4 cursor-pointer list-none flex items-center justify-between font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
                         <span class="settings-section-title">ZUTATEN BEARBEITEN</span>
@@ -360,27 +258,6 @@
                 </details>
 
                 <div class="ui-panel rounded-3xl p-5">
-                    <div class="settings-section-title mb-3">KRAFT-BUTTONS</div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Klimmzüge (kommagetrennt)</label>
-                            <input type="text" id="settings-pullup-buttons" placeholder="4, 6, 8"
-                                   class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
-                        </div>
-                        <div>
-                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Liegestütz (kommagetrennt)</label>
-                            <input type="text" id="settings-pushup-buttons" placeholder="10, 15, 20"
-                                   class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
-                        </div>
-                        <div>
-                            <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Burpees (kommagetrennt)</label>
-                            <input type="text" id="settings-burpee-buttons" placeholder="5, 10, 15"
-                                   class="ui-input w-full border rounded-2xl px-4 py-2.5 text-base">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="ui-panel rounded-3xl p-5">
                     <div class="settings-section-title mb-3">BACKUP</div>
                     <div class="flex flex-col sm:flex-row gap-3">
                         <button type="button" onclick="exportData()"
@@ -393,20 +270,8 @@
                         </button>
                         <input type="file" id="import-file-input" accept=".json,application/json" class="hidden" onchange="importDataFromFile(event)">
                     </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Sichert alle Daten (Menüs, Historie, Kraft) als JSON-Datei.</p>
-                    <div class="flex flex-col sm:flex-row gap-3 mt-3 pt-3 border-t border-slate-200 dark:border-slate-600">
-                        <button type="button" onclick="loadDemoData()"
-                                class="flex-1 py-3 bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800 rounded-2xl text-sm font-bold flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-flask"></i> Beispieldaten laden
-                        </button>
-                        <button type="button" onclick="clearDemoData()"
-                                class="flex-1 py-3 border border-slate-300 dark:border-slate-600 rounded-2xl text-sm font-bold flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-eraser"></i> Beispieldaten entfernen
-                        </button>
-                    </div>
-                    <p id="demo-data-hint" class="text-xs text-slate-400 dark:text-slate-500 mt-2"></p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">Sichert Menü und Einstellungen als JSON-Datei.</p>
                 </div>
-
             </div>
 
             <div class="shrink-0 px-5 sm:px-7 py-4 border-t border-slate-100 dark:border-slate-700 flex gap-3 bg-white dark:bg-slate-900">
@@ -430,7 +295,6 @@
         const MEAL_KCAL_COLOR = 'text-teal-600 dark:text-teal-400';
         const MEAL_INGREDIENT_COLOR = 'text-slate-500 dark:text-slate-400';
         const DEFAULT_DAILY_BUDGET_KCAL = 1900;
-        const STREAK_START = '2025-12-07';
 
         const DEFAULT_INGREDIENTS = [
             { id: 'apfel', label: 'Apfel', kcal: 78, protein: 0 },
@@ -468,53 +332,11 @@
             'Abend': ['zucchini200', 'reis100', 'ei1', 'ei1', 'ei1', 'erbsen100']
         };
 
-        const DEFAULT_SETTINGS = {
-            pushupButtons: [10, 15, 20],
-            pullupButtons: [4, 6, 8],
-            burpeeButtons: [5, 10, 15]
-        };
-
-        const STRENGTH_EXERCISES = [
-            {
-                key: 'pullups', label: 'Klimmzüge', short: 'Klimm.',
-                icon: 'fa-arrow-up',
-                card: 'border-sky-200/80 bg-sky-50/70 dark:border-sky-800/40 dark:bg-sky-950/30',
-                value: 'text-sky-700 dark:text-sky-300',
-                buttonsKey: 'pullupButtons',
-                buttonsId: 'strength-pullup-buttons',
-                buttonClass: 'bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300'
-            },
-            {
-                key: 'pushups', label: 'Liegestütz', short: 'Lieg.',
-                icon: 'fa-dumbbell',
-                card: 'border-yellow-200/80 bg-yellow-50/70 dark:border-yellow-800/40 dark:bg-yellow-950/30',
-                value: 'text-yellow-700 dark:text-yellow-300',
-                buttonsKey: 'pushupButtons',
-                buttonsId: 'strength-pushup-buttons',
-                buttonClass: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300'
-            },
-            {
-                key: 'burpees', label: 'Burpees', short: 'Burp.',
-                icon: 'fa-fire',
-                card: 'border-rose-200/80 bg-rose-50/70 dark:border-rose-800/40 dark:bg-rose-950/30',
-                value: 'text-rose-700 dark:text-rose-300',
-                buttonsKey: 'burpeeButtons',
-                buttonsId: 'strength-burpee-buttons',
-                buttonClass: 'bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300'
-            }
-        ];
-
-        const STRENGTH_HISTORY_GRID = 'grid-cols-[5.5rem_repeat(3,minmax(1.65rem,1fr))_2.25rem]';
-
-        let settings = { ...DEFAULT_SETTINGS };
+        let settings = {};
         let activeMealSlot = 'Frühstück';
         let menuBuilderDraft = null;
         let ingredientEditorDraft = null;
         let dragIngState = { id: null, sourceSlot: null, sourceIndex: null };
-        let dailyData = { date: null, pushups: 0, pullups: 0, burpees: 0 };
-        let dayHistory = [];
-
-        let midnightCheckInterval = null;
 
         function getTodayKey() {
             const d = new Date();
@@ -526,219 +348,16 @@
             return `${d}.${m}.${y}`;
         }
 
-        function getWeekStartKey(dateStr) {
-            const d = new Date(dateStr + 'T12:00:00');
-            const day = d.getDay();
-            const diff = day === 0 ? -6 : 1 - day;
-            d.setDate(d.getDate() + diff);
-            return formatDateKey(d);
-        }
-
-        function getWeekEndKey(weekStartKey) {
-            const d = new Date(weekStartKey + 'T12:00:00');
-            d.setDate(d.getDate() + 6);
-            return formatDateKey(d);
-        }
-
-        function getISOWeekInfo(dateStr) {
-            const date = new Date(dateStr + 'T12:00:00');
-            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-            const dayNum = d.getUTCDay() || 7;
-            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-            return { week, year: d.getUTCFullYear() };
-        }
-
-        function getKWLabel(weekStart) {
-            const thursday = new Date(weekStart + 'T12:00:00');
-            thursday.setDate(thursday.getDate() + 3);
-            const { week, year } = getISOWeekInfo(formatDateKey(thursday));
-            const thisWeekStart = getWeekStartKey(getTodayKey());
-            const thisThursday = new Date(thisWeekStart + 'T12:00:00');
-            thisThursday.setDate(thisThursday.getDate() + 3);
-            const current = getISOWeekInfo(formatDateKey(thisThursday));
-            if (year === current.year) return `KW ${week}`;
-            return `KW ${week}/${year}`;
-        }
-
-        function getRelativeWeekLabel(weekStart) {
-            const thisWeekStart = getWeekStartKey(getTodayKey());
-            if (weekStart === thisWeekStart) return 'Diese Woche';
-            return getKWLabel(weekStart);
-        }
-
-        function formatDateKey(d) {
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        }
-
-        function dateKeyDaysAgo(n) {
-            const d = new Date(getTodayKey() + 'T12:00:00');
-            d.setDate(d.getDate() - n);
-            return formatDateKey(d);
-        }
-
-        function isoAtNoon(dateKey) {
-            return new Date(dateKey + 'T12:00:00').toISOString();
-        }
-
-        function nextDateKey(dateStr) {
-            const d = new Date(dateStr + 'T12:00:00');
-            d.setDate(d.getDate() + 1);
-            return formatDateKey(d);
-        }
-
-        const DEMO_DAYS = 28;
-        const DEMO_STRENGTH_PATTERN = [
-            { pushups: 15, pullups: 3, burpees: 5 },
-            { pushups: 20, pullups: 4, burpees: 0 },
-            { pushups: 18, pullups: 3, burpees: 5 },
-            { pushups: 22, pullups: 5, burpees: 0 },
-            { pushups: 25, pullups: 4, burpees: 8 },
-            { pushups: 30, pullups: 6, burpees: 10 },
-            { pushups: 35, pullups: 8, burpees: 8 }
-        ];
-
-        function getDemoHistoryDayKeys() {
-            const keys = [];
-            for (let daysAgo = DEMO_DAYS; daysAgo >= 1; daysAgo--) {
-                keys.push(dateKeyDaysAgo(daysAgo));
-            }
-            return keys;
-        }
-
-        function getDemoStrengthForDay(dayIndex) {
-            const base = DEMO_STRENGTH_PATTERN[dayIndex % DEMO_STRENGTH_PATTERN.length];
-            const weekIndex = Math.floor(dayIndex / 7);
-            return {
-                pushups: base.pushups + weekIndex * 5,
-                pullups: base.pullups + weekIndex,
-                burpees: base.burpees + Math.min(weekIndex * 2, 6)
-            };
-        }
-
-        function loadDemoData() {
-            if (!confirm(`Beispieldaten laden? Kraft-Historie (${DEMO_DAYS} Tage) wird überschrieben.`)) return;
-
-            ensureMenuData();
-            const demoDays = getDemoHistoryDayKeys();
-            dayHistory = [];
-
-            demoDays.forEach((date, i) => {
-                dayHistory.push({
-                    date,
-                    ...getDemoStrengthForDay(i),
-                    completedAt: isoAtNoon(date)
-                });
-            });
-
-            dailyData = {
-                date: getTodayKey(),
-                pushups: 15,
-                pullups: 4,
-                burpees: 0
-            };
-
-            settings.demoDataActive = true;
-            saveData();
-            updateUI();
-            alert('Beispieldaten geladen. Schau unter Kraft.');
-        }
-
-        function clearDemoData() {
-            if (!settings.demoDataActive) {
-                alert('Keine aktiven Beispieldaten.');
-                return;
-            }
-            if (!confirm('Beispieldaten entfernen? Kraft-Historie wird geleert.')) return;
-
-            dayHistory = [];
-            dailyData = {
-                date: getTodayKey(),
-                pushups: 0,
-                pullups: 0,
-                burpees: 0
-            };
-            delete settings.demoDataActive;
-            saveData();
-            updateUI();
-        }
-
         function loadData() {
             const saved = localStorage.getItem('ernaehrung_v3');
-            if (!saved) {
-                dailyData.date = getTodayKey();
-                return;
-            }
-
+            if (!saved) return;
             const parsed = JSON.parse(saved);
-            settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
+            settings = { ...parsed.settings };
             ensureMenuData();
-            dayHistory = parsed.dayHistory || [];
-            dailyData = {
-                date: parsed.dailyData?.date || getTodayKey(),
-                pushups: parsed.dailyData?.pushups || 0,
-                pullups: parsed.dailyData?.pullups || 0,
-                burpees: parsed.dailyData?.burpees || 0
-            };
-            migrateLegacyStrengthHistory(parsed.strengthHistory);
-        }
-
-        function emptyStrengthTotals() {
-            return Object.fromEntries(STRENGTH_EXERCISES.map(ex => [ex.key, 0]));
-        }
-
-        function readStrengthTotals(source) {
-            const totals = emptyStrengthTotals();
-            STRENGTH_EXERCISES.forEach(ex => {
-                totals[ex.key] = source[ex.key] || 0;
-            });
-            return totals;
-        }
-
-        function hasStrengthTotals(totals) {
-            return STRENGTH_EXERCISES.some(ex => totals[ex.key] > 0);
-        }
-
-        function legacyEntryDate(entry) {
-            if (typeof entry.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
-                return entry.date;
-            }
-            return formatDateKey(new Date(entry.date));
-        }
-
-        function migrateLegacyStrengthHistory(legacy = []) {
-            if (!legacy.length) return;
-
-            const byDate = Object.fromEntries(
-                dayHistory.filter(e => e.date).map(e => [e.date, e])
-            );
-
-            legacy.forEach(entry => {
-                const date = legacyEntryDate(entry);
-                if (date === dailyData.date) return;
-
-                const totals = readStrengthTotals(entry);
-                if (!hasStrengthTotals(totals)) return;
-
-                if (byDate[date]) {
-                    STRENGTH_EXERCISES.forEach(ex => {
-                        byDate[date][ex.key] = Math.max(byDate[date][ex.key] || 0, totals[ex.key]);
-                    });
-                } else {
-                    const merged = { date, ...totals, completedAt: isoAtNoon(date) };
-                    dayHistory.unshift(merged);
-                    byDate[date] = merged;
-                }
-            });
         }
 
         function saveData() {
-            localStorage.setItem('ernaehrung_v3', JSON.stringify({
-                settings,
-                dailyData,
-                dayHistory
-            }));
+            localStorage.setItem('ernaehrung_v3', JSON.stringify({ settings }));
         }
 
         function isLegacyDualMenuPlans(plans) {
@@ -803,6 +422,7 @@
             if (settings.ingredients?.length && (settings.menuPlan || settings.menuPlans)) {
                 ensureSingleMenuPlan();
                 migrateDailyBudget();
+                cleanupLegacySettings();
 
                 const version = settings.menuPlansVersion || 1;
                 if (version < MENU_PLANS_VERSION) {
@@ -819,6 +439,23 @@
             settings.menuPlan = JSON.parse(JSON.stringify(DEFAULT_MENU_PLAN));
             settings.menuPlansVersion = MENU_PLANS_VERSION;
             settings.dailyBudgetKcal = DEFAULT_DAILY_BUDGET_KCAL;
+            cleanupLegacySettings();
+        }
+
+        function cleanupLegacySettings() {
+            delete settings.darkMode;
+            delete settings.weeklyLossKg;
+            delete settings.bodyWeightKg;
+            delete settings.heightCm;
+            delete settings.age;
+            delete settings.sex;
+            delete settings.dailyBudget;
+            delete settings.maintenanceManual;
+            delete settings.maintenanceKcal;
+            delete settings.pushupButtons;
+            delete settings.pullupButtons;
+            delete settings.burpeeButtons;
+            delete settings.demoDataActive;
             delete settings.mealPool;
             delete settings.mealPlans;
             delete settings.meals;
@@ -865,34 +502,6 @@
             return v > 0 ? v : getDailyBudget();
         }
 
-        function getStreakDays(startDateKey = STREAK_START) {
-            const start = new Date(startDateKey + 'T12:00:00');
-            const today = new Date(getTodayKey() + 'T12:00:00');
-            if (today < start) return 0;
-            return Math.floor((today - start) / 86400000) + 1;
-        }
-
-        function getStreakMonths(days) {
-            const avgDaysPerMonth = 365.25 / 12;
-            return Math.round((days / avgDaysPerMonth) * 10) / 10;
-        }
-
-        function formatStreakMonths(days) {
-            return getStreakMonths(days).toFixed(1).replace('.', ',');
-        }
-
-        function updateStreakCounter() {
-            const el = document.getElementById('streak-counter');
-            if (!el) return;
-            const days = getStreakDays();
-            if (days <= 0) {
-                el.textContent = '';
-                return;
-            }
-            el.textContent = `${days} ${days === 1 ? 'Tag' : 'Tage'} (${formatStreakMonths(days)} Monate)`;
-            el.title = `seit ${formatDateDE(STREAK_START)}`;
-        }
-
         function getBuilderBudget() {
             if (isSettingsOpen()) return getPreviewDailyBudget();
             return getDailyBudget();
@@ -920,11 +529,6 @@
                 });
             });
             return total;
-        }
-
-        function getBaseProtein() {
-            ensureMenuData();
-            return sumMenuProtein(settings.menuPlan, settings.ingredients);
         }
 
         function escapeHtml(str) {
@@ -1190,276 +794,11 @@
             renderMenuBuilder();
         }
 
-        function archiveCurrentDay(dateStr = dailyData.date) {
-            if (!dateStr) return;
-
-            const existing = dayHistory.findIndex(e => e.date === dateStr);
-            const entry = {
-                date: dateStr,
-                ...readStrengthTotals(dailyData),
-                completedAt: new Date().toISOString()
-            };
-
-            if (existing >= 0) dayHistory[existing] = entry;
-            else dayHistory.unshift(entry);
-
-            if (dayHistory.length > 90) dayHistory = dayHistory.slice(0, 90);
-        }
-
-        function checkDayRollover() {
-            const today = getTodayKey();
-            if (!dailyData.date) {
-                dailyData.date = today;
-                return false;
-            }
-            if (dailyData.date === today) return false;
-
-            let rolled = false;
-
-            while (dailyData.date < today) {
-                const oldDate = dailyData.date;
-                if (hasStrengthTotals(dailyData)) {
-                    archiveCurrentDay(oldDate);
-                }
-                dailyData = {
-                    date: nextDateKey(oldDate),
-                    pushups: 0,
-                    pullups: 0,
-                    burpees: 0
-                };
-                rolled = true;
-            }
-
-            if (rolled) saveData();
-            return rolled;
-        }
-
         function updateUI() {
             const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
             document.getElementById('current-day-name').textContent = dayNames[new Date().getDay()];
             document.getElementById('current-day-date').textContent = formatDateDE(getTodayKey());
-            updateStreakCounter();
-
             renderTodayMeals();
-            updateStrengthUI();
-        }
-
-        function renderStrengthHistoryHeader() {
-            return `<div class="section-header mb-2 px-0.5 flex items-center gap-x-1.5 text-slate-700 dark:text-slate-300">
-                <i class="fa-solid fa-calendar-week"></i>
-                <span>Wochenhistorie</span>
-            </div>`;
-        }
-
-        function parseButtonValues(str, fallback) {
-            const values = str.split(',').map(s => parseInt(s.trim(), 10)).filter(n => n > 0);
-            return values.length ? values : fallback;
-        }
-
-        function formatButtonValues(values) {
-            return values.join(', ');
-        }
-
-        function renderStrengthButtons() {
-            STRENGTH_EXERCISES.forEach(ex => {
-                const values = settings[ex.buttonsKey] || DEFAULT_SETTINGS[ex.buttonsKey];
-                document.getElementById(ex.buttonsId).innerHTML = values.map(amount =>
-                    `<button onclick="quickAddStrength('${ex.key}', ${amount})" class="flex-1 min-w-[4rem] py-3 ${ex.buttonClass} rounded-2xl text-sm font-bold">+${amount}</button>`
-                ).join('');
-            });
-        }
-
-        function showStrengthModal() {
-            renderStrengthButtons();
-            document.getElementById('strength-modal').classList.remove('hidden');
-            document.getElementById('strength-modal').classList.add('flex');
-        }
-
-        function hideStrengthModal() {
-            document.getElementById('strength-modal').classList.remove('flex');
-            document.getElementById('strength-modal').classList.add('hidden');
-        }
-
-        function quickAddStrength(type, amount) {
-            dailyData[type] = (dailyData[type] || 0) + amount;
-            hideStrengthModal();
-            saveData();
-            updateStrengthUI();
-        }
-
-        function updateStrengthUI() {
-            STRENGTH_EXERCISES.forEach(ex => {
-                const el = document.getElementById(`${ex.key}-today`);
-                if (el) el.textContent = dailyData[ex.key] || 0;
-            });
-            updateStrengthWeekSummary();
-            updateStrengthDaysDisplay();
-            renderStrengthProgress();
-        }
-
-        function getStrengthDays() {
-            const byDay = {};
-
-            dayHistory.forEach(e => {
-                const totals = readStrengthTotals(e);
-                if (!hasStrengthTotals(totals)) return;
-                byDay[e.date] = totals;
-            });
-
-            if (dailyData.date && hasStrengthTotals(dailyData)) {
-                byDay[dailyData.date] = readStrengthTotals(dailyData);
-            }
-
-            return Object.keys(byDay).sort().reverse().map(date => ({
-                date,
-                ...byDay[date]
-            }));
-        }
-
-        function getStrengthWeeks() {
-            const byWeek = {};
-
-            getStrengthDays().forEach(d => {
-                const weekStart = getWeekStartKey(d.date);
-                if (!byWeek[weekStart]) {
-                    byWeek[weekStart] = {
-                        weekStart,
-                        weekEnd: getWeekEndKey(weekStart),
-                        ...emptyStrengthTotals()
-                    };
-                }
-                STRENGTH_EXERCISES.forEach(ex => {
-                    byWeek[weekStart][ex.key] += d[ex.key] || 0;
-                });
-            });
-
-            return Object.keys(byWeek).sort().reverse().map(weekStart => byWeek[weekStart]);
-        }
-
-        function getStrengthTotal(entry) {
-            return STRENGTH_EXERCISES.reduce((sum, ex) => sum + (entry[ex.key] || 0), 0);
-        }
-
-        function renderStrengthHistoryTable(displayWeeks) {
-            const header = `
-                <div class="grid ${STRENGTH_HISTORY_GRID} gap-x-1 items-end pb-1.5 mb-0.5 border-b border-slate-200/80 dark:border-slate-600/80">
-                    <span class="text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Woche</span>
-                    ${STRENGTH_EXERCISES.map(ex => `
-                        <span class="text-[9px] text-slate-400 dark:text-slate-500 text-center leading-tight flex flex-col items-center gap-0.5">
-                            <i class="fa-solid ${ex.icon} text-[8px] opacity-60"></i>
-                            <span>${ex.short}</span>
-                        </span>
-                    `).join('')}
-                    <span class="text-[9px] text-slate-500 dark:text-slate-400 text-center leading-tight font-bold">Σ</span>
-                </div>
-            `;
-            const thisWeekStart = getWeekStartKey(getTodayKey());
-            const rows = displayWeeks.map((w, i) => {
-                const total = getStrengthTotal(w);
-                const isCurrent = w.weekStart === thisWeekStart;
-                const rowBg = isCurrent
-                    ? 'bg-slate-100/90 dark:bg-slate-800/60 ring-1 ring-slate-200/80 dark:ring-slate-600/50'
-                    : (i % 2 === 0 ? 'bg-slate-50/60 dark:bg-slate-800/30' : '');
-                return `
-                <div class="grid ${STRENGTH_HISTORY_GRID} gap-x-1 items-center py-1 px-1 rounded-lg ${rowBg}">
-                    <span class="text-[10px] leading-tight font-medium whitespace-nowrap ${isCurrent ? 'text-slate-800 dark:text-slate-100 font-bold' : 'text-slate-600 dark:text-slate-300'}" title="${formatDateDE(w.weekStart)} – ${formatDateDE(w.weekEnd)}">${getRelativeWeekLabel(w.weekStart)}</span>
-                    ${STRENGTH_EXERCISES.map(ex => {
-                        const v = w[ex.key] || 0;
-                        return `<span class="text-center tabular-nums text-xs ${v > 0 ? `font-bold ${ex.value}` : 'text-slate-300 dark:text-slate-600'}">${v > 0 ? v : '·'}</span>`;
-                    }).join('')}
-                    <span class="text-center tabular-nums text-xs font-bold ${total > 0 ? 'text-slate-700 dark:text-slate-200' : 'text-slate-300 dark:text-slate-600'}">${total > 0 ? total : '·'}</span>
-                </div>
-            `;
-            }).join('');
-            return header + rows;
-        }
-
-        function getStrengthRecords() {
-            const records = emptyStrengthTotals();
-            getStrengthDays().forEach(d => {
-                STRENGTH_EXERCISES.forEach(ex => {
-                    records[ex.key] = Math.max(records[ex.key], d[ex.key] || 0);
-                });
-            });
-            return records;
-        }
-
-        function getStrengthBestWeekTotal() {
-            let best = 0;
-            getStrengthWeeks().forEach(w => {
-                best = Math.max(best, getStrengthTotal(w));
-            });
-            return best;
-        }
-
-        function getStrengthCurrentWeekTotal() {
-            const thisWeekStart = getWeekStartKey(getTodayKey());
-            const week = getStrengthWeeks().find(w => w.weekStart === thisWeekStart);
-            return week ? getStrengthTotal(week) : 0;
-        }
-
-        function updateStrengthWeekSummary() {
-            const el = document.getElementById('strength-week-total');
-            if (!el) return;
-            el.textContent = getStrengthCurrentWeekTotal();
-        }
-
-        function renderStrengthProgress() {
-            const container = document.getElementById('strength-progress');
-            const records = getStrengthRecords();
-            const bestWeekTotal = getStrengthBestWeekTotal();
-
-            if (!hasStrengthTotals(records)) {
-                container.classList.add('is-empty');
-                container.innerHTML = '';
-                return;
-            }
-            container.classList.remove('is-empty');
-
-            const recordCards = STRENGTH_EXERCISES
-                .filter(ex => records[ex.key] > 0)
-                .map(ex => `
-                    <div class="rounded-xl border px-2.5 py-2.5 text-center min-w-0 ${ex.card}">
-                        <i class="fa-solid ${ex.icon} text-sm opacity-60 mb-1.5 ${ex.value}"></i>
-                        <div class="text-2xl font-bold tabular-nums leading-none ${ex.value}">${records[ex.key]}</div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-tight">${ex.short}</div>
-                    </div>
-                `).join('');
-
-            const totalCard = bestWeekTotal > 0 ? `
-                <div class="rounded-xl border border-slate-200/80 bg-slate-50/70 dark:border-slate-600/40 dark:bg-slate-800/40 px-2.5 py-2.5 text-center min-w-0">
-                    <i class="fa-solid fa-trophy text-sm opacity-60 mb-1.5 text-slate-500 dark:text-slate-400"></i>
-                    <div class="text-2xl font-extrabold tabular-nums leading-none text-slate-800 dark:text-slate-100">${bestWeekTotal}</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-tight">Woche · Σ</div>
-                </div>
-            ` : '';
-
-            const cardCount = STRENGTH_EXERCISES.filter(ex => records[ex.key] > 0).length + (bestWeekTotal > 0 ? 1 : 0);
-            const gridCols = cardCount >= 4 ? 'grid-cols-4' : cardCount === 3 ? 'grid-cols-3' : 'grid-cols-2';
-
-            container.innerHTML = `
-                <div class="ui-panel rounded-2xl p-2.5 records-panel-inner">
-                    <div class="flex items-center gap-1.5 mb-2">
-                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-lg bg-amber-100 dark:bg-amber-950/50">
-                            <i class="fa-solid fa-trophy text-[10px] text-amber-600 dark:text-amber-400"></i>
-                        </span>
-                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Rekorde · bester Tag</span>
-                    </div>
-                    <div class="grid ${gridCols} gap-1.5">${recordCards}${totalCard}</div>
-                </div>
-            `;
-        }
-
-        function updateStrengthDaysDisplay() {
-            const container = document.getElementById('strength-days-list');
-            const displayWeeks = getStrengthWeeks();
-
-            if (displayWeeks.length === 0) {
-                container.innerHTML = `${renderStrengthHistoryHeader()}<div class="text-xs text-slate-400 dark:text-slate-500 text-center py-2">Noch keine Einträge</div>`;
-                return;
-            }
-
-            container.innerHTML = renderStrengthHistoryHeader() + renderStrengthHistoryTable(displayWeeks);
         }
 
         function isSettingsOpen() {
@@ -1489,9 +828,9 @@
             reader.onload = (e) => {
                 try {
                     const parsed = JSON.parse(e.target.result);
-                    if (!parsed.settings && !parsed.dailyData) throw new Error('invalid');
+                    if (!parsed.settings) throw new Error('invalid');
                     if (!confirm('Alle aktuellen Daten werden ersetzt. Fortfahren?')) return;
-                    localStorage.setItem('ernaehrung_v3', JSON.stringify(parsed));
+                    localStorage.setItem('ernaehrung_v3', JSON.stringify({ settings: parsed.settings }));
                     location.reload();
                 } catch (err) {
                     alert('Ungültige Backup-Datei.');
@@ -1504,12 +843,6 @@
         function showSettings() {
             ensureMenuData();
             document.getElementById('settings-daily-budget').value = getDailyBudget();
-            document.getElementById('settings-pushup-buttons').value =
-                formatButtonValues(settings.pushupButtons || DEFAULT_SETTINGS.pushupButtons);
-            document.getElementById('settings-pullup-buttons').value =
-                formatButtonValues(settings.pullupButtons || DEFAULT_SETTINGS.pullupButtons);
-            document.getElementById('settings-burpee-buttons').value =
-                formatButtonValues(settings.burpeeButtons || DEFAULT_SETTINGS.burpeeButtons);
             menuBuilderDraft = {
                 ingredients: JSON.parse(JSON.stringify(settings.ingredients)),
                 menuPlan: JSON.parse(JSON.stringify(settings.menuPlan))
@@ -1552,29 +885,9 @@
         }
 
         function saveSettings() {
-            settings.pushupButtons = parseButtonValues(
-                document.getElementById('settings-pushup-buttons').value,
-                DEFAULT_SETTINGS.pushupButtons
-            );
-            settings.pullupButtons = parseButtonValues(
-                document.getElementById('settings-pullup-buttons').value,
-                DEFAULT_SETTINGS.pullupButtons
-            );
-            settings.burpeeButtons = parseButtonValues(
-                document.getElementById('settings-burpee-buttons').value,
-                DEFAULT_SETTINGS.burpeeButtons
-            );
             const budget = parseInt(document.getElementById('settings-daily-budget').value, 10);
             settings.dailyBudgetKcal = budget > 0 ? budget : DEFAULT_DAILY_BUDGET_KCAL;
-            delete settings.darkMode;
-            delete settings.weeklyLossKg;
-            delete settings.bodyWeightKg;
-            delete settings.heightCm;
-            delete settings.age;
-            delete settings.sex;
-            delete settings.dailyBudget;
-            delete settings.maintenanceManual;
-            delete settings.maintenanceKcal;
+            cleanupLegacySettings();
             if (menuBuilderDraft) {
                 settings.ingredients = JSON.parse(JSON.stringify(menuBuilderDraft.ingredients));
                 settings.menuPlan = JSON.parse(JSON.stringify(menuBuilderDraft.menuPlan));
@@ -1587,35 +900,13 @@
             saveData();
         }
 
-        function startMidnightCheck() {
-            if (midnightCheckInterval) clearInterval(midnightCheckInterval);
-            midnightCheckInterval = setInterval(() => {
-                if (checkDayRollover()) {
-                    updateUI();
-                }
-            }, 60000);
-        }
-
         function init() {
-            const demoHint = document.getElementById('demo-data-hint');
-            if (demoHint) {
-                demoHint.textContent = `Testdaten für ${DEMO_DAYS} Tage Kraft — relativ zu heute.`;
-            }
-
             loadData();
             ensureMenuData();
-            const rolledOver = checkDayRollover();
-            if (rolledOver) saveData();
             updateUI();
-            startMidnightCheck();
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible' && checkDayRollover()) {
-                    updateUI();
-                    saveData();
-                }
-            });
+            saveData();
         }
-        
+
         window.onload = init;
     </script>
 </body>
