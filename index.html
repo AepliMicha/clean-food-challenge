@@ -62,21 +62,12 @@
             color: #f1f5f9;
         }
 
-        .ui-modal {
-            background: #ffffff;
-            color: #1e293b;
-        }
-
-        .dark .ui-modal {
-            background: #1e293b;
-            color: #f1f5f9;
-        }
-
         .dark .section-header { color: #94a3b8; }
         .dark .settings-section-title { color: #94a3b8; }
 
         .content-wrapper {
             flex: 1;
+            min-height: 0;
         }
 
         .font-display {
@@ -97,14 +88,6 @@
 
         .dark .accent-gold {
             color: #f5e88a;
-        }
-
-        .meal-row {
-            border: 1px solid #f1f5f9;
-        }
-
-        .dark .meal-row {
-            border-color: #334155;
         }
 
         .protein-ampel-ok { color: #047857; }
@@ -153,8 +136,14 @@
             color: #64748b;
         }
 
-        details > summary::-webkit-details-marker {
-            display: none;
+        #ingredient-pool {
+            max-height: 14rem;
+        }
+
+        @media (min-width: 1024px) {
+            #ingredient-pool {
+                max-height: none;
+            }
         }
     </style>
 </head>
@@ -162,7 +151,7 @@
     <div class="app-container">
 
         <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 text-white px-4 sm:px-6 py-3">
+        <div class="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 text-white px-4 sm:px-6 py-3 shrink-0">
             <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
                 <div class="flex items-center gap-3 min-w-0 shrink-0">
                     <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0">
@@ -183,13 +172,32 @@
             </div>
         </div>
 
-        <div class="content-wrapper px-4 sm:px-6 pt-4 pb-6 space-y-4 w-full">
-            <div class="ui-card rounded-3xl p-4 min-w-0">
-                <div class="section-header mb-3 px-1 text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
-                    <i class="fa-solid fa-utensils"></i>
-                    <span>ESSEN</span>
+        <div class="content-wrapper px-4 sm:px-6 pt-4 pb-6 w-full">
+            <div class="ui-card rounded-3xl p-4 sm:p-5 min-w-0 space-y-4">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="section-header text-teal-700 dark:text-teal-400 flex items-center gap-x-2">
+                        <i class="fa-solid fa-utensils"></i>
+                        <span>MENÜ</span>
+                    </div>
+                    <div class="text-right">
+                        <div id="menu-remaining-kcal" class="text-sm font-bold text-teal-700 dark:text-teal-400"></div>
+                        <div id="menu-protein-ampel" class="text-xs font-semibold mt-0.5"></div>
+                    </div>
                 </div>
-                <div id="meals-today" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-[minmax(200px,260px)_1fr] gap-4 lg:gap-5 items-start">
+                    <div class="flex flex-col min-h-0">
+                        <div class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium shrink-0">
+                            Zutaten
+                            <span class="text-slate-400 dark:text-slate-500 font-normal block text-xs mt-0.5">Ziehen oder klicken · aktiv: <span id="active-meal-label" class="font-semibold text-teal-600 dark:text-teal-400">Frühstück</span></span>
+                        </div>
+                        <div id="ingredient-pool" class="ui-panel flex flex-col gap-2 p-2 rounded-2xl overflow-y-auto lg:max-h-[calc(100dvh-12rem)]"></div>
+                    </div>
+                    <div class="flex flex-col min-h-0">
+                        <div class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">Mahlzeiten</div>
+                        <div id="meal-slots-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-base"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -203,59 +211,30 @@
             </div>
 
             <div class="flex-1 overflow-y-auto px-5 sm:px-7 py-5 space-y-5">
-                <div class="ui-panel rounded-3xl p-5 sm:p-6 space-y-4">
-                    <div class="settings-section-title text-teal-700 dark:text-teal-400">MENÜ ZUSAMMENSTELLEN</div>
-
+                <div class="ui-panel rounded-3xl p-5">
+                    <div class="settings-section-title mb-3">TAGESBASIS</div>
                     <div class="max-w-sm">
-                        <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">Tagesbasis (kcal)</label>
+                        <label class="text-sm text-slate-600 dark:text-slate-400 block mb-1.5 font-medium">kcal pro Tag</label>
                         <input type="number" id="settings-daily-budget" min="800" max="5000" step="50"
-                               oninput="renderMenuBuilder()"
                                class="ui-input w-full border rounded-2xl px-3 py-2.5 text-base">
-                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1.5">Gilt jeden Tag fürs Menü. Extras nach Training auf der Garmin-Uhr ablesen.</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-[minmax(220px,280px)_1fr] gap-4 lg:gap-5 items-start">
-                        <div class="flex flex-col min-h-0">
-                            <div class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium shrink-0">
-                                Zutaten
-                                <span class="text-slate-400 dark:text-slate-500 font-normal block text-xs mt-0.5">Ziehen oder klicken · aktiv: <span id="active-meal-label" class="font-semibold text-teal-600 dark:text-teal-400">Frühstück</span></span>
-                            </div>
-                            <div id="ingredient-pool" class="ui-card flex flex-col gap-2 p-2 rounded-2xl overflow-y-auto lg:max-h-[calc(100dvh-15rem)]"></div>
-                        </div>
-                        <div class="flex flex-col min-h-0">
-                            <div class="shrink-0 mb-2">
-                                <div class="flex justify-between items-start gap-3">
-                                    <div class="text-sm text-slate-600 dark:text-slate-400 font-medium">Mahlzeiten</div>
-                                    <div class="text-right">
-                                        <div id="menu-remaining-kcal" class="text-sm font-bold text-teal-700 dark:text-teal-400"></div>
-                                        <div id="menu-protein-ampel" class="text-xs font-semibold mt-0.5"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="meal-slots-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-base"></div>
-                        </div>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1.5">Ziel fürs Menü. Extras nach Training auf der Garmin-Uhr ablesen.</p>
                     </div>
                 </div>
 
-                <details class="ui-panel rounded-3xl group">
-                    <summary class="px-5 py-4 cursor-pointer list-none flex items-center justify-between font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
-                        <span class="settings-section-title">ZUTATEN BEARBEITEN</span>
-                        <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
-                    </summary>
-                    <div class="px-5 pb-5 pt-1 border-t border-slate-100 dark:border-slate-700">
-                        <div class="hidden sm:grid grid-cols-[1fr_5.5rem_4.5rem_2rem] gap-3 text-xs font-bold uppercase tracking-wide text-slate-400 px-3 mb-2">
-                            <span>Zutat</span>
-                            <span class="text-right">kcal</span>
-                            <span class="text-right">Protein</span>
-                            <span></span>
-                        </div>
-                        <div id="ingredient-editor-list" class="space-y-2.5 max-h-[40vh] overflow-y-auto"></div>
-                        <button type="button" onclick="addIngredientInSettings()"
-                                class="mt-4 w-full py-3 border border-dashed border-slate-300 dark:border-slate-600 rounded-2xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800">
-                            + Zutat hinzufügen
-                        </button>
+                <div class="ui-panel rounded-3xl p-5">
+                    <div class="settings-section-title mb-3">ZUTATEN BEARBEITEN</div>
+                    <div class="hidden sm:grid grid-cols-[1fr_5.5rem_4.5rem_2rem] gap-3 text-xs font-bold uppercase tracking-wide text-slate-400 px-3 mb-2">
+                        <span>Zutat</span>
+                        <span class="text-right">kcal</span>
+                        <span class="text-right">Protein</span>
+                        <span></span>
                     </div>
-                </details>
+                    <div id="ingredient-editor-list" class="space-y-2.5 max-h-[50vh] overflow-y-auto"></div>
+                    <button type="button" onclick="addIngredientInSettings()"
+                            class="mt-4 w-full py-3 border border-dashed border-slate-300 dark:border-slate-600 rounded-2xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800">
+                        + Zutat hinzufügen
+                    </button>
+                </div>
 
                 <div class="ui-panel rounded-3xl p-5">
                     <div class="settings-section-title mb-3">BACKUP</div>
@@ -292,8 +271,6 @@
             'border-teal-200 dark:border-teal-800 dark:bg-teal-950/30',
             'border-purple-200 dark:border-purple-800 dark:bg-purple-950/30'
         ];
-        const MEAL_KCAL_COLOR = 'text-teal-600 dark:text-teal-400';
-        const MEAL_INGREDIENT_COLOR = 'text-slate-500 dark:text-slate-400';
         const DEFAULT_DAILY_BUDGET_KCAL = 1900;
 
         const DEFAULT_INGREDIENTS = [
@@ -334,7 +311,6 @@
 
         let settings = {};
         let activeMealSlot = 'Frühstück';
-        let menuBuilderDraft = null;
         let ingredientEditorDraft = null;
         let dragIngState = { id: null, sourceSlot: null, sourceIndex: null };
 
@@ -465,21 +441,18 @@
             return [...list].sort((a, b) => a.label.localeCompare(b.label, 'de', { numeric: true, sensitivity: 'base' }));
         }
 
-        function getBuilderIngredients() {
-            if (menuBuilderDraft) return sortIngredients(menuBuilderDraft.ingredients);
+        function getIngredients() {
             ensureMenuData();
             return sortIngredients(settings.ingredients);
         }
 
-        function getActiveMenuPlan() {
-            if (menuBuilderDraft?.menuPlan) return menuBuilderDraft.menuPlan;
+        function getMenuPlan() {
             ensureMenuData();
             return settings.menuPlan;
         }
 
-        function getIngredient(id, ingredients = null) {
-            const list = ingredients || getBuilderIngredients();
-            return (list || []).find(i => i.id === id) || null;
+        function getIngredient(id) {
+            return (settings.ingredients || []).find(i => i.id === id) || null;
         }
 
         function migrateDailyBudget() {
@@ -496,23 +469,13 @@
             return v > 0 ? Math.round(v) : DEFAULT_DAILY_BUDGET_KCAL;
         }
 
-        function getPreviewDailyBudget() {
-            const el = document.getElementById('settings-daily-budget');
-            const v = parseInt(el?.value, 10);
-            return v > 0 ? v : getDailyBudget();
-        }
-
-        function getBuilderBudget() {
-            if (isSettingsOpen()) return getPreviewDailyBudget();
-            return getDailyBudget();
-        }
-
         function sumMenuKcal(plan = null, ingredients = null) {
-            const menu = plan || getActiveMenuPlan();
+            const menu = plan || getMenuPlan();
+            const list = ingredients || settings.ingredients;
             let total = 0;
             MEAL_SLOTS.forEach(slot => {
                 (menu[slot] || []).forEach(ingId => {
-                    const ing = getIngredient(ingId, ingredients);
+                    const ing = (list || []).find(i => i.id === ingId);
                     if (ing) total += ing.kcal || 0;
                 });
             });
@@ -520,11 +483,12 @@
         }
 
         function sumMenuProtein(plan = null, ingredients = null) {
-            const menu = plan || getActiveMenuPlan();
+            const menu = plan || getMenuPlan();
+            const list = ingredients || settings.ingredients;
             let total = 0;
             MEAL_SLOTS.forEach(slot => {
                 (menu[slot] || []).forEach(ingId => {
-                    const ing = getIngredient(ingId, ingredients);
+                    const ing = (list || []).find(i => i.id === ingId);
                     if (ing) total += ing.protein || 0;
                 });
             });
@@ -539,61 +503,29 @@
                 .replace(/"/g, '&quot;');
         }
 
-        function sortIngredientLabels(items) {
-            return [...items].sort((a, b) =>
-                a.label.localeCompare(b.label, 'de', { numeric: true, sensitivity: 'base' })
-            );
-        }
-
-        function renderTodayMeals() {
-            ensureMenuData();
-            const container = document.getElementById('meals-today');
-            if (!container) return;
-            const plan = settings.menuPlan || {};
-            container.innerHTML = MEAL_SLOTS.map(slot => {
-                const ids = plan[slot] || [];
-                const items = sortIngredientLabels(
-                    ids.map(id => getIngredient(id, settings.ingredients)).filter(Boolean)
-                );
-                const slotKcal = items.reduce((sum, i) => sum + (i.kcal || 0), 0);
-                const slotProtein = items.reduce((sum, i) => sum + (i.protein || 0), 0);
-                const ingredientList = items.length
-                    ? items.map(i => `<li class="${MEAL_INGREDIENT_COLOR} leading-snug">${escapeHtml(i.label)}</li>`).join('')
-                    : '<li class="text-slate-400 dark:text-slate-500 leading-snug">—</li>';
-                return `
-                    <div class="meal-row flex justify-between items-start py-2.5 px-3 rounded-2xl min-h-0">
-                        <div class="min-w-0 flex-1 pr-2">
-                            <span class="font-medium text-slate-800 dark:text-slate-100">${slot}</span>
-                            <ul class="mt-1.5 space-y-0.5 list-none pl-0 text-xs">${ingredientList}</ul>
-                        </div>
-                        <div class="text-right font-bold ${MEAL_KCAL_COLOR} shrink-0">
-                            <div>${slotKcal} kcal</div>
-                            <div class="text-xs font-semibold accent-gold">${slotProtein}g Protein</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
         function setActiveMealSlot(slot) {
             activeMealSlot = slot;
             renderMenuBuilder();
         }
 
-        function addIngredientToSlot(slot, ingredientId) {
-            if (!menuBuilderDraft) return;
-            if (!getIngredient(ingredientId)) return;
-            if (!menuBuilderDraft.menuPlan[slot]) {
-                menuBuilderDraft.menuPlan[slot] = [];
-            }
-            menuBuilderDraft.menuPlan[slot].push(ingredientId);
+        function persistMenu() {
+            pruneMenuPlan(settings.menuPlan, new Set(settings.ingredients.map(i => i.id)));
+            saveData();
             renderMenuBuilder();
         }
 
+        function addIngredientToSlot(slot, ingredientId) {
+            ensureMenuData();
+            if (!getIngredient(ingredientId)) return;
+            if (!settings.menuPlan[slot]) settings.menuPlan[slot] = [];
+            settings.menuPlan[slot].push(ingredientId);
+            persistMenu();
+        }
+
         function removeIngredientFromSlot(slot, index) {
-            if (!menuBuilderDraft) return;
-            menuBuilderDraft.menuPlan[slot].splice(index, 1);
-            renderMenuBuilder();
+            ensureMenuData();
+            settings.menuPlan[slot]?.splice(index, 1);
+            persistMenu();
         }
 
         function clearIngDragState() {
@@ -624,9 +556,10 @@
             event.stopPropagation();
             event.currentTarget.classList.remove('meal-drop-active');
             const { id, sourceSlot, sourceIndex } = dragIngState;
-            if (!id || !menuBuilderDraft) return;
+            if (!id) return;
+            ensureMenuData();
 
-            const plan = menuBuilderDraft.menuPlan;
+            const plan = settings.menuPlan;
             if (!plan[slot]) plan[slot] = [];
             const target = plan[slot];
 
@@ -641,55 +574,53 @@
             }
 
             clearIngDragState();
-            renderMenuBuilder();
+            persistMenu();
         }
 
         function sumSlotKcal(slot) {
-            const plan = getActiveMenuPlan();
-            return (plan[slot] || []).reduce((sum, ingId) => {
+            return (getMenuPlan()[slot] || []).reduce((sum, ingId) => {
                 const ing = getIngredient(ingId);
                 return sum + (ing?.kcal || 0);
             }, 0);
         }
 
         function sumSlotProtein(slot) {
-            const plan = getActiveMenuPlan();
-            return (plan[slot] || []).reduce((sum, ingId) => {
+            return (getMenuPlan()[slot] || []).reduce((sum, ingId) => {
                 const ing = getIngredient(ingId);
                 return sum + (ing?.protein || 0);
             }, 0);
         }
 
         function renderMenuBuilder() {
-            if (!menuBuilderDraft) return;
-            const ingredients = menuBuilderDraft.ingredients;
-            const plan = menuBuilderDraft.menuPlan;
-            const used = sumMenuKcal(plan, ingredients);
-            const usedProtein = sumMenuProtein(plan, ingredients);
-            const budget = getBuilderBudget();
+            ensureMenuData();
+            const ingredients = getIngredients();
+            const plan = getMenuPlan();
+            const used = sumMenuKcal(plan, settings.ingredients);
+            const usedProtein = sumMenuProtein(plan, settings.ingredients);
+            const budget = getDailyBudget();
             const remaining = budget - used;
 
             const remEl = document.getElementById('menu-remaining-kcal');
             const ampelEl = document.getElementById('menu-protein-ampel');
             if (!remEl) return;
+
             const remClass = remaining < 0 ? 'text-red-600 dark:text-red-400' : (remaining < 100 ? 'accent-gold' : 'text-teal-700 dark:text-teal-400');
-            remEl.className = `text-base font-bold ${remClass}`;
+            remEl.className = `text-sm font-bold ${remClass}`;
             remEl.textContent = remaining >= 0
                 ? `Noch ${remaining} kcal · ${used}/${budget} kcal`
                 : `${Math.abs(remaining)} kcal drüber · ${used}/${budget} kcal`;
 
-            const proteinTarget = BASE_PROTEIN;
             if (ampelEl) {
                 let ampelClass = 'protein-ampel-ok';
-                let ampelText = `${usedProtein} / ${proteinTarget}g Protein ✓`;
-                if (usedProtein < proteinTarget - 10) {
+                let ampelText = `${usedProtein} / ${BASE_PROTEIN}g Protein ✓`;
+                if (usedProtein < BASE_PROTEIN - 10) {
                     ampelClass = 'protein-ampel-low';
-                    ampelText = `${usedProtein} / ${proteinTarget}g Protein — zu wenig`;
-                } else if (usedProtein < proteinTarget) {
+                    ampelText = `${usedProtein} / ${BASE_PROTEIN}g Protein — zu wenig`;
+                } else if (usedProtein < BASE_PROTEIN) {
                     ampelClass = 'protein-ampel-warn';
-                    ampelText = `${usedProtein} / ${proteinTarget}g Protein — knapp`;
+                    ampelText = `${usedProtein} / ${BASE_PROTEIN}g Protein — knapp`;
                 }
-                ampelEl.className = `text-sm font-semibold mt-0.5 ${ampelClass}`;
+                ampelEl.className = `text-xs font-semibold mt-0.5 ${ampelClass}`;
                 ampelEl.textContent = ampelText;
             }
 
@@ -740,7 +671,7 @@
                             <span class="font-semibold text-slate-800 dark:text-slate-100 text-base">${slot}</span>
                             <span class="text-sm font-bold text-slate-500 dark:text-slate-400">${slotKcal} kcal · ${slotProtein}g Protein</span>
                         </button>
-                        <div class="flex flex-wrap gap-2 h-[8.5rem] overflow-y-auto content-start">
+                        <div class="flex flex-wrap gap-2 min-h-[5.5rem] max-h-[10rem] overflow-y-auto content-start">
                             ${items || '<span class="text-sm text-slate-400 dark:text-slate-500 py-1">Hierher ziehen…</span>'}
                         </div>
                     </div>
@@ -770,17 +701,13 @@
 
         function updateIngredientDraft(id, field, value) {
             const ing = ingredientEditorDraft.find(i => i.id === id);
-            if (ing) {
-                ing[field] = value;
-                renderMenuBuilder();
-            }
+            if (ing) ing[field] = value;
         }
 
         function addIngredientInSettings() {
             if (!ingredientEditorDraft) return;
             ingredientEditorDraft.push({ id: 'i' + Date.now(), label: 'Neue Zutat', kcal: 0, protein: 0 });
             renderIngredientEditor();
-            renderMenuBuilder();
         }
 
         function removeIngredientDraft(id) {
@@ -789,21 +716,14 @@
                 return;
             }
             ingredientEditorDraft = ingredientEditorDraft.filter(i => i.id !== id);
-            if (menuBuilderDraft) menuBuilderDraft.ingredients = ingredientEditorDraft;
             renderIngredientEditor();
-            renderMenuBuilder();
         }
 
         function updateUI() {
             const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
             document.getElementById('current-day-name').textContent = dayNames[new Date().getDay()];
             document.getElementById('current-day-date').textContent = formatDateDE(getTodayKey());
-            renderTodayMeals();
-        }
-
-        function isSettingsOpen() {
-            const modal = document.getElementById('settings-modal');
-            return modal && !modal.classList.contains('hidden');
+            renderMenuBuilder();
         }
 
         function exportData() {
@@ -843,19 +763,13 @@
         function showSettings() {
             ensureMenuData();
             document.getElementById('settings-daily-budget').value = getDailyBudget();
-            menuBuilderDraft = {
-                ingredients: JSON.parse(JSON.stringify(settings.ingredients)),
-                menuPlan: JSON.parse(JSON.stringify(settings.menuPlan))
-            };
-            ingredientEditorDraft = menuBuilderDraft.ingredients;
-            renderMenuBuilder();
+            ingredientEditorDraft = JSON.parse(JSON.stringify(settings.ingredients));
             renderIngredientEditor();
             document.getElementById('settings-modal').classList.remove('hidden');
             document.getElementById('settings-modal').classList.add('flex');
         }
 
         function hideSettings() {
-            menuBuilderDraft = null;
             ingredientEditorDraft = null;
             document.getElementById('settings-modal').classList.remove('flex');
             document.getElementById('settings-modal').classList.add('hidden');
@@ -887,13 +801,12 @@
         function saveSettings() {
             const budget = parseInt(document.getElementById('settings-daily-budget').value, 10);
             settings.dailyBudgetKcal = budget > 0 ? budget : DEFAULT_DAILY_BUDGET_KCAL;
-            cleanupLegacySettings();
-            if (menuBuilderDraft) {
-                settings.ingredients = JSON.parse(JSON.stringify(menuBuilderDraft.ingredients));
-                settings.menuPlan = JSON.parse(JSON.stringify(menuBuilderDraft.menuPlan));
+            if (ingredientEditorDraft) {
+                settings.ingredients = JSON.parse(JSON.stringify(ingredientEditorDraft));
                 pruneMenuPlan(settings.menuPlan, new Set(settings.ingredients.map(i => i.id)));
+                settings.ingredients = sortIngredients(settings.ingredients);
             }
-            menuBuilderDraft = null;
+            cleanupLegacySettings();
             ingredientEditorDraft = null;
             hideSettings();
             updateUI();
